@@ -5,8 +5,7 @@ import (
 )
 
 func isWide(r rune) bool {
-	return r >= 0x1100 && (
-		r <= 0x115f || // Hangul Jamo
+	return r >= 0x1100 && (r <= 0x115f || // Hangul Jamo
 		r == 0x2329 || r == 0x232a ||
 		(r >= 0x2e80 && r <= 0xa4cf) ||
 		(r >= 0xac00 && r <= 0xd7a3) ||
@@ -46,4 +45,17 @@ func RuneWidth(r rune) int {
 	}
 
 	return 1
+}
+
+func StringWidth(s string, col int) int {
+	sum := 0
+	i := 0
+	for _, r := range s {
+		if i >= col {
+			break
+		}
+		sum += RuneWidth(r)
+		i++
+	}
+	return sum
 }

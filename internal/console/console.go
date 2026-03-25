@@ -39,7 +39,7 @@ func HomeCursor() {
 }
 
 func MoveCursor(x, y int) {
-	fmt.Printf("\x1b[%d;%dH", y + 1, x + 1)
+	fmt.Printf("\x1b[%d;%dH", y+1, x+1)
 }
 
 func HideCursor() {
@@ -60,13 +60,13 @@ func Size() (int, int) {
 
 func runeSize(b byte) int {
 	switch {
-	case b & 0x80 == 0:
+	case b&0x80 == 0:
 		return 1
-	case b & 0xe0 == 0xc0:
+	case b&0xe0 == 0xc0:
 		return 2
-	case b & 0xf0 == 0xe0:
+	case b&0xf0 == 0xe0:
 		return 3
-	case b & 0xf8 == 0xf0:
+	case b&0xf8 == 0xf0:
 		return 4
 	default:
 		return -1 // invalid

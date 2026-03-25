@@ -6,7 +6,7 @@ import (
 
 const Esc rune = 0x1b
 
-type Keyboard struct {}
+type Keyboard struct{}
 
 func NewKeyboard() Keyboard {
 	return Keyboard{}
