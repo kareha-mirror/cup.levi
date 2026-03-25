@@ -39,7 +39,7 @@ func HomeCursor() {
 }
 
 func MoveCursor(x, y int) {
-	fmt.Printf("\x1b[%d;%dH", y, x)
+	fmt.Printf("\x1b[%d;%dH", y + 1, x + 1)
 }
 
 func HideCursor() {

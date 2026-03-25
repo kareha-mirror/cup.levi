@@ -4,6 +4,14 @@ import (
 	"strings"
 
 	"tea.kareha.org/lab/levi/internal/console"
+	"tea.kareha.org/lab/levi/internal/util"
+)
+
+type mode int
+
+const (
+	modeCommand = iota
+	modeInsert
 )
 
 type Editor struct {
@@ -11,6 +19,7 @@ type Editor struct {
 	kb *Keyboard
 	x, y int
 	line *strings.Builder
+	mode mode
 }
 
 func New() *Editor {
@@ -23,6 +32,7 @@ func New() *Editor {
 		x: 0,
 		y: 0,
 		line: new(strings.Builder),
+		mode: modeCommand,
 	}
 }
 
@@ -30,26 +40,57 @@ func (ed *Editor) addRune(r rune) {
 	ed.line.WriteRune(r)
 }
 
-func (ed *Editor) draw() {
+func (ed *Editor) drawStatus() {
+	_, h := console.Size()
+
+	console.MoveCursor(0, h - 2)
+	switch ed.mode {
+	case modeCommand:
+		console.Print("-- [command] q: quit, i: insert --")
+	case modeInsert:
+		console.Print("-- [insert] Esc: command mode --")
+	}
+}
+
+func (ed *Editor) drawBuffer() {
+	console.Print(ed.line.String())
+}
+
+func (ed *Editor) repaint() {
+	console.HideCursor()
+
 	console.Clear()
 	console.HomeCursor()
 
-	console.Print("Hit Esc to Exit")
+	ed.drawBuffer()
+	ed.drawStatus()
 
 	console.MoveCursor(ed.x, ed.y)
-	console.Print(ed.line.String())
+
+	console.ShowCursor()
 }
 
 func (ed *Editor) Main() {
 	for {
-		console.HideCursor()
-		ed.draw()
-		console.ShowCursor()
+		ed.repaint()
 
 		r := ed.kb.ReadRune()
-		if r == Esc {
-			break
+		switch ed.mode {
+		case modeCommand:
+			switch r {
+			case 'q':
+				return
+			case 'i':
+				ed.mode = modeInsert
+			}
+		case modeInsert:
+			switch r {
+			case Esc:
+				ed.mode = modeCommand
+			default:
+				ed.addRune(r)
+				ed.x += util.RuneWidth(r)
+			}
 		}
-		ed.addRune(r)
 	}
 }
