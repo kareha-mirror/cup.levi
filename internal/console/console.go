@@ -97,11 +97,3 @@ func ReadRune() rune {
 	}
 	return r
 }
-
-func Print(s string) {
-	fmt.Print(s)
-}
-
-func Printf(format string, a ...any) (n int, err error) {
-	return fmt.Printf(format, a...)
-}

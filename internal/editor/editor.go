@@ -110,7 +110,7 @@ func (ed *Editor) drawBuffer() {
 		}
 
 		console.MoveCursor(0, y)
-		console.Print(line)
+		util.Print(line)
 
 		y += ed.lineHeight(line)
 		if y >= h-1 {
@@ -120,7 +120,7 @@ func (ed *Editor) drawBuffer() {
 
 	for ; y < h-1; y++ {
 		console.MoveCursor(0, y)
-		console.Print("~")
+		util.Print("~")
 	}
 }
 
@@ -130,9 +130,9 @@ func (ed *Editor) drawStatus() {
 	console.MoveCursor(0, h-1)
 	switch ed.mode {
 	case modeCommand:
-		console.Print("c")
+		util.Print("c")
 	case modeInsert:
-		console.Print("i")
+		util.Print("i")
 	}
 }
 
@@ -159,22 +159,23 @@ func (ed *Editor) updateCursor() {
 
 	if ed.row < ed.vrow {
 		ed.vrow = ed.row
-	} else if ed.vrow+h-2 <= ed.row {
-		ed.vrow = ed.row - (h - 2)
 	}
 
 	y := 0
 	for i := ed.vrow; i < ed.row; i++ {
-		var line string
-		if ed.mode == modeInsert && i == ed.row {
-			line = ed.head + ed.insert.String() + ed.tail
-		} else {
-			line = ed.lines[i]
-		}
-
-		y += ed.lineHeight(line)
+		y += ed.lineHeight(ed.lines[i])
 	}
 	ed.y = y + dy
+
+	for ed.y >= h-1 {
+		ed.vrow++
+
+		y := 0
+		for i := ed.vrow; i < ed.row; i++ {
+			y += ed.lineHeight(ed.lines[i])
+		}
+		ed.y = y + dy
+	}
 }
 
 func (ed *Editor) repaint() {
@@ -202,16 +203,20 @@ func (ed *Editor) exitInsert() {
 }
 
 func (ed *Editor) insertNewline() {
-	lines := make([]string, 0, len(ed.lines)+1)
-	lines = append(lines, ed.lines[:ed.row+1]...)
-	lines = append(lines, "")
+	before := make([]string, 0, len(ed.lines)+1)
+	before = append(before, ed.lines[:ed.row]...)
+	var after []string
 	if ed.row+1 < len(ed.lines) {
-		lines = append(lines, ed.lines[ed.row+1:]...)
+		after = ed.lines[ed.row+1:]
+	} else {
+		after = []string{}
 	}
+	newLines := []string{
+		ed.head + ed.insert.String(),
+		ed.tail,
+	}
+	ed.lines = append(append(before, newLines...), after...)
 
-	lines[ed.row] = ed.head + ed.insert.String()
-	lines[ed.row+1] = ed.tail
-	ed.lines = lines
 	ed.row++
 
 	ed.col = 0
