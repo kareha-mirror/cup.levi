@@ -20,6 +20,7 @@ type Editor struct {
 	kb         *keyboard
 	col, row   int
 	x, y       int
+	vrow       int
 	lines      []string
 	head, tail string
 	insert     *strings.Builder
@@ -39,6 +40,7 @@ func Init() *Editor {
 		row:    0,
 		x:      0,
 		y:      0,
+		vrow:   0,
 		lines:  make([]string, 1),
 		head:   "",
 		tail:   "",
@@ -69,7 +71,7 @@ func (ed *Editor) drawBuffer() {
 	_, h := ed.scr.size()
 
 	y := 0
-	for i := 0; i < len(ed.lines); i++ {
+	for i := ed.vrow; i < len(ed.lines); i++ {
 		var line string
 		if ed.mode == modeInsert && i == ed.row {
 			line = ed.head + ed.insert.String() + ed.tail
@@ -105,7 +107,7 @@ func (ed *Editor) drawStatus() {
 }
 
 func (ed *Editor) updateCursor() {
-	w, _ := ed.scr.size()
+	w, h := ed.scr.size()
 
 	var dy int
 	switch ed.mode {
@@ -125,8 +127,14 @@ func (ed *Editor) updateCursor() {
 		dy = width / w
 	}
 
+	if ed.row < ed.vrow {
+		ed.vrow = ed.row
+	} else if ed.vrow+h-2 <= ed.row {
+		ed.vrow = ed.row - (h - 2)
+	}
+
 	y := 0
-	for i := 0; i < ed.row; i++ {
+	for i := ed.vrow; i < ed.row; i++ {
 		var line string
 		if ed.mode == modeInsert && i == ed.row {
 			line = ed.head + ed.insert.String() + ed.tail
@@ -145,10 +153,11 @@ func (ed *Editor) repaint() {
 	console.Clear()
 	console.HomeCursor()
 
+	ed.updateCursor()
+
 	ed.drawBuffer()
 	ed.drawStatus()
 
-	ed.updateCursor()
 	console.MoveCursor(ed.x, ed.y)
 
 	console.ShowCursor()
