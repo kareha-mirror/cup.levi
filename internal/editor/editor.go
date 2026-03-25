@@ -20,12 +20,15 @@ type Editor struct {
 	kb         *Keyboard
 	col, row   int
 	x, y       int
+	lines      []string
 	head, tail string
 	insert     *strings.Builder
 	mode       mode
 }
 
-func New() *Editor {
+func Init() *Editor {
+	console.Raw()
+
 	scr := NewScreen()
 	kb := NewKeyboard()
 
@@ -36,6 +39,7 @@ func New() *Editor {
 		row:    0,
 		x:      0,
 		y:      0,
+		lines:  make([]string, 1),
 		head:   "",
 		tail:   "",
 		insert: new(strings.Builder),
@@ -43,18 +47,27 @@ func New() *Editor {
 	}
 }
 
-func (ed *Editor) addRune(r rune) {
-	ed.insert.WriteRune(r)
+func (ed *Editor) Finish() {
+	console.Clear()
+	console.HomeCursor()
+	console.Cooked()
+	console.ShowCursor()
+}
+
+func (ed *Editor) runeCount() int {
+	return utf8.RuneCountInString(ed.lines[ed.row])
 }
 
 func (ed *Editor) drawBuffer() {
-	switch ed.mode {
-	case modeCommand:
-		console.Print(ed.head)
-	case modeInsert:
-		console.Print(ed.head)
-		console.Print(ed.insert.String())
-		console.Print(ed.tail)
+	for i := 0; i < len(ed.lines); i++ {
+		console.MoveCursor(0, i)
+		if ed.mode == modeInsert && i == ed.row {
+			console.Print(ed.head)
+			console.Print(ed.insert.String())
+			console.Print(ed.tail)
+		} else {
+			console.Print(ed.lines[i])
+		}
 	}
 }
 
@@ -73,7 +86,10 @@ func (ed *Editor) drawStatus() {
 func (ed *Editor) updateCursor() {
 	switch ed.mode {
 	case modeCommand:
-		ed.x = util.StringWidth(ed.head, ed.col)
+		ed.row = min(max(ed.row, 0), max(len(ed.lines)-1, 0))
+		len := ed.runeCount()
+		ed.col = min(ed.col, max(len-1, 0))
+		ed.x = util.StringWidth(ed.lines[ed.row], ed.col)
 	case modeInsert:
 		ed.x = util.StringWidth(ed.head+ed.insert.String(), ed.col)
 	}
@@ -95,31 +111,28 @@ func (ed *Editor) repaint() {
 	console.ShowCursor()
 }
 
-func (ed *Editor) enterInsert() {
-	rs := []rune(ed.head)
-	ed.head = string(rs[:ed.col])
-	ed.tail = string(rs[ed.col:])
-	ed.mode = modeInsert
+func (ed *Editor) exitInsert() {
+	ed.lines[ed.row] = ed.head + ed.insert.String() + ed.tail
+	ed.tail = ""
+	ed.insert = new(strings.Builder)
+	ed.mode = modeCommand
+	ed.moveLeft(1)
 }
 
-func (ed *Editor) enterInsertAfter() {
-	len := utf8.RuneCountInString(ed.head)
-	if ed.col < len-1 {
-		ed.moveRight(1)
-		ed.enterInsert()
-		return
-	} else {
-		ed.col++
-		ed.mode = modeInsert
-	}
+func (ed *Editor) insertNewline() {
+	ed.lines[ed.row] = ed.head + ed.insert.String()
+	ed.lines = append(ed.lines, "")
+	copy(ed.lines[ed.row+1:], ed.lines[ed.row:])
+	ed.row++
+	ed.lines[ed.row] = ed.tail
+	ed.col = 0
+	ed.head = ""
+	ed.insert = new(strings.Builder)
 }
 
-func (ed *Editor) moveLeft(n int) {
-	ed.col = max(ed.col-n, 0)
-}
-
-func (ed *Editor) moveRight(n int) {
-	ed.col = min(ed.col+n, max(utf8.RuneCountInString(ed.head)-1, 0))
+func (ed *Editor) insertRune(r rune) {
+	ed.insert.WriteRune(r)
+	ed.col++
 }
 
 func (ed *Editor) Main() {
@@ -140,18 +153,19 @@ func (ed *Editor) Main() {
 				ed.moveLeft(1)
 			case 'l':
 				ed.moveRight(1)
+			case 'j':
+				ed.moveDown(1)
+			case 'k':
+				ed.moveUp(1)
 			}
 		case modeInsert:
 			switch r {
-			case Esc:
-				ed.head = ed.head + ed.insert.String() + ed.tail
-				ed.tail = ""
-				ed.insert = new(strings.Builder)
-				ed.mode = modeCommand
-				ed.moveLeft(1)
+			case Escape:
+				ed.exitInsert()
+			case Enter:
+				ed.insertNewline()
 			default:
-				ed.addRune(r)
-				ed.col++
+				ed.insertRune(r)
 			}
 		}
 	}

@@ -4,7 +4,8 @@ import (
 	"tea.kareha.org/lab/levi/internal/console"
 )
 
-const Esc rune = 0x1b
+const Escape rune = 0x1b
+const Enter rune = '\r'
 
 type Keyboard struct{}
 

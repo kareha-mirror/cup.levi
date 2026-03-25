@@ -20,7 +20,7 @@ func isEmoji(r rune) bool {
 	return r >= 0x1f300 && r <= 0x1faff
 }
 
-func RuneWidth(r rune) int {
+func runeWidth(r rune) int {
 	// control code
 	if r == 0 {
 		return 0
@@ -54,7 +54,7 @@ func StringWidth(s string, col int) int {
 		if i >= col {
 			break
 		}
-		sum += RuneWidth(r)
+		sum += runeWidth(r)
 		i++
 	}
 	return sum
