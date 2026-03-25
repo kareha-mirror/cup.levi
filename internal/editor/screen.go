@@ -4,18 +4,18 @@ import (
 	"tea.kareha.org/lab/levi/internal/console"
 )
 
-type Screen struct {
+type screen struct {
 	w, h int
 }
 
-func NewScreen() Screen {
+func newScreen() screen {
 	w, h := console.Size()
-	return Screen{
+	return screen{
 		w: w,
 		h: h,
 	}
 }
 
-func (scr *Screen) Size() (int, int) {
+func (scr *screen) size() (int, int) {
 	return scr.w, scr.h
 }
