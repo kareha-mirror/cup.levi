@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"io/ioutil"
 	"strings"
 	"unicode/utf8"
 
@@ -25,9 +26,29 @@ type Editor struct {
 	head, tail string
 	insert     *strings.Builder
 	mode       mode
+	path       string
 }
 
-func Init() *Editor {
+func Init(args []string) *Editor {
+	var path string
+	var lines []string
+	if len(args) > 1 {
+		path = args[1]
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+		if len(data) > 0 {
+			if data[len(data)-1] == '\n' {
+				data = data[:len(data)-1]
+			}
+			lines = strings.Split(string(data), "\n")
+		}
+	}
+	if len(lines) < 1 {
+		lines = make([]string, 1)
+	}
+
 	console.Raw()
 
 	scr := newScreen()
@@ -41,11 +62,12 @@ func Init() *Editor {
 		x:      0,
 		y:      0,
 		vrow:   0,
-		lines:  make([]string, 1),
+		lines:  lines,
 		head:   "",
 		tail:   "",
 		insert: new(strings.Builder),
 		mode:   modeCommand,
+		path:   path,
 	}
 }
 
@@ -54,6 +76,14 @@ func (ed *Editor) Finish() {
 	console.HomeCursor()
 	console.Cooked()
 	console.ShowCursor()
+
+	if ed.path != "" {
+		text := strings.Join(ed.lines, "\n") + "\n"
+		err := ioutil.WriteFile(ed.path, []byte(text), 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (ed *Editor) runeCount() int {
