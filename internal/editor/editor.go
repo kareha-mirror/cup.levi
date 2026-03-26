@@ -197,7 +197,7 @@ func (ed *Editor) repaint() {
 func (ed *Editor) exitInsert() {
 	ed.lines[ed.row] = ed.head + ed.insert.String() + ed.tail
 	ed.tail = ""
-	ed.insert = new(strings.Builder)
+	ed.insert.Reset()
 	ed.mode = modeCommand
 	ed.moveLeft(1)
 }
@@ -221,7 +221,19 @@ func (ed *Editor) insertNewline() {
 
 	ed.col = 0
 	ed.head = ""
-	ed.insert = new(strings.Builder)
+	ed.insert.Reset()
+}
+
+func (ed *Editor) deleteBefore() {
+	if ed.insert.Len() < 1 {
+		return // TODO ring
+	}
+	insert := ed.insert.String()
+	_, size := utf8.DecodeLastRuneInString(insert)
+	insert = insert[:len(insert)-size]
+	ed.insert.Reset()
+	ed.insert.WriteString(insert)
+	ed.col--
 }
 
 func (ed *Editor) insertRune(r rune) {
@@ -273,6 +285,10 @@ func (ed *Editor) Main() {
 					ed.exitInsert()
 				case runeEnter:
 					ed.insertNewline()
+				case runeBackspace:
+					ed.deleteBefore()
+				case runeDelete:
+					ed.deleteBefore()
 				default:
 					ed.insertRune(r)
 				}

@@ -6,6 +6,8 @@ import (
 
 const runeEscape rune = 0x1b
 const runeEnter rune = '\r'
+const runeBackspace rune = '\b'
+const runeDelete rune = 0x7f
 
 type key int
 
