@@ -1,7 +1,6 @@
 package editor
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"unicode/utf8"
@@ -36,7 +35,7 @@ func (ed *Editor) load() {
 	if err != nil { // file not exists
 		return
 	}
-	data, err := ioutil.ReadFile(ed.path)
+	data, err := os.ReadFile(ed.path)
 	if err != nil {
 		panic(err)
 	}
@@ -82,7 +81,7 @@ func (ed *Editor) save() {
 		return
 	}
 	text := strings.Join(ed.lines, "\n") + "\n"
-	err := ioutil.WriteFile(ed.path, []byte(text), 0644)
+	err := os.WriteFile(ed.path, []byte(text), 0644)
 	if err != nil {
 		panic(err)
 	}
