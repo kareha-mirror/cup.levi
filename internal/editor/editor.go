@@ -2,6 +2,7 @@ package editor
 
 import (
 	"io/ioutil"
+	"os"
 	"strings"
 	"unicode/utf8"
 
@@ -34,15 +35,18 @@ func Init(args []string) *Editor {
 	var lines []string
 	if len(args) > 1 {
 		path = args[1]
-		data, err := ioutil.ReadFile(path)
-		if err != nil {
-			panic(err)
-		}
-		if len(data) > 0 {
-			if data[len(data)-1] == '\n' {
-				data = data[:len(data)-1]
+		_, err := os.Stat(path)
+		if err == nil { // file exists
+			data, err := ioutil.ReadFile(path)
+			if err != nil {
+				panic(err)
 			}
-			lines = strings.Split(string(data), "\n")
+			if len(data) > 0 {
+				if data[len(data)-1] == '\n' {
+					data = data[:len(data)-1]
+				}
+				lines = strings.Split(string(data), "\n")
+			}
 		}
 	}
 	if len(lines) < 1 {
