@@ -7,7 +7,6 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/lab/levi/internal/console"
-	"tea.kareha.org/lab/levi/internal/util"
 )
 
 type mode int
@@ -18,8 +17,6 @@ const (
 )
 
 type Editor struct {
-	scr        *screen
-	kb         *keyboard
 	col, row   int
 	x, y       int
 	vrow       int
@@ -55,12 +52,7 @@ func Init(args []string) *Editor {
 
 	console.Raw()
 
-	scr := newScreen()
-	kb := newKeyboard()
-
 	return &Editor{
-		scr:    &scr,
-		kb:     &kb,
 		col:    0,
 		row:    0,
 		x:      0,
@@ -95,14 +87,14 @@ func (ed *Editor) runeCount() int {
 }
 
 func (ed *Editor) lineHeight(line string) int {
-	w, _ := ed.scr.size()
+	w, _ := console.Size()
 	rc := utf8.RuneCountInString(line)
-	width := util.StringWidth(line, rc)
+	width := console.StringWidth(line, rc)
 	return 1 + max(width-1, 0)/w
 }
 
 func (ed *Editor) drawBuffer() {
-	_, h := ed.scr.size()
+	_, h := console.Size()
 
 	y := 0
 	for i := ed.vrow; i < len(ed.lines); i++ {
@@ -114,7 +106,7 @@ func (ed *Editor) drawBuffer() {
 		}
 
 		console.MoveCursor(0, y)
-		util.Print(line)
+		console.Print(line)
 
 		y += ed.lineHeight(line)
 		if y >= h-1 {
@@ -124,24 +116,24 @@ func (ed *Editor) drawBuffer() {
 
 	for ; y < h-1; y++ {
 		console.MoveCursor(0, y)
-		util.Print("~")
+		console.Print("~")
 	}
 }
 
 func (ed *Editor) drawStatus() {
-	_, h := ed.scr.size()
+	_, h := console.Size()
 
 	console.MoveCursor(0, h-1)
 	switch ed.mode {
 	case modeCommand:
-		util.Print("c")
+		console.Print("c")
 	case modeInsert:
-		util.Print("i")
+		console.Print("i")
 	}
 }
 
 func (ed *Editor) updateCursor() {
-	w, h := ed.scr.size()
+	w, h := console.Size()
 
 	var dy int
 	switch ed.mode {
@@ -151,12 +143,12 @@ func (ed *Editor) updateCursor() {
 		ed.col = min(ed.col, max(len-1, 0))
 
 		// XXX approximation
-		width := util.StringWidth(ed.lines[ed.row], ed.col)
+		width := console.StringWidth(ed.lines[ed.row], ed.col)
 		ed.x = width % w
 		dy = width / w
 	case modeInsert:
 		// XXX approximation
-		width := util.StringWidth(ed.head+ed.insert.String(), ed.col)
+		width := console.StringWidth(ed.head+ed.insert.String(), ed.col)
 		ed.x = width % w
 		dy = width / w
 	}
@@ -249,11 +241,11 @@ func (ed *Editor) Main() {
 	for {
 		ed.repaint()
 
-		k, r := ed.kb.readKey()
+		k, r := console.ReadKey()
 		switch ed.mode {
 		case modeCommand:
 			switch k {
-			case keyNormal:
+			case console.KeyNormal:
 				switch r {
 				case 'q':
 					return
@@ -272,42 +264,42 @@ func (ed *Editor) Main() {
 				case 'x':
 					ed.deleteRune(1)
 				}
-			case keyUp:
+			case console.KeyUp:
 				ed.moveUp(1)
-			case keyDown:
+			case console.KeyDown:
 				ed.moveDown(1)
-			case keyRight:
+			case console.KeyRight:
 				ed.moveRight(1)
-			case keyLeft:
+			case console.KeyLeft:
 				ed.moveLeft(1)
 			default:
 				// TODO ring
 			}
 		case modeInsert:
 			switch k {
-			case keyNormal:
+			case console.KeyNormal:
 				switch r {
-				case runeEscape:
+				case console.RuneEscape:
 					ed.exitInsert()
-				case runeEnter:
+				case console.RuneEnter:
 					ed.insertNewline()
-				case runeBackspace:
+				case console.RuneBackspace:
 					ed.deleteBefore()
-				case runeDelete:
+				case console.RuneDelete:
 					ed.deleteBefore()
 				default:
 					ed.insertRune(r)
 				}
-			case keyUp:
+			case console.KeyUp:
 				ed.exitInsert()
 				ed.moveUp(1)
-			case keyDown:
+			case console.KeyDown:
 				ed.exitInsert()
 				ed.moveDown(1)
-			case keyRight:
+			case console.KeyRight:
 				ed.exitInsert()
 				ed.moveRight(1)
-			case keyLeft:
+			case console.KeyLeft:
 				ed.exitInsert()
 				ed.moveLeft(1)
 			default:
