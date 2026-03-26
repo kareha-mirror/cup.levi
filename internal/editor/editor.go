@@ -265,6 +265,8 @@ func (ed *Editor) Main() {
 					ed.moveDown(1)
 				case 'k':
 					ed.moveUp(1)
+				case 'x':
+					ed.deleteRune(1)
 				}
 			case keyUp:
 				ed.moveUp(1)

@@ -36,3 +36,21 @@ func (ed *Editor) moveDown(n int) {
 func (ed *Editor) moveUp(n int) {
 	ed.row = max(ed.row-n, 0)
 }
+
+func (ed *Editor) deleteRune(n int) {
+	if len(ed.lines[ed.row]) < 1 {
+		return // XXX ring
+	}
+	rs := []rune(ed.lines[ed.row])
+	if ed.col < 1 {
+		ed.lines[ed.row] = string(rs[1:])
+	} else {
+		head := string(rs[:ed.col])
+		tail := string(rs[ed.col+1:])
+		ed.lines[ed.row] = head + tail
+	}
+	rc := ed.runeCount()
+	if ed.row >= rc-1 {
+		ed.row = rc - 1
+	}
+}
