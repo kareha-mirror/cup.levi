@@ -3,7 +3,7 @@ package editor
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/lab/levi/internal/console"
+	"tea.kareha.org/lab/termi"
 )
 
 func (ed *Editor) exitInsert() {
@@ -53,12 +53,12 @@ func (ed *Editor) Main() {
 	for {
 		ed.repaint()
 
-		k, r := console.ReadKey()
+		key := termi.ReadKey()
 		switch ed.mode {
 		case modeCommand:
-			switch k {
-			case console.KeyNormal:
-				switch r {
+			switch key.Kind {
+			case termi.KeyRune:
+				switch key.Rune {
 				case 'q':
 					return
 				case 'i':
@@ -78,42 +78,42 @@ func (ed *Editor) Main() {
 				default:
 					ed.ring()
 				}
-			case console.KeyUp:
+			case termi.KeyUp:
 				ed.moveUp(1)
-			case console.KeyDown:
+			case termi.KeyDown:
 				ed.moveDown(1)
-			case console.KeyRight:
+			case termi.KeyRight:
 				ed.moveRight(1)
-			case console.KeyLeft:
+			case termi.KeyLeft:
 				ed.moveLeft(1)
 			default:
 				ed.ring()
 			}
 		case modeInsert:
-			switch k {
-			case console.KeyNormal:
-				switch r {
-				case console.RuneEscape:
+			switch key.Kind {
+			case termi.KeyRune:
+				switch key.Rune {
+				case termi.RuneEscape:
 					ed.exitInsert()
-				case console.RuneEnter:
+				case termi.RuneEnter:
 					ed.insertNewline()
-				case console.RuneBackspace:
+				case termi.RuneBackspace:
 					ed.deleteBefore()
-				case console.RuneDelete:
+				case termi.RuneDelete:
 					ed.deleteBefore()
 				default:
-					ed.insertRune(r)
+					ed.insertRune(key.Rune)
 				}
-			case console.KeyUp:
+			case termi.KeyUp:
 				ed.exitInsert()
 				ed.moveUp(1)
-			case console.KeyDown:
+			case termi.KeyDown:
 				ed.exitInsert()
 				ed.moveDown(1)
-			case console.KeyRight:
+			case termi.KeyRight:
 				ed.exitInsert()
 				ed.moveRight(1)
-			case console.KeyLeft:
+			case termi.KeyLeft:
 				ed.exitInsert()
 				ed.moveLeft(1)
 			default:

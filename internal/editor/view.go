@@ -3,18 +3,18 @@ package editor
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/lab/levi/internal/console"
+	"tea.kareha.org/lab/termi"
 )
 
 func (ed *Editor) lineHeight(line string) int {
-	w, _ := console.Size()
+	w, _ := termi.Size()
 	rc := utf8.RuneCountInString(line)
-	width := console.StringWidth(line, rc)
+	width := termi.StringWidth(line, rc)
 	return 1 + max(width-1, 0)/w
 }
 
 func (ed *Editor) drawBuffer() {
-	_, h := console.Size()
+	_, h := termi.Size()
 
 	y := 0
 	for i := ed.vrow; i < len(ed.lines); i++ {
@@ -25,8 +25,8 @@ func (ed *Editor) drawBuffer() {
 			line = ed.lines[i]
 		}
 
-		console.MoveCursor(0, y)
-		console.Print(line)
+		termi.MoveCursor(0, y)
+		termi.Draw(line)
 
 		y += ed.lineHeight(line)
 		if y >= h-1 {
@@ -35,8 +35,8 @@ func (ed *Editor) drawBuffer() {
 	}
 
 	for ; y < h-1; y++ {
-		console.MoveCursor(0, y)
-		console.Print("~")
+		termi.MoveCursor(0, y)
+		termi.Draw("~")
 	}
 }
 
@@ -49,20 +49,20 @@ func (ed *Editor) drawStatus() {
 		m = "i"
 	}
 
-	_, h := console.Size()
-	console.MoveCursor(0, h-1)
+	_, h := termi.Size()
+	termi.MoveCursor(0, h-1)
 	if ed.bell {
-		console.EnableInvert()
+		termi.EnableInvert()
 	}
-	console.Printf("%s %d,%d %s", m, ed.row, ed.col, ed.path)
+	termi.Printf("%s %d,%d %s", m, ed.row, ed.col, ed.path)
 	if ed.bell {
-		console.DisableInvert()
+		termi.DisableInvert()
 	}
 	ed.bell = false
 }
 
 func (ed *Editor) updateCursor() {
-	w, h := console.Size()
+	w, h := termi.Size()
 
 	var dy int
 	switch ed.mode {
@@ -72,12 +72,12 @@ func (ed *Editor) updateCursor() {
 		ed.col = min(ed.col, max(len-1, 0))
 
 		// XXX approximation
-		width := console.StringWidth(ed.lines[ed.row], ed.col)
+		width := termi.StringWidth(ed.lines[ed.row], ed.col)
 		ed.x = width % w
 		dy = width / w
 	case modeInsert:
 		// XXX approximation
-		width := console.StringWidth(ed.head+ed.insert.String(), ed.col)
+		width := termi.StringWidth(ed.head+ed.insert.String(), ed.col)
 		ed.x = width % w
 		dy = width / w
 	}
@@ -104,17 +104,17 @@ func (ed *Editor) updateCursor() {
 }
 
 func (ed *Editor) repaint() {
-	console.HideCursor()
+	termi.HideCursor()
 
-	console.Clear()
-	console.HomeCursor()
+	termi.Clear()
+	termi.HomeCursor()
 
 	ed.updateCursor()
 
 	ed.drawBuffer()
 	ed.drawStatus()
 
-	console.MoveCursor(ed.x, ed.y)
+	termi.MoveCursor(ed.x, ed.y)
 
-	console.ShowCursor()
+	termi.ShowCursor()
 }

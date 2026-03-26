@@ -52,6 +52,6 @@ func (ed *Editor) deleteRune(n int) {
 	}
 	rc := ed.runeCount()
 	if ed.col >= rc {
-		ed.col = max(rc - 1, 0)
+		ed.col = max(rc-1, 0)
 	}
 }

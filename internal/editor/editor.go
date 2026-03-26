@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"tea.kareha.org/lab/levi/internal/console"
+	"tea.kareha.org/lab/termi"
 )
 
 type mode int
@@ -72,7 +72,7 @@ func Init(args []string) *Editor {
 
 	ed.load()
 
-	console.Raw()
+	termi.Raw()
 	return ed
 }
 
@@ -88,10 +88,10 @@ func (ed *Editor) save() {
 }
 
 func (ed *Editor) Finish() {
-	console.Clear()
-	console.HomeCursor()
-	console.Cooked()
-	console.ShowCursor()
+	termi.Clear()
+	termi.HomeCursor()
+	termi.Cooked()
+	termi.ShowCursor()
 
 	ed.save()
 }
