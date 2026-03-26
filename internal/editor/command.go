@@ -8,9 +8,9 @@ func (ed *Editor) enterInsert() {
 }
 
 func (ed *Editor) enterInsertAfter() {
-	len := ed.runeCount()
-	if ed.col >= len-1 {
-		ed.col = len
+	rc := ed.runeCount()
+	if ed.col >= rc-1 {
+		ed.col = rc
 		ed.head = ed.lines[ed.row]
 		ed.tail = ""
 		ed.mode = modeInsert

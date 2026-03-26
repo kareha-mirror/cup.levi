@@ -9,7 +9,7 @@ import (
 type Key int
 
 const (
-	KeyNormal = iota
+	KeyNormal Key = iota
 	KeyUp
 	KeyDown
 	KeyRight
