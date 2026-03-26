@@ -38,7 +38,8 @@ func (ed *Editor) insertNewline() {
 
 func (ed *Editor) deleteBefore() {
 	if ed.insert.Len() < 1 {
-		return // TODO ring
+		ed.ring()
+		return
 	}
 	insert := ed.insert.String()
 	_, size := utf8.DecodeLastRuneInString(insert)
@@ -74,6 +75,8 @@ func (ed *Editor) Main() {
 					ed.moveUp(1)
 				case 'x':
 					ed.deleteRune(1)
+				default:
+					ed.ring()
 				}
 			case console.KeyUp:
 				ed.moveUp(1)
@@ -84,7 +87,7 @@ func (ed *Editor) Main() {
 			case console.KeyLeft:
 				ed.moveLeft(1)
 			default:
-				// TODO ring
+				ed.ring()
 			}
 		case modeInsert:
 			switch k {
@@ -114,7 +117,7 @@ func (ed *Editor) Main() {
 				ed.exitInsert()
 				ed.moveLeft(1)
 			default:
-				// TODO ring
+				ed.ring()
 			}
 		}
 	}

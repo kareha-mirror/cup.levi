@@ -39,7 +39,8 @@ func (ed *Editor) moveUp(n int) {
 
 func (ed *Editor) deleteRune(n int) {
 	if len(ed.lines[ed.row]) < 1 {
-		return // XXX ring
+		ed.ring()
+		return
 	}
 	rs := []rune(ed.lines[ed.row])
 	if ed.col < 1 {

@@ -51,7 +51,14 @@ func (ed *Editor) drawStatus() {
 
 	_, h := console.Size()
 	console.MoveCursor(0, h-1)
+	if ed.bell {
+		console.EnableInvert()
+	}
 	console.Printf("%s %d,%d %s", m, ed.row, ed.col, ed.path)
+	if ed.bell {
+		console.DisableInvert()
+	}
+	ed.bell = false
 }
 
 func (ed *Editor) updateCursor() {

@@ -25,6 +25,7 @@ type Editor struct {
 	insert     *strings.Builder
 	mode       mode
 	path       string
+	bell       bool
 }
 
 func (ed *Editor) load() {
@@ -67,6 +68,7 @@ func Init(args []string) *Editor {
 		insert: new(strings.Builder),
 		mode:   modeCommand,
 		path:   path,
+		bell:   false,
 	}
 
 	ed.load()
@@ -102,4 +104,8 @@ func (ed *Editor) runeCount() int {
 func (ed *Editor) insertRune(r rune) {
 	ed.insert.WriteRune(r)
 	ed.col++
+}
+
+func (ed *Editor) ring() {
+	ed.bell = true
 }

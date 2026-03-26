@@ -55,3 +55,11 @@ func Size() (int, int) {
 	}
 	return w, h
 }
+
+func EnableInvert() {
+	fmt.Print("\x1b[7m")
+}
+
+func DisableInvert() {
+	fmt.Print("\x1b[0m")
+}
