@@ -6,21 +6,21 @@ import (
 	"tea.kareha.org/lab/termi"
 )
 
-func (ed *Editor) lineHeight(line string) int {
+func (ed *Editor) LineHeight(line string) int {
 	w, _ := termi.Size()
 	rc := utf8.RuneCountInString(line)
 	width := termi.StringWidth(line, rc)
 	return 1 + max(width-1, 0)/w
 }
 
-func (ed *Editor) drawBuffer() {
+func (ed *Editor) DrawBuffer() {
 	_, h := termi.Size()
 
 	y := 0
 	for i := ed.vrow; i < len(ed.lines); i++ {
 		var line string
-		if ed.mode == modeInsert && i == ed.row {
-			line = ed.head + ed.insert.String() + ed.tail
+		if ed.mode == ModeInsert && i == ed.row {
+			line = ed.ins.Line()
 		} else {
 			line = ed.lines[i]
 		}
@@ -28,7 +28,7 @@ func (ed *Editor) drawBuffer() {
 		termi.MoveCursor(0, y)
 		termi.Draw(line)
 
-		y += ed.lineHeight(line)
+		y += ed.LineHeight(line)
 		if y >= h-1 {
 			break
 		}
@@ -40,12 +40,12 @@ func (ed *Editor) drawBuffer() {
 	}
 }
 
-func (ed *Editor) drawStatus() {
+func (ed *Editor) DrawStatus() {
 	var m string
 	switch ed.mode {
-	case modeCommand:
+	case ModeCommand:
 		m = "c"
-	case modeInsert:
+	case ModeInsert:
 		m = "i"
 	}
 
@@ -61,23 +61,23 @@ func (ed *Editor) drawStatus() {
 	ed.bell = false
 }
 
-func (ed *Editor) updateCursor() {
+func (ed *Editor) UpdateCursor() {
 	w, h := termi.Size()
 
 	var dy int
 	switch ed.mode {
-	case modeCommand:
+	case ModeCommand:
 		ed.row = min(max(ed.row, 0), max(len(ed.lines)-1, 0))
-		len := ed.runeCount()
+		len := ed.RuneCount()
 		ed.col = min(ed.col, max(len-1, 0))
 
 		// XXX approximation
 		width := termi.StringWidth(ed.lines[ed.row], ed.col)
 		ed.x = width % w
 		dy = width / w
-	case modeInsert:
+	case ModeInsert:
 		// XXX approximation
-		width := termi.StringWidth(ed.head+ed.insert.String(), ed.col)
+		width := ed.ins.Width()
 		ed.x = width % w
 		dy = width / w
 	}
@@ -88,7 +88,7 @@ func (ed *Editor) updateCursor() {
 
 	y := 0
 	for i := ed.vrow; i < ed.row; i++ {
-		y += ed.lineHeight(ed.lines[i])
+		y += ed.LineHeight(ed.lines[i])
 	}
 	ed.y = y + dy
 
@@ -97,22 +97,22 @@ func (ed *Editor) updateCursor() {
 
 		y := 0
 		for i := ed.vrow; i < ed.row; i++ {
-			y += ed.lineHeight(ed.lines[i])
+			y += ed.LineHeight(ed.lines[i])
 		}
 		ed.y = y + dy
 	}
 }
 
-func (ed *Editor) repaint() {
+func (ed *Editor) Repaint() {
 	termi.HideCursor()
 
 	termi.Clear()
 	termi.HomeCursor()
 
-	ed.updateCursor()
+	ed.UpdateCursor()
 
-	ed.drawBuffer()
-	ed.drawStatus()
+	ed.DrawBuffer()
+	ed.DrawStatus()
 
 	termi.MoveCursor(ed.x, ed.y)
 

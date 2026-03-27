@@ -1,20 +1,17 @@
 package editor
 
 import (
-	"unicode/utf8"
-
 	"tea.kareha.org/lab/termi"
 )
 
-func (ed *Editor) exitInsert() {
-	ed.lines[ed.row] = ed.head + ed.insert.String() + ed.tail
-	ed.tail = ""
-	ed.insert.Reset()
-	ed.mode = modeCommand
-	ed.moveLeft(1)
+func (ed *Editor) ExitInsert() {
+	ed.lines[ed.row] = ed.ins.Line()
+	ed.ins.Reset()
+	ed.mode = ModeCommand
+	ed.MoveLeft(1)
 }
 
-func (ed *Editor) insertNewline() {
+func (ed *Editor) InsertNewline() {
 	before := make([]string, 0, len(ed.lines)+1)
 	before = append(before, ed.lines[:ed.row]...)
 	var after []string
@@ -23,101 +20,89 @@ func (ed *Editor) insertNewline() {
 	} else {
 		after = []string{}
 	}
-	newLines := []string{
-		ed.head + ed.insert.String(),
-		ed.tail,
-	}
-	ed.lines = append(append(before, newLines...), after...)
-
+	lines := ed.ins.Newline()
+	ed.lines = append(append(before, lines...), after...)
 	ed.row++
-
 	ed.col = 0
-	ed.head = ""
-	ed.insert.Reset()
 }
 
-func (ed *Editor) deleteBefore() {
-	if ed.insert.Len() < 1 {
-		ed.ring()
+func (ed *Editor) DeleteBefore() {
+	if !ed.ins.Backspace() {
+		ed.Ring()
 		return
 	}
-	insert := ed.insert.String()
-	_, size := utf8.DecodeLastRuneInString(insert)
-	insert = insert[:len(insert)-size]
-	ed.insert.Reset()
-	ed.insert.WriteString(insert)
 	ed.col--
 }
 
 func (ed *Editor) Main() {
 	for {
-		ed.repaint()
+		ed.Repaint()
 
 		key := termi.ReadKey()
 		switch ed.mode {
-		case modeCommand:
+		case ModeCommand:
 			switch key.Kind {
 			case termi.KeyRune:
 				switch key.Rune {
 				case 'q':
 					return
 				case 'i':
-					ed.enterInsert()
+					ed.Insert()
 				case 'a':
-					ed.enterInsertAfter()
+					ed.InsertAfter()
 				case 'h':
-					ed.moveLeft(1)
+					ed.MoveLeft(1)
 				case 'l':
-					ed.moveRight(1)
+					ed.MoveRight(1)
 				case 'j':
-					ed.moveDown(1)
+					ed.MoveDown(1)
 				case 'k':
-					ed.moveUp(1)
+					ed.MoveUp(1)
 				case 'x':
-					ed.deleteRune(1)
+					ed.DeleteRune(1)
 				default:
-					ed.ring()
+					ed.Ring()
 				}
 			case termi.KeyUp:
-				ed.moveUp(1)
+				ed.MoveUp(1)
 			case termi.KeyDown:
-				ed.moveDown(1)
+				ed.MoveDown(1)
 			case termi.KeyRight:
-				ed.moveRight(1)
+				ed.MoveRight(1)
 			case termi.KeyLeft:
-				ed.moveLeft(1)
+				ed.MoveLeft(1)
 			default:
-				ed.ring()
+				ed.Ring()
 			}
-		case modeInsert:
+		case ModeInsert:
 			switch key.Kind {
 			case termi.KeyRune:
 				switch key.Rune {
 				case termi.RuneEscape:
-					ed.exitInsert()
+					ed.ExitInsert()
 				case termi.RuneEnter:
-					ed.insertNewline()
+					ed.InsertNewline()
 				case termi.RuneBackspace:
-					ed.deleteBefore()
+					ed.DeleteBefore()
 				case termi.RuneDelete:
-					ed.deleteBefore()
+					ed.DeleteBefore()
 				default:
-					ed.insertRune(key.Rune)
+					ed.InsertRune(key.Rune)
 				}
 			case termi.KeyUp:
-				ed.exitInsert()
-				ed.moveUp(1)
+				ed.ExitInsert()
+				ed.MoveUp(1)
 			case termi.KeyDown:
-				ed.exitInsert()
-				ed.moveDown(1)
+				ed.ExitInsert()
+				ed.MoveDown(1)
 			case termi.KeyRight:
-				ed.exitInsert()
-				ed.moveRight(1)
+				ed.ExitInsert()
+				ed.MoveRight(1)
 			case termi.KeyLeft:
-				ed.exitInsert()
-				ed.moveLeft(1)
+				ed.ExitInsert()
+				ed.MoveLeft(1)
 			default:
-				ed.ring()
+				ed.Ring()
 			}
 		}
 	}

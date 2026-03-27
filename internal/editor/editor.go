@@ -8,26 +8,25 @@ import (
 	"tea.kareha.org/lab/termi"
 )
 
-type mode int
+type Mode int
 
 const (
-	modeCommand mode = iota
-	modeInsert
+	ModeCommand Mode = iota
+	ModeInsert
 )
 
 type Editor struct {
-	col, row   int
-	x, y       int
-	vrow       int
-	lines      []string
-	head, tail string
-	insert     *strings.Builder
-	mode       mode
-	path       string
-	bell       bool
+	col, row int
+	x, y     int
+	vrow     int
+	lines    []string
+	ins      *Insert
+	mode     Mode
+	path     string
+	bell     bool
 }
 
-func (ed *Editor) load() {
+func (ed *Editor) Load() {
 	if ed.path == "" {
 		return
 	}
@@ -56,27 +55,25 @@ func Init(args []string) *Editor {
 	}
 
 	ed := &Editor{
-		col:    0,
-		row:    0,
-		x:      0,
-		y:      0,
-		vrow:   0,
-		lines:  make([]string, 1),
-		head:   "",
-		tail:   "",
-		insert: new(strings.Builder),
-		mode:   modeCommand,
-		path:   path,
-		bell:   false,
+		col:   0,
+		row:   0,
+		x:     0,
+		y:     0,
+		vrow:  0,
+		lines: make([]string, 1),
+		ins:   NewInsert(),
+		mode:  ModeCommand,
+		path:  path,
+		bell:  false,
 	}
 
-	ed.load()
+	ed.Load()
 
 	termi.Raw()
 	return ed
 }
 
-func (ed *Editor) save() {
+func (ed *Editor) Save() {
 	if ed.path == "" {
 		return
 	}
@@ -93,18 +90,18 @@ func (ed *Editor) Finish() {
 	termi.Cooked()
 	termi.ShowCursor()
 
-	ed.save()
+	ed.Save()
 }
 
-func (ed *Editor) runeCount() int {
+func (ed *Editor) RuneCount() int {
 	return utf8.RuneCountInString(ed.lines[ed.row])
 }
 
-func (ed *Editor) insertRune(r rune) {
-	ed.insert.WriteRune(r)
+func (ed *Editor) InsertRune(r rune) {
+	ed.ins.Write(r)
 	ed.col++
 }
 
-func (ed *Editor) ring() {
+func (ed *Editor) Ring() {
 	ed.bell = true
 }

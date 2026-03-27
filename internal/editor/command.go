@@ -1,45 +1,67 @@
 package editor
 
-func (ed *Editor) enterInsert() {
-	rs := []rune(ed.lines[ed.row])
-	ed.head = string(rs[:ed.col])
-	ed.tail = string(rs[ed.col:])
-	ed.mode = modeInsert
+// key: i
+func (ed *Editor) Insert() {
+	if ed.mode == ModeInsert {
+		panic("invalid state")
+	}
+	ed.ins.Enter(ed.lines[ed.row], ed.col)
+	ed.mode = ModeInsert
 }
 
-func (ed *Editor) enterInsertAfter() {
-	rc := ed.runeCount()
+// key: a
+func (ed *Editor) InsertAfter() {
+	if ed.mode == ModeInsert {
+		panic("invalid state")
+	}
+	rc := ed.RuneCount()
 	if ed.col >= rc-1 {
 		ed.col = rc
-		ed.head = ed.lines[ed.row]
-		ed.tail = ""
-		ed.mode = modeInsert
-		return
+	} else {
+		ed.MoveRight(1)
 	}
-
-	ed.moveRight(1)
-	ed.enterInsert()
+	ed.Insert()
 }
 
-func (ed *Editor) moveLeft(n int) {
+// key: h
+func (ed *Editor) MoveLeft(n int) {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
 	ed.col = max(ed.col-n, 0)
 }
 
-func (ed *Editor) moveRight(n int) {
-	ed.col = min(ed.col+n, max(ed.runeCount()-1, 0))
+// key: l
+func (ed *Editor) MoveRight(n int) {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
+	ed.col = min(ed.col+n, max(ed.RuneCount()-1, 0))
 }
 
-func (ed *Editor) moveDown(n int) {
+// key: j
+func (ed *Editor) MoveDown(n int) {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
 	ed.row = min(ed.row+n, max(len(ed.lines)-1, 0))
 }
 
-func (ed *Editor) moveUp(n int) {
+// key: k
+func (ed *Editor) MoveUp(n int) {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
 	ed.row = max(ed.row-n, 0)
 }
 
-func (ed *Editor) deleteRune(n int) {
+// key: x
+func (ed *Editor) DeleteRune(n int) {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
 	if len(ed.lines[ed.row]) < 1 {
-		ed.ring()
+		ed.Ring()
 		return
 	}
 	rs := []rune(ed.lines[ed.row])
@@ -50,7 +72,7 @@ func (ed *Editor) deleteRune(n int) {
 		tail := string(rs[ed.col+1:])
 		ed.lines[ed.row] = head + tail
 	}
-	rc := ed.runeCount()
+	rc := ed.RuneCount()
 	if ed.col >= rc {
 		ed.col = max(rc-1, 0)
 	}
