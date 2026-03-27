@@ -36,16 +36,22 @@ func (ed *Editor) DrawStatus() {
 	var m string
 	switch ed.mode {
 	case ModeCommand:
-		m = "c"
+		m = "command"
 	case ModeInsert:
-		m = "i"
+		m = "insert"
+	case ModeSearch:
+		m = "search"
+	case ModePrompt:
+		m = "prompt"
+	default:
+		panic("invalid mode")
 	}
 
 	termi.MoveCursor(0, ed.h-1)
 	if ed.bell {
 		termi.EnableInvert()
 	}
-	termi.Printf("%s %d,%d %s", m, ed.row, ed.col, ed.path)
+	termi.Printf("[%s] %s %d,%d %s", ed.combuf.Cache(), m, ed.row, ed.col, ed.path)
 	if ed.bell {
 		termi.DisableInvert()
 	}

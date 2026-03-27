@@ -1,6 +1,9 @@
 package editor
 
 import (
+	"regexp"
+	"strconv"
+
 	"tea.kareha.org/lab/termi"
 )
 
@@ -30,7 +33,7 @@ func (ed *Editor) InsertNewline() {
 	ed.lines = append(append(before, lines...), after...)
 	ed.row++
 	ed.col = 0
-	// row and col are confined automatically
+	// row and col are already confined
 }
 
 func (ed *Editor) Backspace() {
@@ -42,11 +45,64 @@ func (ed *Editor) Backspace() {
 		return
 	}
 	ed.col--
-	// col is confined automatically
+	// col is already confined
+}
+
+var cmdRe = regexp.MustCompile("^(\\d*)([:mziaIARoOdyYxXDsScCpPrJ><\\.uUZ]*)(\\d*)([hjkl0\\$\\^|wbeWBE\\n\\+\\-G\\)\\(\\}\\{\\]\\[HML'`/?nNfFtT;,g]*)(.*?)$")
+var letterRe = regexp.MustCompile("([m'`fFtT;,r])(.)$")
+var letterSubRe = regexp.MustCompile("[fFtT;,]")
+
+func (ed *Editor) Run(noNum bool, num int, op string, noSubnub bool, subnum int, mv string, letter string, replay bool) bool {
+	switch op {
+	case "x":
+		ed.OpDelete(num)
+		return true
+	}
+
+	switch op {
+	case "i":
+		ed.InsertBefore()
+		return true
+	case "a":
+		ed.InsertAfter()
+		return true
+	case "ZZ":
+		ed.MiscSaveAndQuit()
+		return true
+	}
+
+	switch mv {
+	case "h":
+		ed.MoveLeft(num)
+		return true
+	case "j":
+		ed.MoveDown(num)
+		return true
+	case "k":
+		ed.MoveUp(num)
+		return true
+	case "l":
+		ed.MoveRight(num)
+		return true
+	case "0":
+		ed.MoveToStart()
+		return true
+	case "$":
+		ed.MoveToEnd()
+		return true
+	case "^":
+		ed.MoveToNonBlank()
+		return true
+	case "|":
+		ed.MoveToColumn(num)
+		return true
+	}
+
+	return false
 }
 
 func (ed *Editor) Main() {
-	for {
+	for !ed.quit {
 		ed.Draw()
 
 		key := termi.ReadKey()
@@ -54,25 +110,72 @@ func (ed *Editor) Main() {
 		case ModeCommand:
 			switch key.Kind {
 			case termi.KeyRune:
-				switch key.Rune {
-				case 'q':
-					return
-				case 'i':
-					ed.Insert()
-				case 'a':
-					ed.InsertAfter()
-				case 'h':
-					ed.MoveLeft(1)
-				case 'l':
-					ed.MoveRight(1)
-				case 'j':
-					ed.MoveDown(1)
-				case 'k':
-					ed.MoveUp(1)
-				case 'x':
-					ed.DeleteRune(1)
-				default:
+				if key.Rune == termi.RuneEscape {
+					ed.combuf.ClearAll()
 					ed.Ring()
+					continue
+				}
+				ed.combuf.InsertRune(key.Rune)
+
+				comb := ed.combuf.String()
+				m := cmdRe.FindStringSubmatch(comb)
+				/*
+					if len(m) < 1 {
+						// TODO error "not (yet) a vi command [" + comb + "]"
+						ed.combuf.Clear()
+						continue
+					}
+				*/
+				var numStr, op, subnumStr, mv string
+				if len(m) > 0 {
+					numStr, op, subnumStr, mv = m[1], m[2], m[3], m[4]
+				}
+				m = letterRe.FindStringSubmatch(comb)
+				var letterCommand, letter string
+				if len(m) > 0 {
+					letterCommand, letter = m[1], m[2]
+				}
+				if letterCommand != "" {
+					if letterCommand == "m" || letterCommand == "r" {
+						op = letterCommand
+						mv = ""
+					} else if letterCommand == "'" || letterCommand == "`" {
+						mv = letterCommand
+					} else if letterSubRe.MatchString(letterCommand) {
+						mv = letterCommand
+					}
+				}
+
+				noNum := false
+				num := 1
+				if numStr == "" {
+					noNum = true
+				} else if numStr == "0" {
+					mv = "0"
+				} else {
+					n, err := strconv.Atoi(numStr)
+					if err != nil {
+						panic(err)
+					}
+					num = n
+				}
+
+				noSubnum := false
+				subnum := 1
+				if subnumStr == "" {
+					noSubnum = true
+				} else if subnumStr == "0" {
+					mv = "0"
+				} else {
+					n, err := strconv.Atoi(subnumStr)
+					if err != nil {
+						panic(err)
+					}
+					subnum = n
+				}
+
+				if ed.Run(noNum, num, op, noSubnum, subnum, mv, letter, false) {
+					ed.combuf.Clear()
 				}
 			case termi.KeyUp:
 				ed.MoveUp(1)

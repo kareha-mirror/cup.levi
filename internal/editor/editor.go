@@ -13,6 +13,8 @@ type Mode int
 const (
 	ModeCommand Mode = iota
 	ModeInsert
+	ModeSearch
+	ModePrompt
 )
 
 type Editor struct {
@@ -25,6 +27,8 @@ type Editor struct {
 	mode     Mode
 	path     string
 	bell     bool
+	combuf   *Combuf
+	quit     bool
 }
 
 func (ed *Editor) Load(path string) {
@@ -51,18 +55,20 @@ func Init(args []string) *Editor {
 
 	w, h := termi.Size()
 	ed := &Editor{
-		col:   0,
-		row:   0,
-		vrow:  0,
-		w:     w,
-		h:     h,
-		x:     0,
-		y:     0,
-		lines: make([]string, 1),
-		ins:   NewInsert(),
-		mode:  ModeCommand,
-		path:  path,
-		bell:  false,
+		col:    0,
+		row:    0,
+		vrow:   0,
+		w:      w,
+		h:      h,
+		x:      0,
+		y:      0,
+		lines:  make([]string, 1),
+		ins:    NewInsert(),
+		mode:   ModeCommand,
+		path:   path,
+		bell:   false,
+		combuf: NewCombuf(),
+		quit:   false,
 	}
 
 	if path != "" {

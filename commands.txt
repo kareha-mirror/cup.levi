@@ -1,0 +1,223 @@
+= Planned Commands for levi =
+
+Implementation status:
+
+* (Buggy): Already implemented, but has some bugs.
+* (Partially): Partially implemented.
+* (Planned): Not implemented yet, but planned.
+* (Stalled): Tried to implement, but not functional yet.
+* (Out of Scope): Not planned to implement.
+
+Command categories:
+
+* Motion
+* Marking
+* View
+* Search
+* Character Finding
+* Insertion
+* Operator (Copy / Delte / Change)
+* Editing
+* Miscellaneous
+* Prompt
+
+== Motion Commands ==
+
+=== Move by Character / Move by Line ===
+
+* h : Move cursor left by character. (MoveLeft)
+* j : Move cursor down by line. (MoveDown)
+* k : Move cursor up by line. (MoveUp)
+* l : Move cursor right by character. (MoveRight)
+
+=== Move in Line ===
+
+* 0 : Move cursor to start of current line. (MoveToStart)
+* $ : Move cursor to end of current line. (MoveToEnd)
+* ^ : Move cursor to first non-blank character of current line. (MoveToNonBlank)
+* <num>| : Move cursor to column <num> of current line. (MoveToColumn)
+  (Note: Proper vi's column number is visual-based, but levi' is rune-based.)
+
+=== Move by Word / Move by Loose Word ===
+
+* w : Move cursor forward by word. (MoveByWord)
+* b : Move cursor backward by word. (MoveBackwardByWord)
+* e : Move cursor to end of word. (MoveToEndOfWord)
+* W : Move cursor forward by loose word. (MoveByLooseWord)
+* B : Move cursor backward by loose word. (MoveBackwardByLooseWord)
+* E : Move cursor to end of loose word. (MoveToEndOfLooseWord)
+
+=== Move by Line ===
+
+* Enter, + : Move cursor to first non-blank character of next line. (MoveToNonBlankOfNextLine)
+* - : Move cursor to first non-blank character of previous line. (MoveToNonBlankOfPrevLine)
+* G : Move cursor to last line. (MoveToLastLine)
+* <num>G : Move cursor to line <num>. (MoveToLine)
+
+=== Move by Block ===
+
+* ) : Move cursor forward by sentence. (MoveBySentence)
+* ( : Move cursor backward by sentence. (MoveBackwardBySentence)
+* } : Move cursor forward by paragraph. (MoveByParagraph)
+* { : Move cursor backward by paragraph. (MoveBackwardByParagraph)
+  (Note: Proper vi respects nroff/troff directives, but levi doesn't.)
+* ]] : Move cursor forward by section. (MoveBySection)
+  (Note: Proper vi respects nroff/troff directives, but levi doesn't.)
+* [[ : Move cursor backward by section. (MoveBackwardBySection)
+  (Note: Proper vi respects nroff/troff directives, but levi doesn't.)
+
+=== Move in View ===
+
+* H : Move cursor to top of view. (MoveToTopOfView)
+* M : Move cursor to middle of view. (MoveToMiddleOfView)
+* L : Move cursor to bottom of view. (MoveToBottomOfView)
+* <num>H : Move cursor below <num> lines from top of view. (MoveToBelowTopOfView)
+* <num>L : Move cursor above <num> lines from bottom of view. (MoveToAboveBottomOfView)
+
+== Marking Commands ==
+
+=== Set Mark / Move to Mark ===
+
+* m<letter> : Mark current cursor position labelled by <letter>. (MarkSet)
+* `<letter> : Move cursor to marked position labelled by <letter>. (MarkMoveTo)
+* '<letter> : Move cursor to marked line labelled by <letter>. (MarkMoveToLine)
+
+=== Move by Context ===
+
+* `` : Move cursor to previous position in context. (MarkBack)
+* '' : Move cursor to previous line in context. (MarkBackToLine)
+
+== View Commands ==
+
+=== Scroll by View Height / Scroll by Line ===
+
+* Ctrl-f : Scroll down by view height. (ViewDown)
+* Ctrl-b : Scroll up by view height. (ViewUp)
+* Ctrl-d : Scroll down by half view height. (ViewDownHalf)
+* Ctrl-u : Scroll up by half view height. (ViewUpHalf)
+* Ctrl-y : Scroll down by line. (ViewDownLine)
+* Ctrl-e : Scroll up by line. (ViewUpLine)
+
+=== Reposition ===
+
+* z Enter : Reposition cursor line to top of view. (ViewToTop)
+* z. : Reposition cursor line middle of view. (ViewToMiddle)
+* z- : Reposition cursor line bottom of view. (ViewToBottom)
+
+=== Redraw ===
+
+* Ctrl-l : Redraw view. (ViewRedraw)
+
+== Search Commands ==
+
+* /<pattern> Enter : Search <pattern> forward. (SearchForward)
+* ?<pattern> Enter : Search <pattern> backward. (SearchBackward)
+* n : Search next match. (SearchNextMatch)
+* N : Search previous match. (SearchPrevMatch)
+* / Enter : Repeat last search forward. (SearchRepeatForward)
+* ? Enter : Repeat last search backward. (SearchRepeatBackward)
+
+== Character Finding Commands ==
+
+* f<letter> : Find character <letter> forward in current line. (FindForward)
+* F<letter> : Find character <letter> backward in current line. (FindBackward)
+* t<letter> : Find before character <letter> forward in current line. (FindBeforeForward)
+* T<letter> : Find before character <letter> backward in current line. (FindBeforeBackward)
+* ; : Find next match. (FindNextMatch)
+* , : Find previous match. (FindPrevMatch)
+
+== Insertion Commands ==
+
+=== Enter Insert Mode ===
+
+* i : Switch to insert mode before cursor. (InsertBefore)
+* a : Switch to insert mode after cursor. (InsertAfter)
+* I : Switch to insert mode before first non-blank character of current line. (InsertBeforeNonBlank)
+* A : Switch to insert mode after end of current line. (InsertAfterEnd)
+* R : Switch to replace (overwrite) mode. (InsertOverwrite)
+
+=== Open Line ===
+
+* o : Open a new line below and switch to insert mode. (InsertOpenBelow)
+* O : Open a new line above and switch to insert mode. (InsertOpenAbove)
+
+== Operator Commands (Copy / Delte / Change) ==
+
+=== Copy (Yank) ===
+
+* yy, Y : Copy current line. (OpCopyLine)
+* y<mv> : Copy region from current cursor to destination of motion <mv>. (OpCopyRegion, OpCopyLineRegion)
+* yw : Copy word. (OpCopyWord)
+* y$ : Copy to end of current line. (OpCopyToEnd)
+* "<reg>yy : Copy current line into register <reg>. (OpCopyLineIntoReg)
+
+=== Paste (Put) ===
+
+* p : Paste after cursor. (OpPaste)
+* P : Paste before cursor. (OpPasteBefore)
+* "<reg>p : Paste from register <reg>. (OpPasteFromReg)
+
+=== Delete ===
+
+* x : Delete character under cursor. (OpDelete)
+* X : Delete character before cursor. (OpDeleteBefore)
+* dd : Delete current line. (OpDeleteLine)
+* d<mv> : Delete region from current cursor to destination of motion <mv>. (OpDeleteRegion, OpDeleteLineRegion)
+* dw : Delete word. (OpDeleteWord)
+* d$, D : Delete to end of current line. (OpDeleteToEnd)
+
+=== Change / Substitute ===
+
+* cc : Change current line. (OpChangeLine)
+* c<mv> : Change region from current cursor to destination of motion <mv>. (OpChangeRegion, OpChangeLineRegion)
+* cw : Change word. (OpChangeWord)
+* C : Change to end of current line. (OpChangeToEnd)
+* s : Substitute one character under cursor. (OpSubst)
+* S : Substtute current line (equals cc). (OpSubstLine)
+
+== Editing Commands ==
+
+* r : Replace single character under cursor. (EditReplace)
+* J : Join current line with next line. (EditJoin)
+* >> : Indent current line. (EditIndent)
+* << : Outdent current line. (EditOutdent)
+* > <mv> : Indent region from current cursor to destination of motion <mv>. (EditIndentRegion)
+* < <mv> : Outdent region from current cursor to destination of motion <mv>. (EditOutdentRegion)
+
+== Miscellaneous Commands ==
+
+* Ctrl-g : Show info such as current cursor position. (MiscShowInfo)
+* . : Repeat last edit. (MiscRepeat)
+* u : Undo. (MiscUndo)
+* U : Restore current line to previous state. (MiscRestore)
+* ZZ : Save and quit. (MiscSaveAndQuit)
+
+== Prompt Commands ==
+
+=== Move ===
+
+* :<num> Enter : Move cursor to line <num>. (PromptMoveToLine)
+
+=== File ===
+
+* :wq Enter : Save current file and quit. (PromptSaveAndQuit)
+* :w Enter : Save current file. (PromptSave)
+* :w! Enter : Force save current file. (PromptForceSave)
+* :q Enter : Quit editor. (PromptQuit)
+* :q! Enter : Force quit editor. (PromptForceQuit)
+* :e Enter : Open file. (PromptOpen)
+* :e! Enter : Force open file. (PromptForceOpen)
+* :r Enter : Read file and insert to current buffer. (PromptRead)
+* :n Enter : Switch to next buffer (tab). (PromptNext)
+* :prev Enter : Switch to previous buffer (tab). (PromptPrev) (extension)
+
+=== Utility ===
+
+* :sh Enter : Execute shell. (PromptShell)
+  (Note: Only Unix-like OSes are supported.)
+
+=== From Vim ===
+
+* :wa Enter : Save all files. (PromptSaveAll)
+* :qa Enter : Close all files and quit editor. (PromptQuitAll)
+* :qa! Enter : Force close all files and quit editor. (PromptForceQuitAll)

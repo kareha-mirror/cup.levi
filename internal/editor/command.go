@@ -1,7 +1,7 @@
 package editor
 
 // key: i
-func (ed *Editor) Insert() {
+func (ed *Editor) InsertBefore() {
 	if ed.mode == ModeInsert {
 		panic("invalid state")
 	}
@@ -20,47 +20,11 @@ func (ed *Editor) InsertAfter() {
 	} else {
 		ed.MoveRight(1)
 	}
-	ed.Insert()
-}
-
-// key: h
-func (ed *Editor) MoveLeft(n int) {
-	if ed.mode != ModeCommand {
-		panic("invalid state")
-	}
-	ed.col -= n
-	ed.Confine()
-}
-
-// key: l
-func (ed *Editor) MoveRight(n int) {
-	if ed.mode != ModeCommand {
-		panic("invalid state")
-	}
-	ed.col += n
-	ed.Confine()
-}
-
-// key: j
-func (ed *Editor) MoveDown(n int) {
-	if ed.mode != ModeCommand {
-		panic("invalid state")
-	}
-	ed.row += n
-	ed.Confine()
-}
-
-// key: k
-func (ed *Editor) MoveUp(n int) {
-	if ed.mode != ModeCommand {
-		panic("invalid state")
-	}
-	ed.row -= n
-	ed.Confine()
+	ed.InsertBefore()
 }
 
 // key: x
-func (ed *Editor) DeleteRune(n int) {
+func (ed *Editor) OpDelete(n int) {
 	if ed.mode != ModeCommand {
 		panic("invalid state")
 	}
@@ -77,4 +41,9 @@ func (ed *Editor) DeleteRune(n int) {
 		ed.lines[ed.row] = head + tail
 	}
 	ed.Confine()
+}
+
+// key: ZZ
+func (ed *Editor) MiscSaveAndQuit() {
+	ed.quit = true
 }
