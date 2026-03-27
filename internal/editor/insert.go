@@ -2,8 +2,6 @@ package editor
 
 import (
 	"unicode/utf8"
-
-	"tea.kareha.org/lab/termi"
 )
 
 type Insert struct {
@@ -31,11 +29,8 @@ func (ins *Insert) Reset() {
 	}
 }
 
-func (ins *Insert) Write(r rune) {
-	ins.body.WriteRune(r)
-}
-
-func (ins *Insert) Enter(line string, col int) {
+func (ins *Insert) Init(line string, col int) {
+	ins.Reset()
 	rs := []rune(line)
 	ins.head = string(rs[:col])
 	if col < len(rs) {
@@ -43,6 +38,10 @@ func (ins *Insert) Enter(line string, col int) {
 	} else {
 		ins.tail = ""
 	}
+}
+
+func (ins *Insert) WriteRune(r rune) {
+	ins.body.WriteRune(r)
 }
 
 func (ins *Insert) Line() string {
@@ -60,10 +59,9 @@ func (ins *Insert) Newline() []string {
 	return lines
 }
 
-func (ins *Insert) Width() int {
+func (ins *Insert) Column() int {
 	s := ins.head + ins.body.String()
-	rc := utf8.RuneCountInString(s)
-	return termi.StringWidth(s, rc)
+	return utf8.RuneCountInString(s)
 }
 
 func (ins *Insert) Backspace() bool {

@@ -7,34 +7,26 @@ import (
 )
 
 func (ed *Editor) LineHeight(line string) int {
-	w, _ := termi.Size()
 	rc := utf8.RuneCountInString(line)
 	width := termi.StringWidth(line, rc)
-	return 1 + max(width-1, 0)/w
+	return 1 + max(width-1, 0)/ed.w
 }
 
 func (ed *Editor) DrawBuffer() {
-	_, h := termi.Size()
-
 	y := 0
 	for i := ed.vrow; i < len(ed.lines); i++ {
-		var line string
-		if ed.mode == ModeInsert && i == ed.row {
-			line = ed.ins.Line()
-		} else {
-			line = ed.lines[i]
-		}
+		line := ed.Line(i)
 
 		termi.MoveCursor(0, y)
 		termi.Draw(line)
 
 		y += ed.LineHeight(line)
-		if y >= h-1 {
+		if y >= ed.h-1 {
 			break
 		}
 	}
 
-	for ; y < h-1; y++ {
+	for ; y < ed.h-1; y++ {
 		termi.MoveCursor(0, y)
 		termi.Draw("~")
 	}
@@ -49,8 +41,7 @@ func (ed *Editor) DrawStatus() {
 		m = "i"
 	}
 
-	_, h := termi.Size()
-	termi.MoveCursor(0, h-1)
+	termi.MoveCursor(0, ed.h-1)
 	if ed.bell {
 		termi.EnableInvert()
 	}
@@ -62,25 +53,10 @@ func (ed *Editor) DrawStatus() {
 }
 
 func (ed *Editor) UpdateCursor() {
-	w, h := termi.Size()
-
-	var dy int
-	switch ed.mode {
-	case ModeCommand:
-		ed.row = min(max(ed.row, 0), max(len(ed.lines)-1, 0))
-		len := ed.RuneCount()
-		ed.col = min(ed.col, max(len-1, 0))
-
-		// XXX approximation
-		width := termi.StringWidth(ed.lines[ed.row], ed.col)
-		ed.x = width % w
-		dy = width / w
-	case ModeInsert:
-		// XXX approximation
-		width := ed.ins.Width()
-		ed.x = width % w
-		dy = width / w
-	}
+	// XXX approximation
+	width := termi.StringWidth(ed.CurrentLine(), ed.col)
+	ed.x = width % ed.w
+	dy := width / ed.w
 
 	if ed.row < ed.vrow {
 		ed.vrow = ed.row
@@ -92,7 +68,7 @@ func (ed *Editor) UpdateCursor() {
 	}
 	ed.y = y + dy
 
-	for ed.y >= h-1 {
+	for ed.y >= ed.h-1 {
 		ed.vrow++
 
 		y := 0
@@ -104,6 +80,10 @@ func (ed *Editor) UpdateCursor() {
 }
 
 func (ed *Editor) Repaint() {
+	w, h := termi.Size()
+	ed.w = w
+	ed.h = h
+
 	termi.HideCursor()
 
 	termi.Clear()
@@ -117,4 +97,8 @@ func (ed *Editor) Repaint() {
 	termi.MoveCursor(ed.x, ed.y)
 
 	termi.ShowCursor()
+}
+
+func (ed *Editor) Draw() {
+	ed.Repaint()
 }

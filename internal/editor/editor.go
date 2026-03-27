@@ -17,8 +17,9 @@ const (
 
 type Editor struct {
 	col, row int
-	x, y     int
 	vrow     int
+	w, h     int
+	x, y     int
 	lines    []string
 	ins      *Insert
 	mode     Mode
@@ -26,15 +27,8 @@ type Editor struct {
 	bell     bool
 }
 
-func (ed *Editor) Load() {
-	if ed.path == "" {
-		return
-	}
-	_, err := os.Stat(ed.path)
-	if err != nil { // file not exists
-		return
-	}
-	data, err := os.ReadFile(ed.path)
+func (ed *Editor) Load(path string) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
@@ -46,6 +40,7 @@ func (ed *Editor) Load() {
 		data = data[:len(data)-1]
 	}
 	ed.lines = strings.Split(string(data), "\n")
+	ed.path = path
 }
 
 func Init(args []string) *Editor {
@@ -54,12 +49,15 @@ func Init(args []string) *Editor {
 		path = args[1]
 	}
 
+	w, h := termi.Size()
 	ed := &Editor{
 		col:   0,
 		row:   0,
+		vrow:  0,
+		w:     w,
+		h:     h,
 		x:     0,
 		y:     0,
-		vrow:  0,
 		lines: make([]string, 1),
 		ins:   NewInsert(),
 		mode:  ModeCommand,
@@ -67,21 +65,24 @@ func Init(args []string) *Editor {
 		bell:  false,
 	}
 
-	ed.Load()
+	if path != "" {
+		_, err := os.Stat(path)
+		if err == nil { // file exists
+			ed.Load(path)
+		}
+	}
 
 	termi.Raw()
 	return ed
 }
 
-func (ed *Editor) Save() {
-	if ed.path == "" {
-		return
-	}
+func (ed *Editor) Save(path string) {
 	text := strings.Join(ed.lines, "\n") + "\n"
-	err := os.WriteFile(ed.path, []byte(text), 0644)
+	err := os.WriteFile(path, []byte(text), 0644)
 	if err != nil {
 		panic(err)
 	}
+	ed.path = path
 }
 
 func (ed *Editor) Finish() {
@@ -90,16 +91,53 @@ func (ed *Editor) Finish() {
 	termi.Cooked()
 	termi.ShowCursor()
 
-	ed.Save()
+	if ed.path != "" {
+		ed.Save(ed.path)
+	}
+}
+
+func (ed *Editor) Line(row int) string {
+	if ed.mode == ModeInsert && row == ed.row {
+		return ed.ins.Line()
+	} else {
+		return ed.lines[row]
+	}
+}
+
+func (ed *Editor) CurrentLine() string {
+	return ed.Line(ed.row)
 }
 
 func (ed *Editor) RuneCount() int {
-	return utf8.RuneCountInString(ed.lines[ed.row])
+	return utf8.RuneCountInString(ed.CurrentLine())
+}
+
+func (ed *Editor) Confine() {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
+
+	n := len(ed.lines)
+	if ed.row < 0 {
+		ed.row = 0
+	} else if ed.row >= n {
+		ed.row = max(n-1, 0)
+	}
+
+	rc := ed.RuneCount()
+	if ed.col < 0 {
+		ed.col = 0
+	} else if ed.col >= rc {
+		ed.col = max(rc-1, 0)
+	}
 }
 
 func (ed *Editor) InsertRune(r rune) {
-	ed.ins.Write(r)
-	ed.col++
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
+	ed.ins.WriteRune(r)
+	ed.col = ed.ins.Column()
 }
 
 func (ed *Editor) Ring() {

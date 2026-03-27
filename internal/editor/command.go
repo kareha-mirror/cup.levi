@@ -5,7 +5,7 @@ func (ed *Editor) Insert() {
 	if ed.mode == ModeInsert {
 		panic("invalid state")
 	}
-	ed.ins.Enter(ed.lines[ed.row], ed.col)
+	ed.ins.Init(ed.CurrentLine(), ed.col)
 	ed.mode = ModeInsert
 }
 
@@ -28,7 +28,8 @@ func (ed *Editor) MoveLeft(n int) {
 	if ed.mode != ModeCommand {
 		panic("invalid state")
 	}
-	ed.col = max(ed.col-n, 0)
+	ed.col -= n
+	ed.Confine()
 }
 
 // key: l
@@ -36,7 +37,8 @@ func (ed *Editor) MoveRight(n int) {
 	if ed.mode != ModeCommand {
 		panic("invalid state")
 	}
-	ed.col = min(ed.col+n, max(ed.RuneCount()-1, 0))
+	ed.col += n
+	ed.Confine()
 }
 
 // key: j
@@ -44,7 +46,8 @@ func (ed *Editor) MoveDown(n int) {
 	if ed.mode != ModeCommand {
 		panic("invalid state")
 	}
-	ed.row = min(ed.row+n, max(len(ed.lines)-1, 0))
+	ed.row += n
+	ed.Confine()
 }
 
 // key: k
@@ -52,7 +55,8 @@ func (ed *Editor) MoveUp(n int) {
 	if ed.mode != ModeCommand {
 		panic("invalid state")
 	}
-	ed.row = max(ed.row-n, 0)
+	ed.row -= n
+	ed.Confine()
 }
 
 // key: x
@@ -60,11 +64,11 @@ func (ed *Editor) DeleteRune(n int) {
 	if ed.mode != ModeCommand {
 		panic("invalid state")
 	}
-	if len(ed.lines[ed.row]) < 1 {
+	if len(ed.CurrentLine()) < 1 {
 		ed.Ring()
 		return
 	}
-	rs := []rune(ed.lines[ed.row])
+	rs := []rune(ed.CurrentLine())
 	if ed.col < 1 {
 		ed.lines[ed.row] = string(rs[1:])
 	} else {
@@ -72,8 +76,5 @@ func (ed *Editor) DeleteRune(n int) {
 		tail := string(rs[ed.col+1:])
 		ed.lines[ed.row] = head + tail
 	}
-	rc := ed.RuneCount()
-	if ed.col >= rc {
-		ed.col = max(rc-1, 0)
-	}
+	ed.Confine()
 }

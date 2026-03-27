@@ -5,6 +5,9 @@ import (
 )
 
 func (ed *Editor) ExitInsert() {
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
 	ed.lines[ed.row] = ed.ins.Line()
 	ed.ins.Reset()
 	ed.mode = ModeCommand
@@ -12,6 +15,9 @@ func (ed *Editor) ExitInsert() {
 }
 
 func (ed *Editor) InsertNewline() {
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
 	before := make([]string, 0, len(ed.lines)+1)
 	before = append(before, ed.lines[:ed.row]...)
 	var after []string
@@ -24,19 +30,24 @@ func (ed *Editor) InsertNewline() {
 	ed.lines = append(append(before, lines...), after...)
 	ed.row++
 	ed.col = 0
+	// row and col are confined automatically
 }
 
-func (ed *Editor) DeleteBefore() {
+func (ed *Editor) Backspace() {
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
 	if !ed.ins.Backspace() {
 		ed.Ring()
 		return
 	}
 	ed.col--
+	// col is confined automatically
 }
 
 func (ed *Editor) Main() {
 	for {
-		ed.Repaint()
+		ed.Draw()
 
 		key := termi.ReadKey()
 		switch ed.mode {
@@ -83,9 +94,9 @@ func (ed *Editor) Main() {
 				case termi.RuneEnter:
 					ed.InsertNewline()
 				case termi.RuneBackspace:
-					ed.DeleteBefore()
+					ed.Backspace()
 				case termi.RuneDelete:
-					ed.DeleteBefore()
+					ed.Backspace()
 				default:
 					ed.InsertRune(key.Rune)
 				}
