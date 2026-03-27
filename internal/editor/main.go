@@ -38,7 +38,7 @@ func (ed *Editor) Backspace() {
 		panic("invalid state")
 	}
 	if !ed.inp.Backspace() {
-		ed.Ring()
+		ed.Ring("nothing to delete, input is empty")
 		return
 	}
 	ed.col--
@@ -55,8 +55,10 @@ func (ed *Editor) Main() {
 			switch key.Kind {
 			case termi.KeyRune:
 				if key.Rune == termi.RuneEscape {
+					if ed.parser.String() == "" {
+						ed.Ring("already in vi command mode")
+					}
 					ed.parser.ClearAll()
-					ed.Ring()
 					continue
 				}
 				ed.parser.InsertRune(key.Rune)
@@ -76,7 +78,7 @@ func (ed *Editor) Main() {
 			case termi.KeyLeft:
 				ed.MoveLeft(1)
 			default:
-				ed.Ring()
+				ed.Ring("unknown key")
 			}
 		case ModeInsert:
 			switch key.Kind {
@@ -106,7 +108,7 @@ func (ed *Editor) Main() {
 				ed.ExitInsert()
 				ed.MoveLeft(1)
 			default:
-				ed.Ring()
+				ed.Ring("unknown key")
 			}
 		}
 	}

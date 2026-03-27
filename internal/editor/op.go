@@ -6,7 +6,7 @@ func (ed *Editor) OpDelete(n int) {
 		panic("invalid state")
 	}
 	if len(ed.CurrentLine()) < 1 {
-		ed.Ring()
+		ed.Ring("nothing to delete, line is empty")
 		return
 	}
 	rs := []rune(ed.CurrentLine())

@@ -26,7 +26,7 @@ type Editor struct {
 	inp      *Input
 	mode     Mode
 	path     string
-	bell     bool
+	message  string
 	parser   *Parser
 	quit     bool
 }
@@ -55,20 +55,20 @@ func Init(args []string) *Editor {
 
 	w, h := termi.Size()
 	ed := &Editor{
-		col:    0,
-		row:    0,
-		vrow:   0,
-		w:      w,
-		h:      h,
-		x:      0,
-		y:      0,
-		lines:  make([]string, 1),
-		inp:    NewInput(),
-		mode:   ModeCommand,
-		path:   path,
-		bell:   false,
-		parser: NewParser(),
-		quit:   false,
+		col:     0,
+		row:     0,
+		vrow:    0,
+		w:       w,
+		h:       h,
+		x:       0,
+		y:       0,
+		lines:   make([]string, 1),
+		inp:     NewInput(),
+		mode:    ModeCommand,
+		path:    path,
+		message: "",
+		parser:  NewParser(),
+		quit:    false,
 	}
 
 	if path != "" {
@@ -146,6 +146,6 @@ func (ed *Editor) InsertRune(r rune) {
 	ed.col = ed.inp.Column()
 }
 
-func (ed *Editor) Ring() {
-	ed.bell = true
+func (ed *Editor) Ring(message string) {
+	ed.message = message
 }

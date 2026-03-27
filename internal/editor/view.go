@@ -36,26 +36,26 @@ func (ed *Editor) DrawStatus() {
 	var m string
 	switch ed.mode {
 	case ModeCommand:
-		m = "command"
+		m = "vi command"
 	case ModeInsert:
-		m = "insert"
+		m = "vi insert"
 	case ModeSearch:
-		m = "search"
+		m = "vi search"
 	case ModePrompt:
-		m = "prompt"
+		m = "vi prompt"
 	default:
 		panic("invalid mode")
 	}
 
 	termi.MoveCursor(0, ed.h-1)
-	if ed.bell {
+	if ed.message != "" {
 		termi.EnableInvert()
-	}
-	termi.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
-	if ed.bell {
+		termi.Print(ed.message)
 		termi.DisableInvert()
+		ed.message = ""
+	} else {
+		termi.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
 	}
-	ed.bell = false
 }
 
 func (ed *Editor) UpdateCursor() {

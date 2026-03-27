@@ -44,7 +44,23 @@ func (p *Parser) ClearAll() {
 	p.cache = ""
 }
 
-func (p *Parser) ParseMove(noNum bool, num int, op string) (Cmd, bool) {
+var letterOpSet = map[rune]struct{}{
+	'm':  {},
+	'\'': {},
+	'`':  {},
+	'r':  {},
+}
+
+var letterMoveSet = map[rune]struct{}{
+	'f': {},
+	'F': {},
+	't': {},
+	'T': {},
+	';': {},
+	',': {},
+}
+
+func (p *Parser) ParseMove(noNum bool, num int, op string, letter rune) (Cmd, bool) {
 	switch op {
 	case "h":
 		return Cmd{
@@ -85,6 +101,21 @@ func (p *Parser) ParseMove(noNum bool, num int, op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
+func (p *Parser) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
+	switch op {
+	case "m":
+		return Cmd{}, false // TODO
+	case "'":
+		return Cmd{}, false // TODO
+	case "`":
+		return Cmd{}, false // TODO
+	case "r":
+		return Cmd{}, false // TODO
+	}
+
+	return Cmd{}, false
+}
+
 func (p *Parser) ParseInsert(num int, op string) (Cmd, bool) {
 	switch op {
 	case "i":
@@ -95,20 +126,6 @@ func (p *Parser) ParseInsert(num int, op string) (Cmd, bool) {
 	case "a":
 		return Cmd{
 			Kind: CmdInsertAfter,
-			Num:  num,
-		}, true
-
-		// TODO
-	}
-
-	return Cmd{}, false
-}
-
-func (p *Parser) ParseOp(num int, op string) (Cmd, bool) {
-	switch op {
-	case "x":
-		return Cmd{
-			Kind: CmdOpDelete,
 			Num:  num,
 		}, true
 
@@ -129,6 +146,29 @@ func (p *Parser) ParseMisc(op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
+func (p *Parser) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int, mv string) (Cmd, bool) {
+	switch op {
+	case "x":
+		return Cmd{
+			Kind: CmdOpDelete,
+			Num:  num,
+		}, true
+
+		// TODO
+	}
+
+	return Cmd{}, false
+}
+
+var compoundSet = map[rune]struct{}{
+	'y': {},
+	'd': {},
+	'c': {},
+	'>': {},
+	'<': {},
+	'Z': {},
+}
+
 func (p *Parser) Parse() (Cmd, bool) {
 	if len(p.buf) < 1 {
 		return Cmd{}, false
@@ -141,16 +181,25 @@ func (p *Parser) Parse() (Cmd, bool) {
 	}
 
 	i := 0
+	var reg rune = 0
+	if p.buf[i] == '"' {
+		if len(p.buf) > i+1 {
+			reg = p.buf[i+1]
+			i += 2
+		}
+	}
+
+	iPrev := i
 	for i < len(p.buf) {
 		if p.buf[i] < '0' || p.buf[i] > '9' {
 			break
 		}
 		i++
 	}
-	noNum := i == 0
+	noNum := i == iPrev
 	num := 1
 	if i > 0 {
-		s := string(p.buf[:i])
+		s := string(p.buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
@@ -158,7 +207,7 @@ func (p *Parser) Parse() (Cmd, bool) {
 		num = n
 	}
 
-	iPrev := i
+	iPrev = i
 	for i < len(p.buf) {
 		if p.buf[i] >= '0' && p.buf[i] <= '9' {
 			break
@@ -168,16 +217,42 @@ func (p *Parser) Parse() (Cmd, bool) {
 	if i <= iPrev {
 		return Cmd{}, false
 	}
-	op := string(p.buf[iPrev:i])
-	cmd, ok := p.ParseMove(noNum, num, op)
+
+	if i+1 < len(p.buf) {
+		var letter rune = 0
+		_, ok := letterOpSet[p.buf[i]]
+		if ok {
+			op := string(p.buf[i : i+1])
+			letter = p.buf[i+1]
+			cmd, ok := p.ParseLetter(num, op, letter)
+			if ok {
+				return cmd, true
+			}
+		}
+		_, ok = letterMoveSet[p.buf[i]]
+		if ok {
+			mv := string(p.buf[i : i+1])
+			letter = p.buf[i+1]
+			cmd, ok := p.ParseMove(noNum, num, mv, letter)
+			if ok {
+				return cmd, true
+			}
+		}
+		if letter != 0 {
+			return Cmd{Kind: CmdInvalid}, true
+		}
+	}
+
+	mv := string(p.buf[iPrev:i])
+
+	cmd, ok := p.ParseMove(noNum, num, mv, 0)
 	if ok {
 		return cmd, true
 	}
+	op := mv
+	opFirst := p.buf[iPrev]
+
 	cmd, ok = p.ParseInsert(num, op)
-	if ok {
-		return cmd, true
-	}
-	cmd, ok = p.ParseOp(num, op)
 	if ok {
 		return cmd, true
 	}
@@ -186,7 +261,58 @@ func (p *Parser) Parse() (Cmd, bool) {
 		return cmd, true
 	}
 
-	// TODO
+	iPrev = i
+	for i < len(p.buf) {
+		if p.buf[i] < '0' || p.buf[i] > '9' {
+			break
+		}
+		i++
+	}
+	noSubnum := i == iPrev
+	subnum := 1
+	if i > iPrev {
+		s := string(p.buf[iPrev:i])
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			panic(err)
+		}
+		subnum = n
+	}
 
-	return Cmd{}, false
+	iPrev = i
+	for i < len(p.buf) {
+		if p.buf[i] >= '0' && p.buf[i] <= '9' {
+			break
+		}
+		i++
+	}
+
+	var letter rune = 0
+	if i+1 < len(p.buf) {
+		_, ok := letterMoveSet[p.buf[i]]
+		if ok {
+			mv = string(p.buf[i : i+1])
+			letter = p.buf[i+1]
+		}
+	}
+
+	if letter == 0 {
+		mv = ""
+		if i > iPrev {
+			mv = string(p.buf[iPrev:i])
+		}
+	}
+
+	cmd, ok = p.ParseOp(reg, num, op, noSubnum, subnum, mv)
+	if ok {
+		return cmd, true
+	}
+
+	if len(op) < 2 {
+		_, ok := compoundSet[opFirst]
+		if ok {
+			return Cmd{}, false
+		}
+	}
+	return Cmd{Kind: CmdInvalid}, true
 }

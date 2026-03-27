@@ -2,6 +2,11 @@ package editor
 
 func (ed *Editor) Run(c Cmd) bool {
 	switch c.Kind {
+	case CmdInvalid:
+		ed.Ring("not (yet) a vi command [" + ed.parser.String() + "]")
+		ed.parser.Clear()
+		return true
+
 	case CmdMoveLeft:
 		ed.MoveLeft(c.Num)
 		return true

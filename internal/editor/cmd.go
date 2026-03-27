@@ -3,7 +3,9 @@ package editor
 type CmdKind int
 
 const (
-	CmdMoveLeft CmdKind = iota
+	CmdInvalid CmdKind = iota
+
+	CmdMoveLeft
 	CmdMoveDown
 	CmdMoveUp
 	CmdMoveRight
