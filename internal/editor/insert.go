@@ -1,69 +1,24 @@
 package editor
 
-import (
-	"unicode/utf8"
-)
-
-type Insert struct {
-	head, tail string
-	body       *RuneBuf
-}
-
-const maxBodyLen = 1024
-
-func NewInsert() *Insert {
-	return &Insert{
-		head: "",
-		tail: "",
-		body: new(RuneBuf),
+// i : Switch to insert mode before cursor.
+func (ed *Editor) InsertBefore(n int) {
+	if ed.mode == ModeInsert {
+		panic("invalid state")
 	}
+	ed.inp.Init(ed.CurrentLine(), ed.col)
+	ed.mode = ModeInsert
 }
 
-func (ins *Insert) Reset() {
-	ins.head = ""
-	ins.tail = ""
-	if ins.body.Len() > maxBodyLen {
-		ins.body = new(RuneBuf)
+// a : Switch to insert mode after cursor.
+func (ed *Editor) InsertAfter(n int) {
+	if ed.mode == ModeInsert {
+		panic("invalid state")
+	}
+	rc := ed.RuneCount()
+	if ed.col >= rc-1 {
+		ed.col = rc
 	} else {
-		ins.body.Reset()
+		ed.MoveRight(1)
 	}
-}
-
-func (ins *Insert) Init(line string, col int) {
-	ins.Reset()
-	rs := []rune(line)
-	ins.head = string(rs[:col])
-	if col < len(rs) {
-		ins.tail = string(rs[col:])
-	} else {
-		ins.tail = ""
-	}
-}
-
-func (ins *Insert) WriteRune(r rune) {
-	ins.body.WriteRune(r)
-}
-
-func (ins *Insert) Line() string {
-	return ins.head + ins.body.String() + ins.tail
-}
-
-func (ins *Insert) Newline() []string {
-	lines := []string{
-		ins.head + ins.body.String(),
-		ins.tail,
-	}
-	ins.head = ""
-	ins.body.Reset()
-	// tail is intentionally preserved
-	return lines
-}
-
-func (ins *Insert) Column() int {
-	s := ins.head + ins.body.String()
-	return utf8.RuneCountInString(s)
-}
-
-func (ins *Insert) Backspace() bool {
-	return ins.body.Backspace()
+	ed.InsertBefore(n)
 }

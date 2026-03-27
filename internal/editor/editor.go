@@ -23,11 +23,11 @@ type Editor struct {
 	w, h     int
 	x, y     int
 	lines    []string
-	ins      *Insert
+	inp      *Input
 	mode     Mode
 	path     string
 	bell     bool
-	combuf   *Combuf
+	parser   *Parser
 	quit     bool
 }
 
@@ -63,11 +63,11 @@ func Init(args []string) *Editor {
 		x:      0,
 		y:      0,
 		lines:  make([]string, 1),
-		ins:    NewInsert(),
+		inp:    NewInput(),
 		mode:   ModeCommand,
 		path:   path,
 		bell:   false,
-		combuf: NewCombuf(),
+		parser: NewParser(),
 		quit:   false,
 	}
 
@@ -104,7 +104,7 @@ func (ed *Editor) Finish() {
 
 func (ed *Editor) Line(row int) string {
 	if ed.mode == ModeInsert && row == ed.row {
-		return ed.ins.Line()
+		return ed.inp.Line()
 	} else {
 		return ed.lines[row]
 	}
@@ -142,8 +142,8 @@ func (ed *Editor) InsertRune(r rune) {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
-	ed.ins.WriteRune(r)
-	ed.col = ed.ins.Column()
+	ed.inp.WriteRune(r)
+	ed.col = ed.inp.Column()
 }
 
 func (ed *Editor) Ring() {

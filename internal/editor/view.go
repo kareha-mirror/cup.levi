@@ -51,7 +51,7 @@ func (ed *Editor) DrawStatus() {
 	if ed.bell {
 		termi.EnableInvert()
 	}
-	termi.Printf("[%s] %s %d,%d %s", ed.combuf.Cache(), m, ed.row, ed.col, ed.path)
+	termi.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
 	if ed.bell {
 		termi.DisableInvert()
 	}
