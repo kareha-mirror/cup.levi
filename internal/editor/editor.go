@@ -146,6 +146,24 @@ func (ed *Editor) InsertRune(r rune) {
 	ed.col = ed.inp.Column()
 }
 
+func (ed *Editor) EnsureCommand() {
+	if ed.mode == ModeCommand {
+		return
+	}
+
+	if ed.mode == ModeInsert {
+		ed.lines[ed.row] = ed.inp.Line()
+		ed.inp.Reset()
+		ed.mode = ModeCommand
+		ed.MoveLeft(1)
+		return
+	}
+}
+
 func (ed *Editor) Ring(message string) {
 	ed.message = message
+}
+
+func (ed *Editor) Unimplemented(name string) {
+	ed.Ring("not implemented (" + name + ")")
 }

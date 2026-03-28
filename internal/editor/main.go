@@ -4,16 +4,6 @@ import (
 	"tea.kareha.org/lab/termi"
 )
 
-func (ed *Editor) ExitInsert() {
-	if ed.mode != ModeInsert {
-		panic("invalid state")
-	}
-	ed.lines[ed.row] = ed.inp.Line()
-	ed.inp.Reset()
-	ed.mode = ModeCommand
-	ed.MoveLeft(1)
-}
-
 func (ed *Editor) InsertNewline() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
@@ -85,7 +75,7 @@ func (ed *Editor) Main() {
 			case termi.KeyRune:
 				switch key.Rune {
 				case termi.RuneEscape:
-					ed.ExitInsert()
+					ed.EnsureCommand()
 				case termi.RuneEnter:
 					ed.InsertNewline()
 				case termi.RuneBackspace:
@@ -96,16 +86,12 @@ func (ed *Editor) Main() {
 					ed.InsertRune(key.Rune)
 				}
 			case termi.KeyUp:
-				ed.ExitInsert()
 				ed.MoveUp(1)
 			case termi.KeyDown:
-				ed.ExitInsert()
 				ed.MoveDown(1)
 			case termi.KeyRight:
-				ed.ExitInsert()
 				ed.MoveRight(1)
 			case termi.KeyLeft:
-				ed.ExitInsert()
 				ed.MoveLeft(1)
 			default:
 				ed.Ring("unknown key")

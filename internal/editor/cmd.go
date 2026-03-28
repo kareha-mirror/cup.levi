@@ -2,6 +2,23 @@ package editor
 
 type CmdKind int
 
+type Loc struct {
+	Row int
+	Col int
+}
+
+type Cmd struct {
+	Kind     CmdKind
+	Num      int
+	Letter   rune
+	Pat      string
+	Reg      rune
+	Start    Loc
+	End      Loc
+	StartRow int
+	EndRow   int
+}
+
 const (
 	CmdInvalid CmdKind = iota
 
@@ -97,10 +114,10 @@ const (
 	CmdOpDelete
 	CmdOpDeleteBefore
 	CmdOpDeleteLine
-	CmdOpDelteRegion
+	CmdOpDeleteRegion
 	CmdOpDeleteLineRegion
 	CmdOpDeleteWord
-	CmdOpDelteToEnd
+	CmdOpDeleteToEnd
 
 	CmdOpChangeLine
 	CmdOpChangeRegion
@@ -142,8 +159,3 @@ const (
 	CmdPromptQuitAll
 	CmdPromptForceQuitAll
 )
-
-type Cmd struct {
-	Kind CmdKind
-	Num  int
-}

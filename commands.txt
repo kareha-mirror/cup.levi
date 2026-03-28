@@ -59,6 +59,7 @@ Command categories:
 * ) : Move cursor forward by sentence. (MoveBySentence)
 * ( : Move cursor backward by sentence. (MoveBackwardBySentence)
 * } : Move cursor forward by paragraph. (MoveByParagraph)
+  (Note: Proper vi respects nroff/troff directives, but levi doesn't.)
 * { : Move cursor backward by paragraph. (MoveBackwardByParagraph)
   (Note: Proper vi respects nroff/troff directives, but levi doesn't.)
 * ]] : Move cursor forward by section. (MoveBySection)
