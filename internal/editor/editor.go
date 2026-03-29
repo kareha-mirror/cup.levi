@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"tea.kareha.org/lab/termi"
+	"tea.kareha.org/cup/termi"
 )
 
 type Mode int

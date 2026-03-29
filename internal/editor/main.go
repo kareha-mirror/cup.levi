@@ -1,7 +1,7 @@
 package editor
 
 import (
-	"tea.kareha.org/lab/termi"
+	"tea.kareha.org/cup/termi"
 )
 
 func (ed *Editor) InsertNewline() {

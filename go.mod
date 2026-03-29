@@ -1,10 +1,9 @@
-module tea.kareha.org/lab/levi
+module tea.kareha.org/cup/levi
 
 go 1.25.0
 
-require (
-	golang.org/x/term v0.41.0 // indirect
-	tea.kareha.org/lab/termi v0.0.0-20260326135653-28299eeba224
-)
+require golang.org/x/term v0.41.0 // indirect
+
+require tea.kareha.org/cup/termi v0.0.0-20260329004923-d87a5f85904d
 
 require golang.org/x/sys v0.42.0 // indirect

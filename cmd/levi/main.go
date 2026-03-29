@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"tea.kareha.org/lab/levi/internal/editor"
+	"tea.kareha.org/cup/levi/internal/editor"
 )
 
 func main() {

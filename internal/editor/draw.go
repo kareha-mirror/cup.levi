@@ -3,7 +3,7 @@ package editor
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/lab/termi"
+	"tea.kareha.org/cup/termi"
 )
 
 func (ed *Editor) LineHeight(line string) int {
