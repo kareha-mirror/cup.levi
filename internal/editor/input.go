@@ -2,11 +2,13 @@ package editor
 
 import (
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/termi"
 )
 
 type Input struct {
 	head, tail string
-	body       *RuneBuf
+	body       *termi.StringBuilder
 }
 
 const maxBodyLen = 1024
@@ -15,7 +17,7 @@ func NewInput() *Input {
 	return &Input{
 		head: "",
 		tail: "",
-		body: new(RuneBuf),
+		body: new(termi.StringBuilder),
 	}
 }
 
@@ -23,7 +25,7 @@ func (inp *Input) Reset() {
 	inp.head = ""
 	inp.tail = ""
 	if inp.body.Len() > maxBodyLen {
-		inp.body = new(RuneBuf)
+		inp.body = new(termi.StringBuilder)
 	} else {
 		inp.body.Reset()
 	}
@@ -65,5 +67,5 @@ func (inp *Input) Column() int {
 }
 
 func (inp *Input) Backspace() bool {
-	return inp.body.Backspace()
+	return inp.body.RemoveTail()
 }

@@ -84,7 +84,7 @@ func Init(args []string) *Editor {
 
 func (ed *Editor) Save(path string) {
 	text := strings.Join(ed.lines, "\n") + "\n"
-	err := os.WriteFile(path, []byte(text), 0644)
+	err := os.WriteFile(path, []byte(text), 0666)
 	if err != nil {
 		panic(err)
 	}
