@@ -29,6 +29,7 @@ type Editor struct {
 	message  string
 	parser   *Parser
 	quit     bool
+	esc      bool
 }
 
 func (ed *Editor) Load(path string) {
@@ -69,6 +70,7 @@ func Init(args []string) *Editor {
 		message: "",
 		parser:  NewParser(),
 		quit:    false,
+		esc:     false,
 	}
 
 	if path != "" {
@@ -79,6 +81,12 @@ func Init(args []string) *Editor {
 	}
 
 	termi.Raw()
+
+	termi.AddEscapeListener(func(esc bool) {
+		ed.esc = esc
+		ed.DrawStatus()
+	})
+
 	return ed
 }
 

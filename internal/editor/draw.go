@@ -56,6 +56,15 @@ func (ed *Editor) DrawStatus() {
 	} else {
 		termi.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
 	}
+
+	termi.MoveCursor(ed.w-2, ed.h-1)
+	if ed.esc {
+		termi.Print(" *")
+	} else {
+		termi.Print(" .")
+	}
+
+	termi.MoveCursor(ed.x, ed.y)
 }
 
 func (ed *Editor) UpdateCursor() {
@@ -100,7 +109,7 @@ func (ed *Editor) Repaint() {
 	ed.DrawBuffer()
 	ed.DrawStatus()
 
-	termi.MoveCursor(ed.x, ed.y)
+	//termi.MoveCursor(ed.x, ed.y) // already in ed.DrawStatus()
 
 	termi.ShowCursor()
 }
