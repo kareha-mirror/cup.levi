@@ -29,6 +29,7 @@ type Editor struct {
 	message  string
 	parser   *Parser
 	quit     bool
+	listener termi.EscapeListener
 	esc      bool
 }
 
@@ -56,21 +57,22 @@ func Init(args []string) *Editor {
 
 	w, h := termi.Size()
 	ed := &Editor{
-		col:     0,
-		row:     0,
-		vrow:    0,
-		w:       w,
-		h:       h,
-		x:       0,
-		y:       0,
-		lines:   make([]string, 1),
-		inp:     NewInput(),
-		mode:    ModeCommand,
-		path:    path,
-		message: "",
-		parser:  NewParser(),
-		quit:    false,
-		esc:     false,
+		col:      0,
+		row:      0,
+		vrow:     0,
+		w:        w,
+		h:        h,
+		x:        0,
+		y:        0,
+		lines:    make([]string, 1),
+		inp:      NewInput(),
+		mode:     ModeCommand,
+		path:     path,
+		message:  "",
+		parser:   NewParser(),
+		quit:     false,
+		listener: nil,
+		esc:      false,
 	}
 
 	if path != "" {
@@ -82,10 +84,12 @@ func Init(args []string) *Editor {
 
 	termi.Raw()
 
-	termi.AddEscapeListener(func(esc bool) {
+	listener := func(esc bool) {
 		ed.esc = esc
 		ed.DrawStatus()
-	})
+	}
+	ed.listener = termi.EscapeListener(&listener)
+	termi.AddEscapeListener(ed.listener)
 
 	return ed
 }
@@ -100,6 +104,8 @@ func (ed *Editor) Save(path string) {
 }
 
 func (ed *Editor) Finish() {
+	termi.RemoveEscapeListener(ed.listener)
+
 	termi.Clear()
 	termi.HomeCursor()
 	termi.Cooked()
