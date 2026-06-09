@@ -29,6 +29,8 @@ type Editor struct {
 	path     string
 	message  string
 	parser   *Parser
+	prompt   termi.RuneBuf
+	save     bool
 	quit     bool
 	listener termi.EscapeListener
 	esc      bool
@@ -71,6 +73,8 @@ func Init(args []string) *Editor {
 		path:     path,
 		message:  "",
 		parser:   NewParser(),
+		prompt:   termi.RuneBuf{},
+		save:     false,
 		quit:     false,
 		listener: nil,
 		esc:      false,
@@ -115,7 +119,7 @@ func (ed *Editor) Finish() {
 	termi.Cooked()
 	fmt.Print(termi.ShowCursor)
 
-	if ed.path != "" {
+	if ed.path != "" && ed.save {
 		ed.Save(ed.path)
 	}
 }

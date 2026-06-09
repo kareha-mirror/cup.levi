@@ -96,6 +96,33 @@ func (ed *Editor) Main() {
 			default:
 				ed.Ring("unknown sequence")
 			}
+		case ModePrompt:
+			switch seq.Kind {
+			case termi.SeqRune:
+				switch seq.Rune {
+				case termi.RuneEscape:
+					ed.prompt.Reset()
+					ed.mode = ModeCommand
+				case termi.RuneEnter:
+					cmd, ok := ed.ParsePrompt()
+					if ok {
+						ok = ed.Run(cmd)
+						if !ok {
+							ed.message = "prompt command failed"
+						}
+					} else {
+						ed.message = "unknown prompt command"
+					}
+				case termi.RuneBackspace:
+					ed.prompt.RemoveTail()
+				case termi.RuneDelete:
+					ed.prompt.RemoveTail()
+				default:
+					ed.prompt.WriteRune(seq.Rune)
+				}
+			default:
+				ed.Ring("unknown sequence")
+			}
 		}
 	}
 }

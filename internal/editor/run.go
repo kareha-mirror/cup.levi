@@ -336,5 +336,60 @@ func (ed *Editor) Run(c Cmd) bool {
 		return true
 	}
 
+	switch c.Kind {
+	case CmdPromptMode:
+		ed.PromptMode()
+		return true
+
+	case CmdPromptMoveToLine:
+		ed.PromptMoveToLine(0) // XXX
+		return true
+
+	case CmdPromptSaveAndQuit:
+		ed.PromptSaveAndQuit()
+		return true
+	case CmdPromptSave:
+		ed.PromptSave()
+		return true
+	case CmdPromptForceSave:
+		ed.PromptForceSave()
+		return true
+	case CmdPromptQuit:
+		ed.PromptQuit()
+		return true
+	case CmdPromptForceQuit:
+		ed.PromptForceQuit()
+		return true
+	case CmdPromptOpen:
+		ed.PromptOpen()
+		return true
+	case CmdPromptForceOpen:
+		ed.PromptForceOpen()
+		return true
+	case CmdPromptRead:
+		ed.PromptRead()
+		return true
+	case CmdPromptNext:
+		ed.PromptNext()
+		return true
+	case CmdPromptPrev:
+		ed.PromptPrev()
+		return true
+
+	case CmdPromptShell:
+		ed.PromptShell()
+		return true
+
+	case CmdPromptSaveAll:
+		ed.PromptSaveAll()
+		return true
+	case CmdPromptQuitAll:
+		ed.PromptQuitAll()
+		return true
+	case CmdPromptForceQuitAll:
+		ed.PromptForceQuitAll()
+		return true
+	}
+
 	return false
 }

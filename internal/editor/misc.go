@@ -31,5 +31,6 @@ func (ed *Editor) MiscRestore() {
 // ZZ : Save and quit.
 func (ed *Editor) MiscSaveAndQuit() {
 	ed.EnsureCommand()
+	ed.save = true
 	ed.quit = true
 }

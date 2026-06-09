@@ -34,27 +34,28 @@ func (ed *Editor) DrawBuffer() {
 }
 
 func (ed *Editor) DrawStatus() {
-	var m string
-	switch ed.mode {
-	case ModeCommand:
-		m = "vi command"
-	case ModeInsert:
-		m = "vi insert"
-	case ModeSearch:
-		m = "vi search"
-	case ModePrompt:
-		m = "vi prompt"
-	default:
-		panic("invalid mode")
-	}
-
 	fmt.Print(termi.MoveCursor(0, ed.h-1))
+
 	if ed.message != "" {
 		fmt.Print(termi.SetInvert)
 		fmt.Print(ed.message)
 		fmt.Print(termi.ResetInvert)
 		ed.message = ""
+	} else if ed.mode == ModePrompt {
+		fmt.Printf(":%s", ed.prompt.String())
 	} else {
+		var m string
+		switch ed.mode {
+		case ModeCommand:
+			m = "vi command"
+		case ModeInsert:
+			m = "vi insert"
+		case ModeSearch:
+			m = "vi search"
+		default:
+			panic("invalid mode")
+		}
+
 		fmt.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
 	}
 

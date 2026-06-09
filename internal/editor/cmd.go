@@ -140,6 +140,8 @@ const (
 	CmdMiscRestore
 	CmdMiscSaveAndQuit
 
+	CmdPromptMode
+
 	CmdPromptMoveToLine
 
 	CmdPromptSaveAndQuit

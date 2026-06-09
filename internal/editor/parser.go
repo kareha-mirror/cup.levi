@@ -638,6 +638,10 @@ func (p *Parser) Parse() (Cmd, bool) {
 		return Cmd{}, false
 	}
 
+	if p.buf[0] == ':' { // prompt
+		return Cmd{Kind: CmdPromptMode}, true
+	}
+
 	if p.buf[0] == '0' { // special
 		return Cmd{Kind: CmdMoveToStart}, true
 	}
