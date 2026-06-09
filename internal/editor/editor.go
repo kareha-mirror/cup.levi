@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"unicode/utf8"
@@ -83,6 +84,7 @@ func Init(args []string) *Editor {
 	}
 
 	termi.Raw()
+	termi.Init()
 
 	listener := func(esc bool) {
 		ed.esc = esc
@@ -106,10 +108,12 @@ func (ed *Editor) Save(path string) {
 func (ed *Editor) Finish() {
 	termi.RemoveEscapeListener(ed.listener)
 
-	termi.Clear()
-	termi.HomeCursor()
+	termi.Finish()
+
+	fmt.Print(termi.Clear)
+	fmt.Print(termi.HomeCursor)
 	termi.Cooked()
-	termi.ShowCursor()
+	fmt.Print(termi.ShowCursor)
 
 	if ed.path != "" {
 		ed.Save(ed.path)

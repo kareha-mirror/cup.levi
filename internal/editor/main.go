@@ -39,19 +39,19 @@ func (ed *Editor) Main() {
 	for !ed.quit {
 		ed.Draw()
 
-		key := termi.ReadKey()
+		seq := termi.ReadSeq()
 		switch ed.mode {
 		case ModeCommand:
-			switch key.Kind {
-			case termi.KeyRune:
-				if key.Rune == termi.RuneEscape {
+			switch seq.Kind {
+			case termi.SeqRune:
+				if seq.Rune == termi.RuneEscape {
 					if ed.parser.String() == "" {
 						ed.Ring("already in vi command mode")
 					}
 					ed.parser.ClearAll()
 					continue
 				}
-				ed.parser.InsertRune(key.Rune)
+				ed.parser.InsertRune(seq.Rune)
 
 				c, ok := ed.parser.Parse()
 				if ok {
@@ -59,21 +59,21 @@ func (ed *Editor) Main() {
 						ed.parser.Clear()
 					}
 				}
-			case termi.KeyUp:
+			case termi.SeqUp:
 				ed.MoveUp(1)
-			case termi.KeyDown:
+			case termi.SeqDown:
 				ed.MoveDown(1)
-			case termi.KeyRight:
+			case termi.SeqRight:
 				ed.MoveRight(1)
-			case termi.KeyLeft:
+			case termi.SeqLeft:
 				ed.MoveLeft(1)
 			default:
-				ed.Ring("unknown key")
+				ed.Ring("unknown sequence")
 			}
 		case ModeInsert:
-			switch key.Kind {
-			case termi.KeyRune:
-				switch key.Rune {
+			switch seq.Kind {
+			case termi.SeqRune:
+				switch seq.Rune {
 				case termi.RuneEscape:
 					ed.EnsureCommand()
 				case termi.RuneEnter:
@@ -83,18 +83,18 @@ func (ed *Editor) Main() {
 				case termi.RuneDelete:
 					ed.Backspace()
 				default:
-					ed.InsertRune(key.Rune)
+					ed.InsertRune(seq.Rune)
 				}
-			case termi.KeyUp:
+			case termi.SeqUp:
 				ed.MoveUp(1)
-			case termi.KeyDown:
+			case termi.SeqDown:
 				ed.MoveDown(1)
-			case termi.KeyRight:
+			case termi.SeqRight:
 				ed.MoveRight(1)
-			case termi.KeyLeft:
+			case termi.SeqLeft:
 				ed.MoveLeft(1)
 			default:
-				ed.Ring("unknown key")
+				ed.Ring("unknown sequence")
 			}
 		}
 	}

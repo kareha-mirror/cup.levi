@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"fmt"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
@@ -17,8 +18,8 @@ func (ed *Editor) DrawBuffer() {
 	for i := ed.vrow; i < len(ed.lines); i++ {
 		line := ed.Line(i)
 
-		termi.MoveCursor(0, y)
-		termi.Draw(line)
+		fmt.Print(termi.MoveCursor(0, y))
+		fmt.Print(termi.Render(line))
 
 		y += ed.LineHeight(line)
 		if y >= ed.h-1 {
@@ -27,8 +28,8 @@ func (ed *Editor) DrawBuffer() {
 	}
 
 	for ; y < ed.h-1; y++ {
-		termi.MoveCursor(0, y)
-		termi.Draw("~")
+		fmt.Print(termi.MoveCursor(0, y))
+		fmt.Print(termi.Render("~"))
 	}
 }
 
@@ -47,24 +48,24 @@ func (ed *Editor) DrawStatus() {
 		panic("invalid mode")
 	}
 
-	termi.MoveCursor(0, ed.h-1)
+	fmt.Print(termi.MoveCursor(0, ed.h-1))
 	if ed.message != "" {
-		termi.EnableInvert()
-		termi.Print(ed.message)
-		termi.DisableInvert()
+		fmt.Print(termi.SetInvert)
+		fmt.Print(ed.message)
+		fmt.Print(termi.ResetInvert)
 		ed.message = ""
 	} else {
-		termi.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
+		fmt.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
 	}
 
-	termi.MoveCursor(ed.w-2, ed.h-1)
+	fmt.Print(termi.MoveCursor(ed.w-2, ed.h-1))
 	if ed.esc {
-		termi.Print(" *")
+		fmt.Print(" *")
 	} else {
-		termi.Print(" .")
+		fmt.Print(" .")
 	}
 
-	termi.MoveCursor(ed.x, ed.y)
+	fmt.Print(termi.MoveCursor(ed.x, ed.y))
 }
 
 func (ed *Editor) UpdateCursor() {
@@ -99,19 +100,19 @@ func (ed *Editor) Repaint() {
 	ed.w = w
 	ed.h = h
 
-	termi.HideCursor()
+	fmt.Print(termi.HideCursor)
 
-	termi.Clear()
-	termi.HomeCursor()
+	fmt.Print(termi.Clear)
+	fmt.Print(termi.HomeCursor)
 
 	ed.UpdateCursor()
 
 	ed.DrawBuffer()
 	ed.DrawStatus()
 
-	//termi.MoveCursor(ed.x, ed.y) // already in ed.DrawStatus()
+	//fmt.Print(termi.MoveCursor(ed.x, ed.y)) // already in ed.DrawStatus()
 
-	termi.ShowCursor()
+	fmt.Print(termi.ShowCursor)
 }
 
 func (ed *Editor) Draw() {

@@ -8,7 +8,7 @@ import (
 
 type Input struct {
 	head, tail string
-	body       *termi.StringBuilder
+	body       *termi.RuneBuf
 }
 
 const maxBodyLen = 1024
@@ -17,7 +17,7 @@ func NewInput() *Input {
 	return &Input{
 		head: "",
 		tail: "",
-		body: new(termi.StringBuilder),
+		body: new(termi.RuneBuf),
 	}
 }
 
@@ -25,7 +25,7 @@ func (inp *Input) Reset() {
 	inp.head = ""
 	inp.tail = ""
 	if inp.body.Len() > maxBodyLen {
-		inp.body = new(termi.StringBuilder)
+		inp.body = new(termi.RuneBuf)
 	} else {
 		inp.body.Reset()
 	}
