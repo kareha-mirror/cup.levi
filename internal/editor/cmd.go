@@ -39,8 +39,8 @@ const (
 	CmdMoveBackwardByLooseWord
 	CmdMoveToEndOfLooseWord
 
-	CmdMoveToNonBlankOfNextLine
-	CmdMoveToNonBlankOfPrevLine
+	CmdMoveByLine
+	CmdMoveBackwardByLine
 	CmdMoveToLastLine
 	CmdMoveToLine
 
@@ -139,25 +139,4 @@ const (
 	CmdMiscUndo
 	CmdMiscRestore
 	CmdMiscSaveAndQuit
-
-	CmdPromptMode
-
-	CmdPromptMoveToLine
-
-	CmdPromptSaveAndQuit
-	CmdPromptSave
-	CmdPromptForceSave
-	CmdPromptQuit
-	CmdPromptForceQuit
-	CmdPromptOpen
-	CmdPromptForceOpen
-	CmdPromptRead
-	CmdPromptNext
-	CmdPromptPrev
-
-	CmdPromptShell
-
-	CmdPromptSaveAll
-	CmdPromptQuitAll
-	CmdPromptForceQuitAll
 )

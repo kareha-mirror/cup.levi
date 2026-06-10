@@ -4,6 +4,66 @@ package editor
 // Motion Commands //
 /////////////////////
 
+func (ed *Editor) UpdateRow(n int) bool {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
+
+	newRow := ed.row + n
+	if newRow < 0 {
+		return false
+	}
+	lines := len(ed.lines)
+	if lines == 0 && newRow == 0 {
+		ed.row = newRow
+		return true
+	}
+	if newRow >= lines {
+		return false
+	}
+	ed.row = newRow
+	return true
+}
+
+func (ed *Editor) ConfineRow() {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
+
+	n := len(ed.lines)
+	if ed.row < 0 {
+		ed.row = 0
+	} else if ed.row >= n {
+		ed.row = max(n-1, 0)
+	}
+}
+
+func (ed *Editor) ConfineCol() {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
+
+	rc := ed.RuneCount()
+	if ed.col < 0 {
+		ed.col = 0
+	} else if ed.col >= rc {
+		ed.col = max(rc-1, 0)
+	}
+}
+
+func (ed *Editor) Confine() {
+	ed.ConfineRow()
+	ed.ConfineCol()
+}
+
+func (ed *Editor) UpdateVirtCol() {
+	if ed.mode != ModeCommand {
+		panic("invalid state")
+	}
+
+	ed.virtCol = ed.col
+}
+
 //
 // Move by Character / Move by Line
 //
@@ -12,28 +72,36 @@ package editor
 func (ed *Editor) MoveLeft(n int) {
 	ed.EnsureCommand()
 	ed.col -= n
-	ed.Confine()
+	ed.ConfineCol()
+	ed.UpdateVirtCol()
 }
 
 // j : Move cursor down by line.
 func (ed *Editor) MoveDown(n int) {
 	ed.EnsureCommand()
-	ed.row += n
-	ed.Confine()
+	if !ed.UpdateRow(n) {
+		return
+	}
+	ed.col = ed.virtCol
+	ed.ConfineCol()
 }
 
 // k : Move cursor up by line.
 func (ed *Editor) MoveUp(n int) {
 	ed.EnsureCommand()
-	ed.row -= n
-	ed.Confine()
+	if !ed.UpdateRow(-n) {
+		return
+	}
+	ed.col = ed.virtCol
+	ed.ConfineCol()
 }
 
 // l : Move cursor right by character.
 func (ed *Editor) MoveRight(n int) {
 	ed.EnsureCommand()
 	ed.col += n
-	ed.Confine()
+	ed.ConfineCol()
+	ed.UpdateVirtCol()
 }
 
 //
@@ -44,14 +112,16 @@ func (ed *Editor) MoveRight(n int) {
 func (ed *Editor) MoveToStart() {
 	ed.EnsureCommand()
 	ed.col = 0
-	ed.Confine() // redundant
+	ed.ConfineCol() // redundant
+	ed.UpdateVirtCol()
 }
 
 // $ : Move cursor to end of current line.
 func (ed *Editor) MoveToEnd() {
 	ed.EnsureCommand()
 	ed.col = ed.RuneCount() - 1
-	ed.Confine()
+	ed.ConfineCol()
+	ed.UpdateVirtCol()
 }
 
 // ^ : Move cursor to first non-blank character of current line.
@@ -66,7 +136,8 @@ func (ed *Editor) MoveToNonBlank() {
 		i++
 	}
 	ed.col = i
-	ed.Confine()
+	ed.ConfineCol()
+	ed.UpdateVirtCol()
 }
 
 // <num>| : Move cursor to column <num> of current line.
@@ -74,7 +145,8 @@ func (ed *Editor) MoveToNonBlank() {
 func (ed *Editor) MoveToColumn(n int) {
 	ed.EnsureCommand()
 	ed.col = n - 1
-	ed.Confine()
+	ed.ConfineCol()
+	ed.UpdateVirtCol()
 }
 
 //
@@ -122,27 +194,38 @@ func (ed *Editor) MoveToEndOfLooseWord(n int) {
 //
 
 // Enter, + : Move cursor to first non-blank character of next line.
-func (ed *Editor) MoveToNonBlankOfNextLine(n int) {
+func (ed *Editor) MoveByLine(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("MoveToNonBlankOfNextLine")
+	if !ed.UpdateRow(n) {
+		return
+	}
+	ed.MoveToNonBlank()
 }
 
 // - : Move cursor to first non-blank character of previous line.
-func (ed *Editor) MoveToNonBlankOfPrevLine(n int) {
+func (ed *Editor) MoveBackwardByLine(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("MoveToNonBlankOfPrevLine")
+	if !ed.UpdateRow(-n) {
+		return
+	}
+	ed.MoveToNonBlank()
 }
 
-// G : Move cursor to last line.
+// G : Move cursor to first non-blank character of last line.
 func (ed *Editor) MoveToLastLine() {
 	ed.EnsureCommand()
-	ed.Unimplemented("MoveToLastLine")
+	ed.row = len(ed.lines) - 1
+	ed.ConfineRow()
+	ed.MoveToNonBlank()
 }
 
-// <num>G : Move cursor to line <num>.
+// <num>G : Move cursor to first non-blank character of line specified by <num>.
 func (ed *Editor) MoveToLine(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("MoveToLine")
+	if !ed.UpdateRow(n - len(ed.lines)) {
+		return
+	}
+	ed.MoveToNonBlank()
 }
 
 //

@@ -49,10 +49,10 @@ Command categories:
 
 === Move by Line ===
 
-* Enter, + : Move cursor to first non-blank character of next line. (MoveToNonBlankOfNextLine)
-* - : Move cursor to first non-blank character of previous line. (MoveToNonBlankOfPrevLine)
-* G : Move cursor to last line. (MoveToLastLine)
-* <num>G : Move cursor to line <num>. (MoveToLine)
+* Enter, + : Move cursor to first non-blank character of next line. (MoveByLine)
+* - : Move cursor to first non-blank character of previous line. (MoveBackwardByLine)
+* G : Move cursor to first non-blank character of last line. (MoveToLastLine)
+* <num>G : Move cursor to first non-blank character of line specified by <num>. (MoveToLine)
 
 === Move by Block ===
 
@@ -197,7 +197,9 @@ Command categories:
 
 === Move ===
 
-* :<num> Enter : Move cursor to line <num>. (PromptMoveToLine)
+* :+<num> Enter : Move cursor to first non-blank character of next line. (PromptMoveByLine)
+* :-<num> Enter : Move cursor to first non-blank character of previous line. (PromptMoveBackwardByLine)
+* :<num> Enter : Move cursor to first non-blank character of line specified by <num>. (PromptMoveToLine)
 
 === File ===
 

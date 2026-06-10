@@ -51,6 +51,11 @@ func (ed *Editor) Main() {
 					ed.parser.ClearAll()
 					continue
 				}
+
+				if ed.parser.String() == "" && seq.Rune == ':' {
+					ed.mode = ModePrompt
+					continue
+				}
 				ed.parser.InsertRune(seq.Rune)
 
 				c, ok := ed.parser.Parse()
@@ -104,14 +109,15 @@ func (ed *Editor) Main() {
 					ed.prompt.Reset()
 					ed.mode = ModeCommand
 				case termi.RuneEnter:
-					cmd, ok := ed.ParsePrompt()
+					c, ok := ed.ParsePrompt()
 					if ok {
-						ok = ed.Run(cmd)
+						ed.prompt.Reset()
+						ok = ed.RunPrompt(c)
 						if !ok {
-							ed.message = "prompt command failed"
+							ed.Ring("prompt command failed")
 						}
 					} else {
-						ed.message = "unknown prompt command"
+						ed.Ring("unknown prompt command")
 					}
 				case termi.RuneBackspace:
 					ed.prompt.RemoveTail()

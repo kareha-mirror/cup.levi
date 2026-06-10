@@ -21,6 +21,7 @@ const (
 type Editor struct {
 	col, row int
 	vrow     int
+	virtCol  int
 	w, h     int
 	x, y     int
 	lines    []string
@@ -63,6 +64,7 @@ func Init(args []string) *Editor {
 		col:      0,
 		row:      0,
 		vrow:     0,
+		virtCol:  0,
 		w:        w,
 		h:        h,
 		x:        0,
@@ -140,26 +142,6 @@ func (ed *Editor) RuneCount() int {
 	return utf8.RuneCountInString(ed.CurrentLine())
 }
 
-func (ed *Editor) Confine() {
-	if ed.mode != ModeCommand {
-		panic("invalid state")
-	}
-
-	n := len(ed.lines)
-	if ed.row < 0 {
-		ed.row = 0
-	} else if ed.row >= n {
-		ed.row = max(n-1, 0)
-	}
-
-	rc := ed.RuneCount()
-	if ed.col < 0 {
-		ed.col = 0
-	} else if ed.col >= rc {
-		ed.col = max(rc-1, 0)
-	}
-}
-
 func (ed *Editor) InsertRune(r rune) {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
@@ -169,21 +151,26 @@ func (ed *Editor) InsertRune(r rune) {
 }
 
 func (ed *Editor) EnsureCommand() {
-	if ed.mode == ModeCommand {
+	switch ed.mode {
+	case ModeCommand:
 		return
-	}
-
-	if ed.mode == ModeInsert {
+	case ModeInsert:
 		ed.lines[ed.row] = ed.inp.Line()
 		ed.inp.Reset()
 		ed.mode = ModeCommand
 		ed.MoveLeft(1)
 		return
+	case ModeSearch:
+		ed.mode = ModeCommand
+		return
+	case ModePrompt:
+		ed.mode = ModeCommand
+		return
 	}
 }
 
-func (ed *Editor) Ring(message string) {
-	ed.message = message
+func (ed *Editor) Ring(format string, a ...any) {
+	ed.message = fmt.Sprintf(format, a...)
 }
 
 func (ed *Editor) Unimplemented(name string) {

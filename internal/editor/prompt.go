@@ -1,69 +1,44 @@
 package editor
 
-import (
-	"strings"
-)
-
 /////////////////////
 // Prompt Commands //
 /////////////////////
 
-// : : Prompt mode.
-func (ed *Editor) PromptMode() {
-	ed.mode = ModePrompt
+// :+<num> Enter : Move cursor to first non-blank character of next line.
+func (ed *Editor) PromptMoveByLine(n int) {
+	ed.EnsureCommand()
+	if !ed.UpdateRow(n) {
+		ed.Ring("Illegal address: only %d lines in the file.", len(ed.lines))
+		return
+	}
+	ed.MoveToNonBlank()
 }
 
-func (ed *Editor) ParsePrompt() (Cmd, bool) {
-	if ed.prompt.Len() < 1 {
-		return Cmd{Kind: CmdInvalid}, false
+// :-<num> Enter : Move cursor to first non-blank character of previous line.
+func (ed *Editor) PromptMoveBackwardByLine(n int) {
+	ed.EnsureCommand()
+	if ed.row-n == -1 {
+		n++
 	}
-
-	parts := strings.Split(ed.prompt.String(), " ")
-
-	// TODO
-	//return Cmd{Kind: CmdPromptMoveToLine}, true
-
-	switch parts[0] {
-	case "wq":
-		return Cmd{Kind: CmdPromptSaveAndQuit}, true
-	case "w":
-		return Cmd{Kind: CmdPromptSave}, true
-	case "w!":
-		return Cmd{Kind: CmdPromptForceSave}, true
-	case "q":
-		return Cmd{Kind: CmdPromptQuit}, true
-	case "q!":
-		return Cmd{Kind: CmdPromptForceQuit}, true
-	case "e":
-		return Cmd{Kind: CmdPromptOpen}, true
-	case "e!":
-		return Cmd{Kind: CmdPromptForceOpen}, true
-	case "r":
-		return Cmd{Kind: CmdPromptRead}, true
-	case "n":
-		return Cmd{Kind: CmdPromptNext}, true
-	case "prev":
-		return Cmd{Kind: CmdPromptPrev}, true
-
-	case "sh":
-		return Cmd{Kind: CmdPromptShell}, true
-
-	case "wa":
-		return Cmd{Kind: CmdPromptSaveAll}, true
-	case "qa":
-		return Cmd{Kind: CmdPromptQuitAll}, true
-	case "qa!":
-		return Cmd{Kind: CmdPromptForceQuitAll}, true
-
-	default:
-		return Cmd{Kind: CmdInvalid}, false
+	if !ed.UpdateRow(-n) {
+		ed.Ring("Reference to a line number less than 0.")
+		return
 	}
+	ed.MoveToNonBlank()
 }
 
-// :<num> Enter : Move cursor to line <num>.
+// :<num> Enter : Move cursor to first non-blank character of line specifined by <num>.
 func (ed *Editor) PromptMoveToLine(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptMoveToLine")
+	if n == 0 {
+		n = 1
+	}
+	n--
+	if !ed.UpdateRow(n - len(ed.lines)) {
+		ed.Ring("Illegal address: only %d lines in the file.", len(ed.lines))
+		return
+	}
+	ed.MoveToNonBlank()
 }
 
 // :wq Enter : Save current file and quit.

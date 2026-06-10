@@ -56,7 +56,10 @@ func (ed *Editor) DrawStatus() {
 			panic("invalid mode")
 		}
 
-		fmt.Printf("[%s] %s %d,%d %s", ed.parser.Cache(), m, ed.row, ed.col, ed.path)
+		fmt.Printf(
+			"[%s] %s %d,%d %s",
+			ed.parser.Cache(), m, ed.row+1, ed.col+1, ed.path,
+		)
 	}
 
 	fmt.Print(termi.MoveCursor(ed.w-2, ed.h-1))

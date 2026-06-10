@@ -126,12 +126,12 @@ func (p *Parser) ParseMove(noNum bool, num int, mv string, letter rune) (Cmd, bo
 
 	case "\r", "+":
 		return Cmd{
-			Kind: CmdMoveToNonBlankOfNextLine,
+			Kind: CmdMoveByLine,
 			Num:  num,
 		}, true
 	case "-":
 		return Cmd{
-			Kind: CmdMoveToNonBlankOfPrevLine,
+			Kind: CmdMoveBackwardByLine,
 			Num:  num,
 		}, true
 	case "G":
@@ -636,10 +636,6 @@ var compoundSet = map[rune]struct{}{
 func (p *Parser) Parse() (Cmd, bool) {
 	if len(p.buf) < 1 {
 		return Cmd{}, false
-	}
-
-	if p.buf[0] == ':' { // prompt
-		return Cmd{Kind: CmdPromptMode}, true
 	}
 
 	if p.buf[0] == '0' { // special
