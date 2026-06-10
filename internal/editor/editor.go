@@ -32,6 +32,7 @@ type Editor struct {
 	message  string
 	parser   *Parser
 	prompt   termi.RuneBuf
+	killed   []string
 	save     bool
 	quit     bool
 	listener termi.EscapeListener
@@ -78,6 +79,7 @@ func Init(args []string) *Editor {
 		message:  "",
 		parser:   NewParser(),
 		prompt:   termi.RuneBuf{},
+		killed:   []string{},
 		save:     false,
 		quit:     false,
 		listener: nil,

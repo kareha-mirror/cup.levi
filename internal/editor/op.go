@@ -51,13 +51,33 @@ func (ed *Editor) OpCopyLineIntoReg(reg rune, n int) {
 // p : Paste after cursor.
 func (ed *Editor) OpPaste(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("OpPaste")
+	if len(ed.killed) < 1 {
+		ed.Ring("The default buffer is empty")
+		return
+	}
+	lines := []string{}
+	lines = append(lines, ed.lines[:ed.row+1]...)
+	lines = append(lines, ed.killed...)
+	if ed.row+1 <= len(ed.lines)-1 {
+		lines = append(lines, ed.lines[ed.row+1:]...)
+	}
+	ed.lines = lines
+	ed.MoveByLine(1)
 }
 
 // P : Paste before cursor.
 func (ed *Editor) OpPasteBefore(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("OpPasteBefore")
+	if len(ed.killed) < 1 {
+		ed.Ring("The default buffer is empty")
+		return
+	}
+	lines := []string{}
+	lines = append(lines, ed.lines[:ed.row]...)
+	lines = append(lines, ed.killed...)
+	lines = append(lines, ed.lines[ed.row:]...)
+	ed.lines = lines
+	ed.MoveToNonBlank()
 }
 
 // "<reg>p : Paste from register <reg>.
@@ -101,6 +121,7 @@ func (ed *Editor) OpDeleteLine(n int) {
 	if ed.row > 0 {
 		lines = append(lines, ed.lines[:ed.row]...)
 	}
+	ed.killed = []string{ed.lines[ed.row]}
 	if ed.row+1 <= len(ed.lines)-1 {
 		lines = append(lines, ed.lines[ed.row+1:]...)
 	}
