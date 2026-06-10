@@ -66,15 +66,9 @@ func (ed *Editor) OpPaste(n int) {
 		ed.Ring("The default buffer is empty")
 		return
 	case KillRunes:
-		n1 := min(n, 2)
-		n2 := max(n-n1, 0)
-
 		runes := []rune(ed.Line(ed.row))
-		col := ed.col
-		runesLen0 := len(runes)
-
-		for i := 0; i < n1; i++ {
-			runesLen := len(runes)
+		runesLen := len(runes)
+		for i := 0; i < n; i++ {
 			rs := []rune{}
 			if len(runes) > 0 && ed.col+1 <= len(runes) {
 				rs = append(rs, runes[:ed.col+1]...)
@@ -84,56 +78,29 @@ func (ed *Editor) OpPaste(n int) {
 				rs = append(rs, runes[ed.col+1:]...)
 			}
 			runes = rs
-			if runesLen > 0 {
-				ed.col++
-			}
 		}
-
-		ed.col = col
-		if runesLen0 > 0 || n1 > 1 {
+		if runesLen > 0 {
 			ed.col++
 		}
-
-		for i := 0; i < n2; i++ {
-			runesLen := len(runes)
-			rs := []rune{}
-			if len(runes) > 0 && ed.col+1 <= len(runes) {
-				rs = append(rs, runes[:ed.col+1]...)
-			}
-			rs = append(rs, ed.killed.runes...)
-			if ed.col+1 < len(runes) {
-				rs = append(rs, runes[ed.col+1:]...)
-			}
-			runes = rs
-			if runesLen > 0 {
-				ed.col++
-			}
-		}
-
-		ed.col = col
-		if runesLen0 > 0 || n1 > 1 {
-			ed.col++
-		}
-
 		if len(ed.lines) < 1 {
 			ed.lines = append(ed.lines, "")
 		}
 		ed.lines[ed.row] = string(runes)
 	case KillLines:
+		linesLen := len(ed.lines)
 		for i := 0; i < n; i++ {
-			linesLen := len(ed.lines)
 			lines := []string{}
-			if ed.row+1 <= linesLen {
+			if ed.row+1 <= len(ed.lines) {
 				lines = append(lines, ed.lines[:ed.row+1]...)
 			}
 			lines = append(lines, ed.killed.lines...)
-			if ed.row+1 <= linesLen-1 {
+			if ed.row+1 <= len(ed.lines)-1 {
 				lines = append(lines, ed.lines[ed.row+1:]...)
 			}
 			ed.lines = lines
-			if linesLen > 0 {
-				ed.MoveByLine(1)
-			}
+		}
+		if linesLen > 0 {
+			ed.MoveByLine(1)
 		}
 	}
 	ed.modified = true
