@@ -11,7 +11,14 @@ package editor
 // yy, Y : Copy current line.
 func (ed *Editor) OpCopyLine(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("OpCopyLine")
+	if n < 1 {
+		return
+	}
+	if ed.row+n > len(ed.lines) {
+		return
+	}
+	ed.killed.mode = KillLines
+	ed.killed.lines = append([]string{}, ed.lines[ed.row:ed.row+n]...)
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
@@ -51,33 +58,121 @@ func (ed *Editor) OpCopyLineIntoReg(reg rune, n int) {
 // p : Paste after cursor.
 func (ed *Editor) OpPaste(n int) {
 	ed.EnsureCommand()
-	if len(ed.killed) < 1 {
-		ed.Ring("The default buffer is empty")
+	if n < 1 {
 		return
 	}
-	lines := []string{}
-	lines = append(lines, ed.lines[:ed.row+1]...)
-	lines = append(lines, ed.killed...)
-	if ed.row+1 <= len(ed.lines)-1 {
-		lines = append(lines, ed.lines[ed.row+1:]...)
+	switch ed.killed.mode {
+	case KillNone:
+		ed.Ring("The default buffer is empty")
+		return
+	case KillRunes:
+		n1 := min(n, 2)
+		n2 := max(n-n1, 0)
+
+		runes := []rune(ed.Line(ed.row))
+		col := ed.col
+		runesLen0 := len(runes)
+
+		for i := 0; i < n1; i++ {
+			runesLen := len(runes)
+			rs := []rune{}
+			if len(runes) > 0 && ed.col+1 <= len(runes) {
+				rs = append(rs, runes[:ed.col+1]...)
+			}
+			rs = append(rs, ed.killed.runes...)
+			if ed.col+1 < len(runes) {
+				rs = append(rs, runes[ed.col+1:]...)
+			}
+			runes = rs
+			if runesLen > 0 {
+				ed.col++
+			}
+		}
+
+		ed.col = col
+		if runesLen0 > 0 || n1 > 1 {
+			ed.col++
+		}
+
+		for i := 0; i < n2; i++ {
+			runesLen := len(runes)
+			rs := []rune{}
+			if len(runes) > 0 && ed.col+1 <= len(runes) {
+				rs = append(rs, runes[:ed.col+1]...)
+			}
+			rs = append(rs, ed.killed.runes...)
+			if ed.col+1 < len(runes) {
+				rs = append(rs, runes[ed.col+1:]...)
+			}
+			runes = rs
+			if runesLen > 0 {
+				ed.col++
+			}
+		}
+
+		ed.col = col
+		if runesLen0 > 0 || n1 > 1 {
+			ed.col++
+		}
+
+		if len(ed.lines) < 1 {
+			ed.lines = append(ed.lines, "")
+		}
+		ed.lines[ed.row] = string(runes)
+	case KillLines:
+		for i := 0; i < n; i++ {
+			linesLen := len(ed.lines)
+			lines := []string{}
+			if ed.row+1 <= linesLen {
+				lines = append(lines, ed.lines[:ed.row+1]...)
+			}
+			lines = append(lines, ed.killed.lines...)
+			if ed.row+1 <= linesLen-1 {
+				lines = append(lines, ed.lines[ed.row+1:]...)
+			}
+			ed.lines = lines
+			if linesLen > 0 {
+				ed.MoveByLine(1)
+			}
+		}
 	}
-	ed.lines = lines
-	ed.MoveByLine(1)
+	ed.modified = true
 }
 
 // P : Paste before cursor.
 func (ed *Editor) OpPasteBefore(n int) {
 	ed.EnsureCommand()
-	if len(ed.killed) < 1 {
-		ed.Ring("The default buffer is empty")
+	if n < 1 {
 		return
 	}
-	lines := []string{}
-	lines = append(lines, ed.lines[:ed.row]...)
-	lines = append(lines, ed.killed...)
-	lines = append(lines, ed.lines[ed.row:]...)
-	ed.lines = lines
-	ed.MoveToNonBlank()
+	switch ed.killed.mode {
+	case KillNone:
+		ed.Ring("The default buffer is empty")
+		return
+	case KillRunes:
+		runes := []rune(ed.Line(ed.row))
+		for i := 0; i < n; i++ {
+			rs := []rune{}
+			rs = append(rs, runes[:ed.col]...)
+			rs = append(rs, ed.killed.runes...)
+			rs = append(rs, runes[ed.col:]...)
+			runes = rs
+		}
+		if len(ed.lines) < 1 {
+			ed.lines = append(ed.lines, "")
+		}
+		ed.lines[ed.row] = string(runes)
+	case KillLines:
+		for i := 0; i < n; i++ {
+			lines := []string{}
+			lines = append(lines, ed.lines[:ed.row]...)
+			lines = append(lines, ed.killed.lines...)
+			lines = append(lines, ed.lines[ed.row:]...)
+			ed.lines = lines
+			ed.MoveToNonBlank()
+		}
+	}
+	ed.modified = true
 }
 
 // "<reg>p : Paste from register <reg>.
@@ -93,19 +188,25 @@ func (ed *Editor) OpPasteFromReg(reg rune, n int) {
 // x : Delete character under cursor.
 func (ed *Editor) OpDelete(n int) {
 	ed.EnsureCommand()
+	if n < 1 {
+		return
+	}
 	if len(ed.CurrentLine()) < 1 {
-		ed.Ring("nothing to delete, line is empty")
 		return
 	}
 	rs := []rune(ed.CurrentLine())
+	n = min(n, len(rs)-ed.col)
+	ed.killed.mode = KillRunes
+	ed.killed.runes = append([]rune{}, rs[ed.col:ed.col+n]...)
 	if ed.col < 1 {
-		ed.lines[ed.row] = string(rs[1:])
+		ed.lines[ed.row] = string(rs[n:])
 	} else {
 		head := string(rs[:ed.col])
-		tail := string(rs[ed.col+1:])
+		tail := string(rs[ed.col+n:])
 		ed.lines[ed.row] = head + tail
 	}
 	ed.Confine()
+	ed.modified = true
 }
 
 // X : Delete character before cursor.
@@ -117,21 +218,24 @@ func (ed *Editor) OpDeleteBefore(n int) {
 // dd : Delete current line.
 func (ed *Editor) OpDeleteLine(n int) {
 	ed.EnsureCommand()
+	if n < 1 {
+		return
+	}
+	if ed.row+n > len(ed.lines) {
+		return
+	}
 	lines := []string{}
 	if ed.row > 0 {
 		lines = append(lines, ed.lines[:ed.row]...)
 	}
-	ed.killed = []string{ed.lines[ed.row]}
-	if ed.row+1 <= len(ed.lines)-1 {
-		lines = append(lines, ed.lines[ed.row+1:]...)
-	}
-	if len(lines) < 1 {
-		lines = append(lines, "")
+	ed.killed.mode = KillLines
+	ed.killed.lines = append([]string{}, ed.lines[ed.row:ed.row+n]...)
+	if ed.row+n <= len(ed.lines)-1 {
+		lines = append(lines, ed.lines[ed.row+n:]...)
 	}
 	ed.lines = lines
 	ed.Confine()
-	// XXX n
-	// XXX kill buffer
+	ed.modified = true
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.

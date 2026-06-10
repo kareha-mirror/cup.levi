@@ -5,7 +5,7 @@ import (
 )
 
 func (ed *Editor) Main() {
-	for !ed.quit {
+	for ed.alive {
 		ed.Draw()
 
 		seq := termi.ReadSeq()

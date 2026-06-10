@@ -14,8 +14,10 @@ func (ed *Editor) LineHeight(line string) int {
 }
 
 func (ed *Editor) DrawBuffer() {
+	linesLen := max(len(ed.lines), 1)
+
 	y := 0
-	for i := ed.vrow; i < len(ed.lines)+ed.inp.LineLen()-1; i++ {
+	for i := ed.vrow; i < linesLen+ed.inp.LineLen()-1; i++ {
 		line := ed.Line(i)
 
 		fmt.Print(termi.MoveCursor(0, y))
@@ -36,10 +38,13 @@ func (ed *Editor) DrawBuffer() {
 func (ed *Editor) DrawStatus() {
 	fmt.Print(termi.MoveCursor(0, ed.h-1))
 
-	if ed.message != "" {
+	if ed.ring != "" {
 		fmt.Print(termi.SetInvert)
-		fmt.Print(ed.message)
+		fmt.Print(ed.ring)
 		fmt.Print(termi.ResetInvert)
+		ed.ring = ""
+	} else if ed.message != "" {
+		fmt.Print(ed.message)
 		ed.message = ""
 	} else if ed.mode == ModePrompt {
 		fmt.Printf(":%s", ed.prompt.String())

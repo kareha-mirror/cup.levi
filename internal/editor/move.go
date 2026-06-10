@@ -142,7 +142,7 @@ func (ed *Editor) MoveToNonBlank() {
 
 // <num>| : Move cursor to column <num> of current line.
 // (Note: Proper vi's column number is visual-based, but levi' is rune-based.)
-func (ed *Editor) MoveToColumn(n int) {
+func (ed *Editor) MoveToColumn(n int) { // n: 1-based
 	ed.EnsureCommand()
 	ed.col = n - 1
 	ed.ConfineCol()
@@ -220,9 +220,9 @@ func (ed *Editor) MoveToLastLine() {
 }
 
 // <num>G : Move cursor to first non-blank character of line specified by <num>.
-func (ed *Editor) MoveToLine(n int) {
+func (ed *Editor) MoveToLine(n int) { // n: 1-based
 	ed.EnsureCommand()
-	if !ed.UpdateRow(n - len(ed.lines)) {
+	if !ed.UpdateRow(n - 1 - ed.row) {
 		return
 	}
 	ed.MoveToNonBlank()

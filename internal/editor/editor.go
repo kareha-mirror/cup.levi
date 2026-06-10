@@ -18,41 +18,59 @@ const (
 	ModePrompt
 )
 
+type KillMode int
+
+const (
+	KillNone = iota
+	KillRunes
+	KillLines
+)
+
+type KillBuf struct {
+	mode  KillMode
+	runes []rune
+	lines []string
+}
+
 type Editor struct {
-	col, row int
-	vrow     int
-	virtCol  int
+	col, row int // 0-based
+	vrow     int // 0-based
+	virtCol  int // 0-based
 	w, h     int
-	x, y     int
+	x, y     int // 0-based
 	lines    []string
 	inp      *Input
-	inpRow   int
+	inpRow   int // 0-based
 	mode     Mode
 	path     string
+	alive    bool
 	message  string
+	ring     string
 	parser   *Parser
 	prompt   termi.RuneBuf
-	killed   []string
-	save     bool
-	quit     bool
+	modified bool
+	killed   KillBuf
 	listener termi.EscapeListener
 	esc      bool
 }
 
-func (ed *Editor) Load(path string) {
+func (ed *Editor) Load(path string) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if len(data) < 1 {
-		ed.lines = make([]string, 1)
+		ed.lines = []string{}
+		ed.modified = false
+		return nil
 	}
-	// TODO CRLF
+	// TODO should also support CRLF or not?
 	if data[len(data)-1] == '\n' {
 		data = data[:len(data)-1]
 	}
 	ed.lines = strings.Split(string(data), "\n")
-	ed.path = path
+	ed.modified = false
+	return nil
 }
 
 func Init(args []string) *Editor {
@@ -71,17 +89,18 @@ func Init(args []string) *Editor {
 		h:        h,
 		x:        0,
 		y:        0,
-		lines:    make([]string, 1),
+		lines:    []string{},
 		inp:      NewInput(),
 		inpRow:   0,
 		mode:     ModeCommand,
 		path:     path,
+		alive:    true,
 		message:  "",
+		ring:     "",
 		parser:   NewParser(),
 		prompt:   termi.RuneBuf{},
-		killed:   []string{},
-		save:     false,
-		quit:     false,
+		modified: false,
+		killed:   KillBuf{},
 		listener: nil,
 		esc:      false,
 	}
@@ -106,13 +125,36 @@ func Init(args []string) *Editor {
 	return ed
 }
 
-func (ed *Editor) Save(path string) {
-	text := strings.Join(ed.lines, "\n") + "\n"
-	err := os.WriteFile(path, []byte(text), 0666)
-	if err != nil {
-		panic(err)
+func (ed *Editor) SaveAs(path string) error {
+	text := ""
+	if len(ed.lines) > 0 {
+		text = strings.Join(ed.lines, "\n") + "\n"
 	}
-	ed.path = path
+
+	_, err := os.Stat(path)
+	newFile := ""
+	if err != nil {
+		newFile = " new file:"
+	}
+
+	err = os.WriteFile(path, []byte(text), 0666)
+	if err != nil {
+		return err
+	}
+
+	ed.Message(
+		"%s:%s %d lines, %d bytes, %d runes.",
+		path, newFile, len(ed.lines), len(text), utf8.RuneCountInString(text),
+	)
+
+	ed.modified = false
+	return nil
+}
+
+func (ed *Editor) Save() {
+	if ed.path != "" {
+		ed.SaveAs(ed.path)
+	}
 }
 
 func (ed *Editor) Finish() {
@@ -124,10 +166,6 @@ func (ed *Editor) Finish() {
 	fmt.Print(termi.HomeCursor)
 	termi.Cooked()
 	fmt.Print(termi.ShowCursor)
-
-	if ed.path != "" && ed.save {
-		ed.Save(ed.path)
-	}
 }
 
 func (ed *Editor) Line(row int) string {
@@ -141,6 +179,9 @@ func (ed *Editor) Line(row int) string {
 		}
 	}
 
+	if len(ed.lines) < 1 {
+		return ""
+	}
 	return ed.lines[row]
 }
 
@@ -170,6 +211,8 @@ func (ed *Editor) EnsureCommand() {
 		ed.inp.Reset()
 		ed.mode = ModeCommand
 		ed.MoveLeft(1)
+
+		ed.modified = true
 		return
 	case ModeSearch:
 		ed.mode = ModeCommand
@@ -180,8 +223,12 @@ func (ed *Editor) EnsureCommand() {
 	}
 }
 
-func (ed *Editor) Ring(format string, a ...any) {
+func (ed *Editor) Message(format string, a ...any) {
 	ed.message = fmt.Sprintf(format, a...)
+}
+
+func (ed *Editor) Ring(format string, a ...any) {
+	ed.ring = fmt.Sprintf(format, a...)
 }
 
 func (ed *Editor) Unimplemented(name string) {

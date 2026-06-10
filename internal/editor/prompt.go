@@ -28,7 +28,7 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 }
 
 // :<num> Enter : Move cursor to first non-blank character of line specifined by <num>.
-func (ed *Editor) PromptMoveToLine(n int) {
+func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 	ed.EnsureCommand()
 	if n == 0 {
 		n = 1
@@ -44,32 +44,44 @@ func (ed *Editor) PromptMoveToLine(n int) {
 // :wq Enter : Save current file and quit.
 func (ed *Editor) PromptSaveAndQuit() {
 	ed.EnsureCommand()
-	ed.save = true
-	ed.quit = true
+	if ed.modified && ed.path == "" {
+		ed.Ring("File is a temporary; exit will discard modifications.")
+		return
+	}
+	ed.Save()
+	ed.alive = false
 }
 
 // :w Enter : Save current file.
 func (ed *Editor) PromptSave() {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptSave")
+	ed.Save()
 }
 
 // :w! Enter : Force save current file.
 func (ed *Editor) PromptForceSave() {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptForceSave")
+	ed.Save()
 }
 
 // :q Enter : Quit editor.
 func (ed *Editor) PromptQuit() {
 	ed.EnsureCommand()
-	ed.quit = true
+	if ed.modified {
+		if ed.path == "" {
+			ed.Ring("File is a temporary; exit will discard modifications.")
+			return
+		}
+		ed.Ring("File modified since last complete write; write or use ! to override.")
+		return
+	}
+	ed.alive = false
 }
 
 // :q! Enter : Force quit editor.
 func (ed *Editor) PromptForceQuit() {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptForceQuit")
+	ed.alive = false
 }
 
 // :e Enter : Open file.
@@ -123,5 +135,5 @@ func (ed *Editor) PromptQuitAll() {
 // :qa! Enter : Force close all files and quit editor.
 func (ed *Editor) PromptForceQuitAll() {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptForceQuitAll")
+	ed.alive = false
 }
