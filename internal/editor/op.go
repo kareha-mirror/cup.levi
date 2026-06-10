@@ -58,48 +58,48 @@ func (ed *Editor) OpCopyLineIntoReg(reg rune, n int) {
 // p : Paste after cursor.
 func (ed *Editor) OpPaste(n int) {
 	ed.EnsureCommand()
+	if ed.killed.mode == KillNone {
+		ed.Ring("The default buffer is empty")
+		return
+	}
 	if n < 1 {
+		ed.Error("OpPaste: n < 1")
 		return
 	}
 	switch ed.killed.mode {
-	case KillNone:
-		ed.Ring("The default buffer is empty")
-		return
 	case KillRunes:
-		runes := []rune(ed.Line(ed.row))
-		runesLen := len(runes)
-		for i := 0; i < n; i++ {
-			rs := []rune{}
-			if len(runes) > 0 && ed.col+1 <= len(runes) {
-				rs = append(rs, runes[:ed.col+1]...)
-			}
-			rs = append(rs, ed.killed.runes...)
-			if ed.col+1 < len(runes) {
-				rs = append(rs, runes[ed.col+1:]...)
-			}
-			runes = rs
-		}
-		if runesLen > 0 {
-			ed.col++
-		}
 		if len(ed.lines) < 1 {
 			ed.lines = append(ed.lines, "")
 		}
-		ed.lines[ed.row] = string(runes)
-	case KillLines:
-		linesLen := len(ed.lines)
-		for i := 0; i < n; i++ {
-			lines := []string{}
-			if ed.row+1 <= len(ed.lines) {
-				lines = append(lines, ed.lines[:ed.row+1]...)
-			}
-			lines = append(lines, ed.killed.lines...)
-			if ed.row+1 <= len(ed.lines)-1 {
-				lines = append(lines, ed.lines[ed.row+1:]...)
-			}
-			ed.lines = lines
+		runes := []rune(ed.lines[ed.row])
+		rs := []rune{}
+		if ed.col+1 <= len(runes) {
+			rs = append(rs, runes[:ed.col+1]...)
 		}
-		if linesLen > 0 {
+		for i := 0; i < n; i++ {
+			rs = append(rs, ed.killed.runes...)
+		}
+		if ed.col+1 < len(runes) {
+			rs = append(rs, runes[ed.col+1:]...)
+		}
+		ed.lines[ed.row] = string(rs)
+		if len(runes) > 0 {
+			ed.col++
+		}
+	case KillLines:
+		lines := []string{}
+		if ed.row+1 <= len(ed.lines) {
+			lines = append(lines, ed.lines[:ed.row+1]...)
+		}
+		for i := 0; i < n; i++ {
+			lines = append(lines, ed.killed.lines...)
+		}
+		if ed.row+1 <= len(ed.lines)-1 {
+			lines = append(lines, ed.lines[ed.row+1:]...)
+		}
+		move := len(ed.lines) > 0
+		ed.lines = lines
+		if move {
 			ed.MoveByLine(1)
 		}
 	}
@@ -109,35 +109,34 @@ func (ed *Editor) OpPaste(n int) {
 // P : Paste before cursor.
 func (ed *Editor) OpPasteBefore(n int) {
 	ed.EnsureCommand()
+	if ed.killed.mode == KillNone {
+		ed.Ring("The default buffer is empty")
+		return
+	}
 	if n < 1 {
+		ed.Error("OpPasteBefore: n < 1")
 		return
 	}
 	switch ed.killed.mode {
-	case KillNone:
-		ed.Ring("The default buffer is empty")
-		return
 	case KillRunes:
-		runes := []rune(ed.Line(ed.row))
-		for i := 0; i < n; i++ {
-			rs := []rune{}
-			rs = append(rs, runes[:ed.col]...)
-			rs = append(rs, ed.killed.runes...)
-			rs = append(rs, runes[ed.col:]...)
-			runes = rs
-		}
 		if len(ed.lines) < 1 {
 			ed.lines = append(ed.lines, "")
 		}
-		ed.lines[ed.row] = string(runes)
-	case KillLines:
+		runes := []rune(ed.lines[ed.row])
+		rs := append([]rune{}, runes[:ed.col]...)
 		for i := 0; i < n; i++ {
-			lines := []string{}
-			lines = append(lines, ed.lines[:ed.row]...)
-			lines = append(lines, ed.killed.lines...)
-			lines = append(lines, ed.lines[ed.row:]...)
-			ed.lines = lines
-			ed.MoveToNonBlank()
+			rs = append(rs, ed.killed.runes...)
 		}
+		rs = append(rs, runes[ed.col:]...)
+		ed.lines[ed.row] = string(rs)
+	case KillLines:
+		lines := append([]string{}, ed.lines[:ed.row]...)
+		for i := 0; i < n; i++ {
+			lines = append(lines, ed.killed.lines...)
+		}
+		lines = append(lines, ed.lines[ed.row:]...)
+		ed.lines = lines
+		ed.MoveToNonBlank()
 	}
 	ed.modified = true
 }

@@ -231,6 +231,10 @@ func (ed *Editor) Ring(format string, a ...any) {
 	ed.ring = fmt.Sprintf(format, a...)
 }
 
+func (ed *Editor) Error(format string, a ...any) {
+	ed.ring = fmt.Sprintf("Error: "+format, a...)
+}
+
 func (ed *Editor) Unimplemented(name string) {
 	ed.Ring("not implemented (" + name + ")")
 }
