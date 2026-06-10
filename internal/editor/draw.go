@@ -15,7 +15,7 @@ func (ed *Editor) LineHeight(line string) int {
 
 func (ed *Editor) DrawBuffer() {
 	y := 0
-	for i := ed.vrow; i < len(ed.lines); i++ {
+	for i := ed.vrow; i < len(ed.lines)+ed.inp.LineLen()-1; i++ {
 		line := ed.Line(i)
 
 		fmt.Print(termi.MoveCursor(0, y))
@@ -84,7 +84,7 @@ func (ed *Editor) UpdateCursor() {
 
 	y := 0
 	for i := ed.vrow; i < ed.row; i++ {
-		y += ed.LineHeight(ed.lines[i])
+		y += ed.LineHeight(ed.Line(i))
 	}
 	ed.y = y + dy
 

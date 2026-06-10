@@ -26,6 +26,7 @@ type Editor struct {
 	x, y     int
 	lines    []string
 	inp      *Input
+	inpRow   int
 	mode     Mode
 	path     string
 	message  string
@@ -71,6 +72,7 @@ func Init(args []string) *Editor {
 		y:        0,
 		lines:    make([]string, 1),
 		inp:      NewInput(),
+		inpRow:   0,
 		mode:     ModeCommand,
 		path:     path,
 		message:  "",
@@ -127,11 +129,17 @@ func (ed *Editor) Finish() {
 }
 
 func (ed *Editor) Line(row int) string {
-	if ed.mode == ModeInsert && row == ed.row {
-		return ed.inp.Line()
-	} else {
-		return ed.lines[row]
+	if ed.mode == ModeInsert {
+		if row < ed.inpRow {
+			return ed.lines[row]
+		} else if row < ed.inpRow+ed.inp.LineLen() {
+			return ed.inp.Line(row - ed.inpRow)
+		} else {
+			return ed.lines[row-ed.inp.LineLen()+1]
+		}
 	}
+
+	return ed.lines[row]
 }
 
 func (ed *Editor) CurrentLine() string {
@@ -142,20 +150,21 @@ func (ed *Editor) RuneCount() int {
 	return utf8.RuneCountInString(ed.CurrentLine())
 }
 
-func (ed *Editor) InsertRune(r rune) {
-	if ed.mode != ModeInsert {
-		panic("invalid state")
-	}
-	ed.inp.WriteRune(r)
-	ed.col = ed.inp.Column()
-}
-
 func (ed *Editor) EnsureCommand() {
 	switch ed.mode {
 	case ModeCommand:
 		return
 	case ModeInsert:
-		ed.lines[ed.row] = ed.inp.Line()
+		lines := []string{}
+		if ed.inpRow > 0 {
+			lines = append(lines, ed.lines[:ed.inpRow]...)
+		}
+		inputLines := ed.inp.Lines()
+		lines = append(lines, inputLines...)
+		if ed.inpRow+1 <= len(ed.lines)-1 {
+			lines = append(lines, ed.lines[ed.inpRow+1:]...)
+		}
+		ed.lines = lines
 		ed.inp.Reset()
 		ed.mode = ModeCommand
 		ed.MoveLeft(1)

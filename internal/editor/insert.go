@@ -12,6 +12,7 @@ package editor
 func (ed *Editor) InsertBefore(n int) {
 	ed.EnsureCommand()
 	ed.inp.Init(ed.CurrentLine(), ed.col)
+	ed.inpRow = ed.row
 	ed.mode = ModeInsert
 	// XXX n
 }

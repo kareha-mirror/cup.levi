@@ -8,27 +8,21 @@ import (
 
 type Input struct {
 	head, tail string
-	body       *termi.RuneBuf
+	bodies     []termi.RuneBuf
 }
-
-const maxBodyLen = 1024
 
 func NewInput() *Input {
 	return &Input{
-		head: "",
-		tail: "",
-		body: new(termi.RuneBuf),
+		head:   "",
+		tail:   "",
+		bodies: []termi.RuneBuf{termi.RuneBuf{}},
 	}
 }
 
 func (inp *Input) Reset() {
 	inp.head = ""
 	inp.tail = ""
-	if inp.body.Len() > maxBodyLen {
-		inp.body = new(termi.RuneBuf)
-	} else {
-		inp.body.Reset()
-	}
+	inp.bodies = []termi.RuneBuf{termi.RuneBuf{}}
 }
 
 func (inp *Input) Init(line string, col int) {
@@ -42,30 +36,94 @@ func (inp *Input) Init(line string, col int) {
 	}
 }
 
+func (inp *Input) body() *termi.RuneBuf {
+	return &inp.bodies[len(inp.bodies)-1]
+}
+
 func (inp *Input) WriteRune(r rune) {
-	inp.body.WriteRune(r)
+	inp.body().WriteRune(r)
 }
 
-func (inp *Input) Line() string {
-	return inp.head + inp.body.String() + inp.tail
+func (inp *Input) LineLen() int {
+	return len(inp.bodies)
 }
 
-func (inp *Input) Newline() []string {
-	lines := []string{
-		inp.head + inp.body.String(),
-		inp.tail,
+func (inp *Input) Line(n int) string {
+	if n < 0 || n >= len(inp.bodies) {
+		panic("invalid line number")
 	}
-	inp.head = ""
-	inp.body.Reset()
-	// tail is intentionally preserved
+	if n == 0 {
+		if len(inp.bodies) < 2 {
+			return inp.head + inp.bodies[0].String() + inp.tail
+		}
+		return inp.head + inp.bodies[0].String()
+	}
+	if n == len(inp.bodies)-1 {
+		return inp.bodies[n].String() + inp.tail
+	}
+	return inp.bodies[n].String()
+}
+
+func (inp *Input) Lines() []string {
+	if len(inp.bodies) < 2 {
+		return []string{inp.head + inp.bodies[0].String() + inp.tail}
+	}
+	lines := []string{inp.head + inp.bodies[0].String()}
+	i := 1
+	for i < len(inp.bodies)-1 {
+		lines = append(lines, inp.bodies[i].String())
+		i++
+	}
+	lines = append(lines, inp.bodies[i].String()+inp.tail)
 	return lines
 }
 
+func (inp *Input) Newline() {
+	inp.bodies = append(inp.bodies, termi.RuneBuf{})
+}
+
 func (inp *Input) Column() int {
-	s := inp.head + inp.body.String()
+	s := inp.head + inp.body().String()
 	return utf8.RuneCountInString(s)
 }
 
 func (inp *Input) Backspace() bool {
-	return inp.body.RemoveTail()
+	if inp.body().RemoveTail() {
+		return true
+	}
+	if len(inp.bodies) < 2 {
+		return true
+	}
+	inp.bodies = inp.bodies[:len(inp.bodies)-1]
+	return false
+}
+
+func (ed *Editor) InsertRune(r rune) {
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
+	ed.inp.WriteRune(r)
+	ed.col = ed.inp.Column()
+}
+
+func (ed *Editor) Backspace() {
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
+	if !ed.inp.Backspace() {
+		ed.row--
+	}
+	ed.col = ed.inp.Column()
+	// col and row are already confined
+}
+
+func (ed *Editor) InsertNewline() {
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
+	ed.inp.Newline()
+	ed.row++
+	ed.col = 0
+	// col is already confined
+	// XXX row is not confined
 }

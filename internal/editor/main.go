@@ -4,37 +4,6 @@ import (
 	"tea.kareha.org/cup/termi"
 )
 
-func (ed *Editor) InsertNewline() {
-	if ed.mode != ModeInsert {
-		panic("invalid state")
-	}
-	before := make([]string, 0, len(ed.lines)+1)
-	before = append(before, ed.lines[:ed.row]...)
-	var after []string
-	if ed.row+1 < len(ed.lines) {
-		after = ed.lines[ed.row+1:]
-	} else {
-		after = []string{}
-	}
-	lines := ed.inp.Newline()
-	ed.lines = append(append(before, lines...), after...)
-	ed.row++
-	ed.col = 0
-	// row and col are already confined
-}
-
-func (ed *Editor) Backspace() {
-	if ed.mode != ModeInsert {
-		panic("invalid state")
-	}
-	if !ed.inp.Backspace() {
-		ed.Ring("nothing to delete, input is empty")
-		return
-	}
-	ed.col--
-	// col is already confined
-}
-
 func (ed *Editor) Main() {
 	for !ed.quit {
 		ed.Draw()
