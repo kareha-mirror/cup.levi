@@ -97,7 +97,20 @@ func (ed *Editor) OpDeleteBefore(n int) {
 // dd : Delete current line.
 func (ed *Editor) OpDeleteLine(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("OpDeleteLine")
+	lines := []string{}
+	if ed.row > 0 {
+		lines = append(lines, ed.lines[:ed.row]...)
+	}
+	if ed.row+1 <= len(ed.lines)-1 {
+		lines = append(lines, ed.lines[ed.row+1:]...)
+	}
+	if len(lines) < 1 {
+		lines = append(lines, "")
+	}
+	ed.lines = lines
+	ed.Confine()
+	// XXX n
+	// XXX kill buffer
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.

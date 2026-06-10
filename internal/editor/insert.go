@@ -76,7 +76,7 @@ func (ed *Editor) InsertOpenAbove(n int) {
 	ed.EnsureCommand()
 	lines := []string{}
 	if ed.row > 0 {
-		lines = append(ed.lines[:ed.row])
+		lines = append(lines, ed.lines[:ed.row]...)
 	}
 	lines = append(lines, "")
 	if ed.row <= len(ed.lines)-1 {
