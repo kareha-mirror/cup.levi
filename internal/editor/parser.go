@@ -2,6 +2,7 @@ package editor
 
 import (
 	"strconv"
+	"strings"
 )
 
 type Parser struct {
@@ -19,7 +20,16 @@ func NewParser() *Parser {
 }
 
 func (p *Parser) String() string {
-	return string(p.buf)
+	b := strings.Builder{}
+	for _, r := range p.buf {
+		switch r {
+		case '\f':
+			b.WriteString("(Ctrl-L)")
+		default:
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }
 
 func (p *Parser) InsertRune(r rune) {

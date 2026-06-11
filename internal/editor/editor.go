@@ -60,6 +60,8 @@ type Editor struct {
 	prompt   termi.RuneBuf
 	modified bool
 	killed   KillBuf
+	redraw   bool
+	view     []string
 	listener termi.EscapeListener
 	esc      bool
 }
@@ -111,6 +113,8 @@ func Init(args []string) *Editor {
 		prompt:   termi.RuneBuf{},
 		modified: false,
 		killed:   KillBuf{},
+		redraw:   true,
+		view:     []string{},
 		listener: nil,
 		esc:      false,
 	}

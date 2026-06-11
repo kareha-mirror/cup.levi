@@ -73,5 +73,5 @@ func (ed *Editor) ViewToBottom() {
 // Ctrl-l : Redraw view.
 func (ed *Editor) ViewRedraw() {
 	ed.EnsureCommand()
-	ed.Unimplemented("ViewRedraw")
+	ed.redraw = true
 }

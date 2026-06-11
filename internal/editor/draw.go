@@ -2,6 +2,7 @@ package editor
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
@@ -14,14 +15,19 @@ func (ed *Editor) LineHeight(line string) int {
 }
 
 func (ed *Editor) DrawBuffer() {
+	view := []string{}
+
 	linesLen := max(len(ed.lines), 1)
 
 	y := 0
 	for i := ed.vrow; i < linesLen+ed.inp.LineLen()-1; i++ {
 		line := ed.Line(i)
 
-		fmt.Print(termi.MoveCursor(0, y))
-		fmt.Print(termi.Render(line))
+		b := strings.Builder{}
+		b.WriteString(termi.MoveCursor(0, y))
+		b.WriteString(termi.Render(line))
+		b.WriteString(termi.ClearTail)
+		view = append(view, b.String())
 
 		y += ed.LineHeight(line)
 		if y >= ed.h-1 {
@@ -30,9 +36,20 @@ func (ed *Editor) DrawBuffer() {
 	}
 
 	for ; y < ed.h-1; y++ {
-		fmt.Print(termi.MoveCursor(0, y))
-		fmt.Print(termi.Render("~"))
+		b := strings.Builder{}
+		b.WriteString(termi.MoveCursor(0, y))
+		b.WriteString(termi.Render("~"))
+		b.WriteString(termi.ClearTail)
+		view = append(view, b.String())
 	}
+
+	for i, line := range view {
+		if i < len(ed.view) && line == ed.view[i] {
+			continue
+		}
+		fmt.Print(line)
+	}
+	ed.view = view
 }
 
 func (ed *Editor) DrawStatus() {
@@ -66,6 +83,7 @@ func (ed *Editor) DrawStatus() {
 			ed.parser.Cache(), m, ed.row+1, ed.col+1, ed.path,
 		)
 	}
+	fmt.Print(termi.ClearTail)
 
 	fmt.Print(termi.MoveCursor(ed.w-2, ed.h-1))
 	if ed.esc {
@@ -111,7 +129,11 @@ func (ed *Editor) Repaint() {
 
 	fmt.Print(termi.HideCursor)
 
-	fmt.Print(termi.Clear)
+	if ed.redraw {
+		ed.view = []string{}
+		fmt.Print(termi.Clear)
+		ed.redraw = false
+	}
 	fmt.Print(termi.HomeCursor)
 
 	ed.UpdateCursor()
