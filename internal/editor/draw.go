@@ -96,6 +96,14 @@ func (ed *Editor) DrawStatus() {
 	fmt.Print(termi.MoveCursor(ed.x, ed.y))
 }
 
+func runeAt(s string, i int) rune {
+	runes := []rune(s)
+	if i < len(runes) {
+		return runes[i]
+	}
+	return utf8.RuneError
+}
+
 func (ed *Editor) UpdateCursor() {
 	lines := termi.Wrap(ed.CurrentLine(), ed.w, ed.mode == ModeInsert)
 	col := ed.col
@@ -109,6 +117,9 @@ func (ed *Editor) UpdateCursor() {
 			rc := utf8.RuneCountInString(lines[i])
 			if col < rc {
 				ed.x = termi.StringWidth(lines[i], col)
+				if runeAt(lines[i], col) == '\t' {
+					ed.x += termi.TabWidth - (ed.x % termi.TabWidth) - 1
+				}
 				if ed.mode == ModeInsert && ed.col > 0 {
 					r, _ := utf8.DecodeLastRuneInString(lines[i])
 					if termi.IsWide(r) || termi.IsEmoji(r) {
