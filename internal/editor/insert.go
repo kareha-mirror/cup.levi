@@ -32,7 +32,7 @@ func (ed *Editor) InsertAfter(n int) {
 
 // I : Switch to insert mode before first non-blank character of current line.
 func (ed *Editor) InsertBeforeNonBlank(n int) {
-	ed.MoveToNonBlank()
+	ed.toNonBlankCol()
 	ed.InsertBefore(n)
 	// XXX n
 }
@@ -67,7 +67,7 @@ func (ed *Editor) InsertOpenBelow(n int) {
 	}
 	ed.lines = lines
 	ed.row++
-	ed.Confine()
+	ed.confine()
 	ed.InsertAfter(n)
 	// XXX n
 }
@@ -84,7 +84,7 @@ func (ed *Editor) InsertOpenAbove(n int) {
 		lines = append(lines, ed.lines[ed.row:]...)
 	}
 	ed.lines = lines
-	ed.Confine()
+	ed.confine()
 	ed.InsertAfter(n)
 	// XXX n
 }

@@ -136,7 +136,7 @@ func (ed *Editor) OpPasteBefore(n int) {
 		}
 		lines = append(lines, ed.lines[ed.row:]...)
 		ed.lines = lines
-		ed.MoveToNonBlank()
+		ed.toNonBlankCol()
 	}
 	ed.modified = true
 }
@@ -171,7 +171,7 @@ func (ed *Editor) OpDelete(n int) {
 		tail := string(rs[ed.col+n:])
 		ed.lines[ed.row] = head + tail
 	}
-	ed.Confine()
+	ed.confine()
 	ed.modified = true
 }
 
@@ -200,7 +200,7 @@ func (ed *Editor) OpDeleteLine(n int) {
 		lines = append(lines, ed.lines[ed.row+n:]...)
 	}
 	ed.lines = lines
-	ed.Confine()
+	ed.confine()
 	ed.modified = true
 }
 
