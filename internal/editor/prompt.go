@@ -6,6 +6,10 @@ package editor
 
 // :+<num> Enter : Move cursor to first non-blank character of next line.
 func (ed *Editor) PromptMoveByLine(n int) {
+	if n < 0 {
+		ed.Error("PromptMoveByLine: n < 0")
+		return
+	}
 	ed.EnsureCommand()
 	if !ed.adjustRow(n) {
 		ed.Ring("Illegal address: only %d lines in the file.", len(ed.lines))
@@ -16,6 +20,10 @@ func (ed *Editor) PromptMoveByLine(n int) {
 
 // :-<num> Enter : Move cursor to first non-blank character of previous line.
 func (ed *Editor) PromptMoveBackwardByLine(n int) {
+	if n < 0 {
+		ed.Error("PromptMoveBackwardByLine: n < 0")
+		return
+	}
 	ed.EnsureCommand()
 	if ed.row-n == -1 {
 		n++
@@ -29,6 +37,10 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 
 // :<num> Enter : Move cursor to first non-blank character of line specifined by <num>.
 func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
+	if n < 0 {
+		ed.Error("PromptMoveToLine: n < 0")
+		return
+	}
 	ed.EnsureCommand()
 	if n == 0 {
 		n = 1

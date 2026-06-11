@@ -10,15 +10,15 @@ package editor
 
 // yy, Y : Copy current line.
 func (ed *Editor) OpCopyLine(n int) {
-	ed.EnsureCommand()
 	if n < 1 {
+		ed.Error("OpCopyLine: n < 1")
 		return
 	}
+	ed.EnsureCommand()
 	if ed.row+n > len(ed.lines) {
 		return
 	}
-	ed.killed.mode = KillLines
-	ed.killed.lines = append([]string{}, ed.lines[ed.row:ed.row+n]...)
+	ed.killed.SetLines(ed.lines[ed.row : ed.row+n])
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
@@ -35,18 +35,30 @@ func (ed *Editor) OpCopyLineRegion(start int, end int) {
 
 // yw : Copy word.
 func (ed *Editor) OpCopyWord(n int) {
+	if n < 1 {
+		ed.Error("OpCopyWord: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpCopyWord")
 }
 
 // y$ : Copy to end of current line.
 func (ed *Editor) OpCopyToEnd(n int) {
+	if n < 1 {
+		ed.Error("OpCopyToEnd: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpCopyToEnd")
 }
 
 // "<reg>yy : Copy current line into register <reg>.
 func (ed *Editor) OpCopyLineIntoReg(reg rune, n int) {
+	if n < 1 {
+		ed.Error("OpCopyLineIntoReg: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpCopyLineIntoReg")
 }
@@ -57,13 +69,13 @@ func (ed *Editor) OpCopyLineIntoReg(reg rune, n int) {
 
 // p : Paste after cursor.
 func (ed *Editor) OpPaste(n int) {
+	if n < 1 {
+		ed.Error("OpPaste: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	if ed.killed.mode == KillNone {
 		ed.Ring("The default buffer is empty")
-		return
-	}
-	if n < 1 {
-		ed.Error("OpPaste: n < 1")
 		return
 	}
 	switch ed.killed.mode {
@@ -108,13 +120,13 @@ func (ed *Editor) OpPaste(n int) {
 
 // P : Paste before cursor.
 func (ed *Editor) OpPasteBefore(n int) {
+	if n < 1 {
+		ed.Error("OpPasteBefore: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	if ed.killed.mode == KillNone {
 		ed.Ring("The default buffer is empty")
-		return
-	}
-	if n < 1 {
-		ed.Error("OpPasteBefore: n < 1")
 		return
 	}
 	switch ed.killed.mode {
@@ -143,6 +155,10 @@ func (ed *Editor) OpPasteBefore(n int) {
 
 // "<reg>p : Paste from register <reg>.
 func (ed *Editor) OpPasteFromReg(reg rune, n int) {
+	if n < 1 {
+		ed.Error("OpPasteFromReg: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpPasteFromReg")
 }
@@ -153,17 +169,17 @@ func (ed *Editor) OpPasteFromReg(reg rune, n int) {
 
 // x : Delete character under cursor.
 func (ed *Editor) OpDelete(n int) {
-	ed.EnsureCommand()
 	if n < 1 {
+		ed.Error("OpDelete: n < 1")
 		return
 	}
+	ed.EnsureCommand()
 	if len(ed.CurrentLine()) < 1 {
 		return
 	}
 	rs := []rune(ed.CurrentLine())
 	n = min(n, len(rs)-ed.col)
-	ed.killed.mode = KillRunes
-	ed.killed.runes = append([]rune{}, rs[ed.col:ed.col+n]...)
+	ed.killed.SetRunes(rs[ed.col : ed.col+n])
 	if ed.col < 1 {
 		ed.lines[ed.row] = string(rs[n:])
 	} else {
@@ -177,16 +193,21 @@ func (ed *Editor) OpDelete(n int) {
 
 // X : Delete character before cursor.
 func (ed *Editor) OpDeleteBefore(n int) {
+	if n < 1 {
+		ed.Error("OpDeleteBefore: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpDeleteBefore")
 }
 
 // dd : Delete current line.
 func (ed *Editor) OpDeleteLine(n int) {
-	ed.EnsureCommand()
 	if n < 1 {
+		ed.Error("OpDeleteLine: n < 1")
 		return
 	}
+	ed.EnsureCommand()
 	if ed.row+n > len(ed.lines) {
 		return
 	}
@@ -194,8 +215,7 @@ func (ed *Editor) OpDeleteLine(n int) {
 	if ed.row > 0 {
 		lines = append(lines, ed.lines[:ed.row]...)
 	}
-	ed.killed.mode = KillLines
-	ed.killed.lines = append([]string{}, ed.lines[ed.row:ed.row+n]...)
+	ed.killed.SetLines(ed.lines[ed.row : ed.row+n])
 	if ed.row+n <= len(ed.lines)-1 {
 		lines = append(lines, ed.lines[ed.row+n:]...)
 	}
@@ -218,12 +238,20 @@ func (ed *Editor) OpDeleteLineRegion(start int, end int) {
 
 // dw : Delete word.
 func (ed *Editor) OpDeleteWord(n int) {
+	if n < 1 {
+		ed.Error("OpDeleteWord: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpDeleteWord")
 }
 
 // d$, D : Delete to end of current line.
 func (ed *Editor) OpDeleteToEnd(n int) {
+	if n < 1 {
+		ed.Error("OpDeleteToEnd: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpDeleteToEnd")
 }
@@ -234,6 +262,10 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 
 // cc : Change current line.
 func (ed *Editor) OpChangeLine(n int) {
+	if n < 1 {
+		ed.Error("OpChangeLine: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpChangeLine")
 }
@@ -252,23 +284,39 @@ func (ed *Editor) OpChangeLineRegion(start int, end int) {
 
 // cw : Change word.
 func (ed *Editor) OpChangeWord(n int) {
+	if n < 1 {
+		ed.Error("OpChangeWord: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpChangeWord")
 }
 
 // C : Change to end of current line.
 func (ed *Editor) OpChangeToEnd(n int) {
+	if n < 1 {
+		ed.Error("OpChangeToEnd: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpChangeToEnd")
 }
 
 // s : Substitute one character under cursor.
 func (ed *Editor) OpSubst(n int) {
+	if n < 1 {
+		ed.Error("OpSubst: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	ed.Unimplemented("OpSubst")
 }
 
 // S : Substtute current line (equals cc).
 func (ed *Editor) OpSubstLine(n int) {
+	if n < 1 {
+		ed.Error("OpSubstLine: n < 1")
+		return
+	}
 	ed.OpChangeLine(n)
 }
