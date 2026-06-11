@@ -32,12 +32,12 @@ type KillBuf struct {
 	lines []string
 }
 
-func (k KillBuf) SetRunes(runes []rune) {
+func (k *KillBuf) SetRunes(runes []rune) {
 	k.mode = KillRunes
 	k.runes = append([]rune{}, runes...)
 }
 
-func (k KillBuf) SetLines(lines []string) {
+func (k *KillBuf) SetLines(lines []string) {
 	k.mode = KillLines
 	k.lines = append([]string{}, lines...)
 }

@@ -21,15 +21,26 @@ func (ed *Editor) DrawBuffer() {
 
 	y := 0
 	for i := ed.vrow; i < linesLen+ed.inp.LineLen()-1; i++ {
-		line := ed.Line(i)
+		var lines []string
+		if i == ed.row && ed.mode == ModeInsert {
+			lines = termi.WrapInput(ed.Line(i), ed.w)
+		} else {
+			lines = termi.Wrap(ed.Line(i), ed.w)
+		}
 
-		b := strings.Builder{}
-		b.WriteString(termi.MoveCursor(0, y))
-		b.WriteString(termi.Render(line))
-		b.WriteString(termi.ClearTail)
-		view = append(view, b.String())
+		for _, line := range lines {
+			b := strings.Builder{}
+			b.WriteString(termi.MoveCursor(0, y))
+			b.WriteString(termi.Render(line))
+			b.WriteString(termi.ClearTail)
+			view = append(view, b.String())
 
-		y += ed.LineHeight(line)
+			y++
+			if y >= ed.h-1 {
+				break
+			}
+		}
+
 		if y >= ed.h-1 {
 			break
 		}
@@ -96,10 +107,44 @@ func (ed *Editor) DrawStatus() {
 }
 
 func (ed *Editor) UpdateCursor() {
-	// XXX approximation
-	width := termi.StringWidth(ed.CurrentLine(), ed.col)
-	ed.x = width % ed.w
-	dy := width / ed.w
+	var lines []string
+	if ed.mode == ModeInsert {
+		lines = termi.WrapInput(ed.CurrentLine(), ed.w)
+	} else {
+		lines = termi.Wrap(ed.CurrentLine(), ed.w)
+	}
+	col := ed.col
+	if ed.mode == ModeInsert && ed.col > 0 {
+		col--
+	}
+	dy := 0
+	ed.x = 0
+	if lines[0] != "" {
+		for i := 0; i < len(lines); i++ {
+			rc := utf8.RuneCountInString(lines[i])
+			if col < rc {
+				ed.x = termi.StringWidth(lines[i], col)
+				if ed.mode == ModeInsert && ed.col > 0 {
+					r, _ := utf8.DecodeLastRuneInString(lines[i])
+					if termi.IsWide(r) {
+						ed.x += 2
+					} else {
+						ed.x++
+					}
+					if ed.x == ed.w {
+						ed.x = 0
+						dy++
+					} else if ed.x > ed.w {
+						ed.x = 2
+						dy++
+					}
+				}
+				break
+			}
+			col -= rc
+			dy++
+		}
+	}
 
 	if ed.row < ed.vrow {
 		ed.vrow = ed.row
@@ -107,7 +152,8 @@ func (ed *Editor) UpdateCursor() {
 
 	y := 0
 	for i := ed.vrow; i < ed.row; i++ {
-		y += ed.LineHeight(ed.Line(i))
+		lines := termi.Wrap(ed.Line(i), ed.w)
+		y += len(lines)
 	}
 	ed.y = y + dy
 
@@ -116,7 +162,8 @@ func (ed *Editor) UpdateCursor() {
 
 		y := 0
 		for i := ed.vrow; i < ed.row; i++ {
-			y += ed.LineHeight(ed.Line(i))
+			lines := termi.Wrap(ed.Line(i), ed.w)
+			y += len(lines)
 		}
 		ed.y = y + dy
 	}
