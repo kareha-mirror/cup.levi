@@ -309,7 +309,14 @@ func (ed *Editor) OpSubst(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	ed.Unimplemented("OpSubst")
+	rs := []rune(ed.CurrentLine())
+	nrs := append([]rune{}, rs[:ed.col]...)
+	if ed.col+n <= len(rs)-1 {
+		nrs = append(nrs, rs[ed.col+n:]...)
+	}
+	ed.inp.Init(string(nrs), ed.col)
+	ed.inpRow = ed.row
+	ed.mode = ModeInsert
 }
 
 // S : Substtute current line (equals cc).

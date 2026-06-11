@@ -8,12 +8,6 @@ import (
 	"tea.kareha.org/cup/termi"
 )
 
-func (ed *Editor) LineHeight(line string) int {
-	rc := utf8.RuneCountInString(line)
-	width := termi.StringWidth(line, rc)
-	return 1 + max(width-1, 0)/ed.w
-}
-
 func (ed *Editor) DrawBuffer() {
 	view := []string{}
 
@@ -160,7 +154,7 @@ func (ed *Editor) UpdateCursor() {
 	}
 }
 
-func (ed *Editor) Repaint() {
+func (ed *Editor) Draw() {
 	w, h := termi.Size()
 	ed.w = w
 	ed.h = h
@@ -182,8 +176,4 @@ func (ed *Editor) Repaint() {
 	//fmt.Print(termi.MoveCursor(ed.x, ed.y)) // already in ed.DrawStatus()
 
 	fmt.Print(termi.ShowCursor)
-}
-
-func (ed *Editor) Draw() {
-	ed.Repaint()
 }
