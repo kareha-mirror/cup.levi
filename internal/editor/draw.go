@@ -116,7 +116,7 @@ func (ed *Editor) UpdateCursor() {
 
 		y := 0
 		for i := ed.vrow; i < ed.row; i++ {
-			y += ed.LineHeight(ed.lines[i])
+			y += ed.LineHeight(ed.Line(i))
 		}
 		ed.y = y + dy
 	}
