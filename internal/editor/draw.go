@@ -110,8 +110,8 @@ func (ed *Editor) UpdateCursor() {
 	if ed.mode == ModeInsert && ed.col > 0 {
 		col--
 	}
-	dy := 0
 	ed.x = 0
+	dy := 0
 	if lines[0] != "" {
 		for i := 0; i < len(lines); i++ {
 			rc := utf8.RuneCountInString(lines[i])
@@ -121,7 +121,7 @@ func (ed *Editor) UpdateCursor() {
 					ed.x += termi.TabWidth - (ed.x % termi.TabWidth) - 1
 				}
 				if ed.mode == ModeInsert && ed.col > 0 {
-					r, _ := utf8.DecodeLastRuneInString(lines[i])
+					r := runeAt(lines[i], col)
 					if termi.IsWide(r) || termi.IsEmoji(r) {
 						ed.x += 2
 					} else {
