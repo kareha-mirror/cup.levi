@@ -21,12 +21,8 @@ func (ed *Editor) DrawBuffer() {
 
 	y := 0
 	for i := ed.vrow; i < linesLen+ed.inp.LineLen()-1; i++ {
-		var lines []string
-		if i == ed.row && ed.mode == ModeInsert {
-			lines = termi.WrapInput(ed.Line(i), ed.w)
-		} else {
-			lines = termi.Wrap(ed.Line(i), ed.w)
-		}
+		tail := i == ed.row && ed.mode == ModeInsert
+		lines := termi.Wrap(ed.Line(i), ed.w, tail)
 
 		for _, line := range lines {
 			b := strings.Builder{}
@@ -107,12 +103,7 @@ func (ed *Editor) DrawStatus() {
 }
 
 func (ed *Editor) UpdateCursor() {
-	var lines []string
-	if ed.mode == ModeInsert {
-		lines = termi.WrapInput(ed.CurrentLine(), ed.w)
-	} else {
-		lines = termi.Wrap(ed.CurrentLine(), ed.w)
-	}
+	lines := termi.Wrap(ed.CurrentLine(), ed.w, ed.mode == ModeInsert)
 	col := ed.col
 	if ed.mode == ModeInsert && ed.col > 0 {
 		col--
@@ -126,7 +117,7 @@ func (ed *Editor) UpdateCursor() {
 				ed.x = termi.StringWidth(lines[i], col)
 				if ed.mode == ModeInsert && ed.col > 0 {
 					r, _ := utf8.DecodeLastRuneInString(lines[i])
-					if termi.IsWide(r) {
+					if termi.IsWide(r) || termi.IsEmoji(r) {
 						ed.x += 2
 					} else {
 						ed.x++
@@ -152,7 +143,7 @@ func (ed *Editor) UpdateCursor() {
 
 	y := 0
 	for i := ed.vrow; i < ed.row; i++ {
-		lines := termi.Wrap(ed.Line(i), ed.w)
+		lines := termi.Wrap(ed.Line(i), ed.w, false)
 		y += len(lines)
 	}
 	ed.y = y + dy
@@ -162,7 +153,7 @@ func (ed *Editor) UpdateCursor() {
 
 		y := 0
 		for i := ed.vrow; i < ed.row; i++ {
-			lines := termi.Wrap(ed.Line(i), ed.w)
+			lines := termi.Wrap(ed.Line(i), ed.w, false)
 			y += len(lines)
 		}
 		ed.y = y + dy
