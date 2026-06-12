@@ -257,6 +257,15 @@ func (ed *Editor) RuneCount() int {
 	return utf8.RuneCountInString(ed.CurrentLine())
 }
 
+func isBlankLine(s string) bool {
+	for _, r := range s {
+		if !isBlank(r) {
+			return false
+		}
+	}
+	return true
+}
+
 func (ed *Editor) EnsureCommand() {
 	switch ed.mode {
 	case ModeCommand:
@@ -267,6 +276,13 @@ func (ed *Editor) EnsureCommand() {
 			lines = append(lines, ed.lines[:ed.inpRow]...)
 		}
 		inputLines := ed.inp.Lines()
+		if ed.cfg.AutoIndent {
+			for i := 0; i < len(inputLines); i++ {
+				if isBlankLine(inputLines[i]) {
+					inputLines[i] = ""
+				}
+			}
+		}
 		lines = append(lines, inputLines...)
 		if ed.inpRow+1 <= len(ed.lines)-1 {
 			lines = append(lines, ed.lines[ed.inpRow+1:]...)

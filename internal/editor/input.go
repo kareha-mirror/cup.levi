@@ -78,12 +78,30 @@ func (inp *Input) Lines() []string {
 	return lines
 }
 
-func (inp *Input) Newline() {
-	inp.bodies = append(inp.bodies, termi.RuneBuf{})
+func (inp *Input) Newline(ai bool) {
+	indent := ""
+	if ai {
+		line := ""
+		if len(inp.bodies) < 2 {
+			line = inp.head + inp.bodies[0].String()
+		} else {
+			line = inp.bodies[len(inp.bodies)-1].String()
+		}
+		indent = getIndent(line)
+	}
+	b := termi.RuneBuf{}
+	b.WriteString(indent)
+	inp.bodies = append(inp.bodies, b)
 }
 
 func (inp *Input) Column() int {
-	s := inp.head + inp.body().String()
+	var s string
+	if len(inp.bodies) < 2 {
+		s = inp.head + inp.body().String()
+		return utf8.RuneCountInString(s)
+	} else {
+		s = inp.body().String()
+	}
 	return utf8.RuneCountInString(s)
 }
 
@@ -121,9 +139,9 @@ func (ed *Editor) InsertNewline() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
-	ed.inp.Newline()
+	ed.inp.Newline(ed.cfg.AutoIndent)
 	ed.row++
-	ed.col = 0
+	ed.col = ed.inp.Column()
 	// col is already confined
 	// XXX row is not confined
 }

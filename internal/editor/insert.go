@@ -1,5 +1,16 @@
 package editor
 
+func getIndent(s string) string {
+	runes := []rune{}
+	for _, r := range s {
+		if !isBlank(r) {
+			break
+		}
+		runes = append(runes, r)
+	}
+	return string(runes)
+}
+
 ////////////////////////
 // Insertion Commands //
 ////////////////////////
@@ -57,17 +68,21 @@ func (ed *Editor) InsertOverwrite(n int) {
 // o : Open a new line below and switch to insert mode.
 func (ed *Editor) InsertOpenBelow(n int) {
 	ed.EnsureCommand()
+	indent := ""
+	if ed.cfg.AutoIndent {
+		indent = getIndent(ed.CurrentLine())
+	}
 	lines := []string{}
 	if len(ed.lines) > 0 {
 		lines = append(lines, ed.lines[:ed.row+1]...)
 	}
-	lines = append(lines, "")
+	lines = append(lines, indent)
 	if ed.row+1 <= len(ed.lines)-1 {
 		lines = append(lines, ed.lines[ed.row+1:]...)
 	}
 	ed.lines = lines
 	ed.row++
-	ed.confine()
+	ed.toNonBlankCol()
 	ed.InsertAfter(n)
 	// XXX n
 }
@@ -75,16 +90,20 @@ func (ed *Editor) InsertOpenBelow(n int) {
 // O : Open a new line above and switch to insert mode.
 func (ed *Editor) InsertOpenAbove(n int) {
 	ed.EnsureCommand()
+	indent := ""
+	if ed.cfg.AutoIndent {
+		indent = getIndent(ed.CurrentLine())
+	}
 	lines := []string{}
 	if ed.row > 0 {
 		lines = append(lines, ed.lines[:ed.row]...)
 	}
-	lines = append(lines, "")
+	lines = append(lines, indent)
 	if ed.row <= len(ed.lines)-1 {
 		lines = append(lines, ed.lines[ed.row:]...)
 	}
 	ed.lines = lines
-	ed.confine()
+	ed.toNonBlankCol()
 	ed.InsertAfter(n)
 	// XXX n
 }
