@@ -97,7 +97,10 @@ func (ed *Editor) DrawBuffer() {
 		for _, line := range lines {
 			b.WriteString(termi.MoveCursor(0, y))
 			b.WriteString(termi.Render(line))
-			b.WriteString(termi.ClearTail)
+			rc := utf8.RuneCountInString(line)
+			if termi.StringWidth(line, rc) < ed.w {
+				b.WriteString(termi.ClearTail)
+			}
 			view = append(view, b.String())
 			b.Reset()
 
