@@ -1,5 +1,9 @@
 package editor
 
+import (
+	"tea.kareha.org/cup/termi"
+)
+
 /////////////////////
 // Prompt Commands //
 /////////////////////
@@ -160,4 +164,28 @@ func (ed *Editor) PromptQuitAll() {
 func (ed *Editor) PromptForceQuitAll() {
 	ed.EnsureCommand()
 	ed.alive = false
+}
+
+// :set ts=<num> Enter
+func (ed *Editor) PromptTabStop(n int) {
+	ed.EnsureCommand()
+	if n < 1 {
+		ed.Ring("set: the ts option may never be set to 0.")
+		return
+	}
+	ed.cfg.TabWidth = n
+	termi.TabWidth = n
+	ed.redraw = true
+}
+
+// :set ai Enter
+func (ed *Editor) PromptAutoIndent() {
+	ed.EnsureCommand()
+	ed.cfg.AutoIndent = true
+}
+
+// :set noai Enter
+func (ed *Editor) PromptNoAutoIndent() {
+	ed.EnsureCommand()
+	ed.cfg.AutoIndent = false
 }

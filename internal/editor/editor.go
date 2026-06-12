@@ -49,6 +49,7 @@ func (k *KillBuf) SetLines(lines []string) {
 }
 
 type Editor struct {
+	cfg      *Config
 	col, row int // 0-based
 	vrow     int // 0-based
 	virtCol  int // 0-based
@@ -110,6 +111,7 @@ func Init(args []string) *Editor {
 
 	w, h := termi.Size()
 	ed := &Editor{
+		cfg:      DefaultConfig(),
 		col:      0,
 		row:      0,
 		vrow:     0,
@@ -144,6 +146,7 @@ func Init(args []string) *Editor {
 		}
 	}
 
+	termi.TabWidth = ed.cfg.TabWidth
 	termi.Raw()
 	termi.Init()
 

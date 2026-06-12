@@ -31,4 +31,8 @@ const (
 	PcmdSaveAll
 	PcmdQuitAll
 	PcmdForceQuitAll
+
+	PcmdTabStop
+	PcmdAutoIndent
+	PcmdNoAutoIndent
 )

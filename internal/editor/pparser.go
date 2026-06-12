@@ -80,6 +80,27 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 	case "qa!":
 		return Pcmd{Kind: PcmdForceQuitAll}, true
 
+	case "set":
+		if len(parts) < 2 {
+			return Pcmd{Kind: PcmdInvalid}, false
+		}
+		if strings.HasPrefix(parts[1], "ts=") {
+			ns := parts[1][3:]
+			n, err := strconv.ParseUint(ns, 10, 16)
+			if err != nil {
+				// XXX
+				//ed.Ring("set: %s option: %s is an illegal number.", ns, ns)
+				return Pcmd{Kind: PcmdInvalid}, false
+			}
+			return Pcmd{Kind: PcmdTabStop, Num: int(n)}, true
+		}
+		switch parts[1] {
+		case "ai":
+			return Pcmd{Kind: PcmdAutoIndent}, true
+		case "noai":
+			return Pcmd{Kind: PcmdNoAutoIndent}, true
+		}
+		return Pcmd{Kind: PcmdInvalid}, false
 	default:
 		return Pcmd{Kind: PcmdInvalid}, false
 	}

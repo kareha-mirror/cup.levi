@@ -50,6 +50,16 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 	case PcmdForceQuitAll:
 		ed.PromptForceQuitAll()
 		return true
+
+	case PcmdTabStop:
+		ed.PromptTabStop(c.Num)
+		return true
+	case PcmdAutoIndent:
+		ed.PromptAutoIndent()
+		return true
+	case PcmdNoAutoIndent:
+		ed.PromptNoAutoIndent()
+		return true
 	}
 
 	return false
