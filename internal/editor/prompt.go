@@ -59,20 +59,33 @@ func (ed *Editor) PromptSaveAndQuit() {
 		ed.Ring("File is a temporary; exit will discard modifications.")
 		return
 	}
-	ed.Save()
+	if ed.modified && ed.path != "" {
+		err := ed.Save(false)
+		if err != nil {
+			return
+		}
+	}
 	ed.alive = false
 }
 
 // :w Enter : Save current file.
-func (ed *Editor) PromptSave() {
+func (ed *Editor) PromptSave(name string) {
 	ed.EnsureCommand()
-	ed.Save()
+	if name == "" {
+		ed.Save(false)
+		return
+	}
+	ed.SaveAs(name, false)
 }
 
 // :w! Enter : Force save current file.
-func (ed *Editor) PromptForceSave() {
+func (ed *Editor) PromptForceSave(name string) {
 	ed.EnsureCommand()
-	ed.Save()
+	if name == "" {
+		ed.Save(true)
+		return
+	}
+	ed.SaveAs(name, true)
 }
 
 // :q Enter : Quit editor.

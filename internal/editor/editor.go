@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
@@ -17,6 +18,11 @@ const (
 	ModeSearch
 	ModePrompt
 )
+
+type Stamp struct {
+	Time time.Time
+	Size int64
+}
 
 type KillMode int
 
@@ -53,6 +59,7 @@ type Editor struct {
 	inpRow   int // 0-based
 	mode     Mode
 	path     string
+	stamp    Stamp
 	alive    bool
 	message  string
 	ring     string
@@ -67,6 +74,15 @@ type Editor struct {
 }
 
 func (ed *Editor) Load(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	stamp := Stamp{
+		Time: info.ModTime(),
+		Size: info.Size(),
+	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -81,6 +97,7 @@ func (ed *Editor) Load(path string) error {
 		data = data[:len(data)-1]
 	}
 	ed.lines = strings.Split(string(data), "\n")
+	ed.stamp = stamp
 	ed.modified = false
 	return nil
 }
@@ -106,6 +123,7 @@ func Init(args []string) *Editor {
 		inpRow:   0,
 		mode:     ModeCommand,
 		path:     path,
+		stamp:    Stamp{},
 		alive:    true,
 		message:  "",
 		ring:     "",
@@ -140,21 +158,45 @@ func Init(args []string) *Editor {
 	return ed
 }
 
-func (ed *Editor) SaveAs(path string) error {
+func (ed *Editor) SaveAs(path string, force bool) error {
+	if path == "" {
+		ed.Ring("No filename specified")
+		return fmt.Errorf("no filename specified")
+	}
+	info, err := os.Stat(path)
+	newFile := ""
+	stamp := Stamp{}
+	if err != nil {
+		newFile = " new file:"
+	} else {
+		stamp = Stamp{
+			Time: info.ModTime(),
+			Size: info.Size(),
+		}
+	}
+	if !force && path == ed.path && stamp != ed.stamp {
+		ed.Ring(
+			"%s: file modified more recently than this copy; use ! to override.",
+			path,
+		)
+		return fmt.Errorf("file modified more recently")
+	}
+
 	text := ""
 	if len(ed.lines) > 0 {
 		text = strings.Join(ed.lines, "\n") + "\n"
 	}
-
-	_, err := os.Stat(path)
-	newFile := ""
-	if err != nil {
-		newFile = " new file:"
-	}
-
 	err = os.WriteFile(path, []byte(text), 0666)
 	if err != nil {
 		return err
+	}
+	info, err = os.Stat(path)
+	if err != nil {
+		return err
+	}
+	stamp = Stamp{
+		Time: info.ModTime(),
+		Size: info.Size(),
 	}
 
 	ed.Message(
@@ -162,14 +204,18 @@ func (ed *Editor) SaveAs(path string) error {
 		path, newFile, len(ed.lines), len(text), utf8.RuneCountInString(text),
 	)
 
+	if ed.path == "" {
+		ed.path = path
+	}
+	if path == ed.path {
+		ed.stamp = stamp
+	}
 	ed.modified = false
 	return nil
 }
 
-func (ed *Editor) Save() {
-	if ed.path != "" {
-		ed.SaveAs(ed.path)
-	}
+func (ed *Editor) Save(force bool) error {
+	return ed.SaveAs(ed.path, force)
 }
 
 func (ed *Editor) Finish() {

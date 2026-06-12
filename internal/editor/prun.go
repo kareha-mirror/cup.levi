@@ -10,10 +10,10 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 		ed.PromptSaveAndQuit()
 		return true
 	case PcmdSave:
-		ed.PromptSave()
+		ed.PromptSave(c.Name)
 		return true
 	case PcmdForceSave:
-		ed.PromptForceSave()
+		ed.PromptForceSave(c.Name)
 		return true
 	case PcmdQuit:
 		ed.PromptQuit()

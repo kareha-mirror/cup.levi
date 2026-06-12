@@ -55,6 +55,11 @@ func (ed *Editor) MiscSaveAndQuit() {
 		ed.Ring("File is a temporary; exit will discard modifications")
 		return
 	}
-	ed.Save()
+	if ed.modified && ed.path != "" {
+		err := ed.Save(false)
+		if err != nil {
+			return
+		}
+	}
 	ed.alive = false
 }
