@@ -443,6 +443,8 @@ func (p *Parser) ParseMisc(num int, op string) (Cmd, bool) {
 		return Cmd{Kind: CmdMiscRestore}, true
 	case "ZZ":
 		return Cmd{Kind: CmdMiscSaveAndQuit}, true
+	case "\x1a": // Ctrl-z
+		return Cmd{Kind: CmdMiscSuspend}, true
 	}
 
 	return Cmd{}, false

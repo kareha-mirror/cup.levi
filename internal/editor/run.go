@@ -334,6 +334,9 @@ func (ed *Editor) Run(c Cmd) bool {
 	case CmdMiscSaveAndQuit:
 		ed.MiscSaveAndQuit()
 		return true
+	case CmdMiscSuspend:
+		ed.MiscSuspend()
+		return true
 	}
 
 	return false

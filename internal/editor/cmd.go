@@ -139,4 +139,5 @@ const (
 	CmdMiscUndo
 	CmdMiscRestore
 	CmdMiscSaveAndQuit
+	CmdMiscSuspend
 )
