@@ -132,6 +132,7 @@ func Init(args []string) *Editor {
 	listener := func(esc bool) {
 		ed.esc = esc
 		ed.DrawStatus()
+		ed.PlaceCursor()
 	}
 	ed.listener = termi.EscapeListener(&listener)
 	termi.AddEscapeListener(ed.listener)
