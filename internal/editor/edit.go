@@ -30,7 +30,8 @@ func (ed *Editor) EditJoin(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	if ed.row+1 >= len(ed.lines) {
+	b := ed.Buffer()
+	if b.row+1 >= len(b.lines) {
 		ed.Ring("No following lines to join")
 		return
 	}
@@ -38,14 +39,14 @@ func (ed *Editor) EditJoin(n int) {
 		n--
 	}
 
-	current := ed.lines[ed.row]
-	col := ed.col
+	current := b.lines[b.row]
+	col := b.col
 
 	for i := 1; i <= n; i++ {
-		if ed.row+i >= len(ed.lines) {
+		if b.row+i >= len(b.lines) {
 			break
 		}
-		next := trimLeftBlanks(ed.lines[ed.row+i])
+		next := trimLeftBlanks(b.lines[b.row+i])
 		link := ""
 		if len(next) > 0 {
 			r, _ := utf8.DecodeLastRuneInString(current)
@@ -57,14 +58,14 @@ func (ed *Editor) EditJoin(n int) {
 		current = current + link + next
 	}
 
-	lines := append([]string{}, ed.lines[:ed.row]...)
+	lines := append([]string{}, b.lines[:b.row]...)
 	lines = append(lines, current)
-	if ed.row+1+n < len(ed.lines) {
-		lines = append(lines, ed.lines[ed.row+1+n:]...)
+	if b.row+1+n < len(b.lines) {
+		lines = append(lines, b.lines[b.row+1+n:]...)
 	}
-	ed.lines = lines
+	b.lines = lines
 
-	ed.col = col
+	b.col = col
 	ed.confineCol()
 }
 

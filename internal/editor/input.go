@@ -121,17 +121,19 @@ func (ed *Editor) InsertRune(r rune) {
 		panic("invalid state")
 	}
 	ed.inp.WriteRune(r)
-	ed.col = ed.inp.Column()
+	b := ed.Buffer()
+	b.col = ed.inp.Column()
 }
 
 func (ed *Editor) Backspace() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
+	b := ed.Buffer()
 	if !ed.inp.Backspace() {
-		ed.row--
+		b.row--
 	}
-	ed.col = ed.inp.Column()
+	b.col = ed.inp.Column()
 	// col and row are already confined
 }
 
@@ -139,9 +141,10 @@ func (ed *Editor) InsertNewline() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
+	b := ed.Buffer()
 	ed.inp.Newline(ed.cfg.AutoIndent)
-	ed.row++
-	ed.col = ed.inp.Column()
+	b.row++
+	b.col = ed.inp.Column()
 	// col is already confined
 	// XXX row is not confined
 }

@@ -24,6 +24,17 @@ type Stamp struct {
 	Size int64
 }
 
+type Buffer struct {
+	col, row int // 0-based
+	vrow     int // 0-based
+	virtCol  int // 0-based
+	x, y     int // 0-based
+	lines    []string
+	path     string
+	stamp    Stamp
+	modified bool
+}
+
 type KillMode int
 
 const (
@@ -50,23 +61,17 @@ func (k *KillBuf) SetLines(lines []string) {
 
 type Editor struct {
 	cfg      *Config
-	col, row int // 0-based
-	vrow     int // 0-based
-	virtCol  int // 0-based
 	w, h     int
-	x, y     int // 0-based
-	lines    []string
+	buffers  []*Buffer
+	bIndex   int
 	inp      *Input
 	inpRow   int // 0-based
 	mode     Mode
-	path     string
-	stamp    Stamp
 	alive    bool
 	message  string
 	ring     string
 	parser   *Parser
 	prompt   termi.RuneBuf
-	modified bool
 	killed   KillBuf
 	redraw   bool
 	view     []string
@@ -75,29 +80,28 @@ type Editor struct {
 }
 
 func (ed *Editor) Clear() {
-	ed.col = 0
-	ed.row = 0
-	ed.vrow = 0
-	ed.virtCol = 0
-	ed.x = 0
-	ed.y = 0
-	ed.lines = []string{}
-	ed.inp = NewInput()
-	ed.inpRow = 0
+	if ed.bIndex < len(ed.buffers) {
+		ed.buffers[ed.bIndex] = new(Buffer)
+	} else {
+		ed.buffers = append(ed.buffers, new(Buffer))
+	}
 	ed.mode = ModeCommand
-	ed.stamp = Stamp{}
-	ed.modified = false
-	ed.killed = KillBuf{}
 	ed.redraw = true
 }
 
+func (ed *Editor) Buffer() *Buffer {
+	return ed.buffers[ed.bIndex]
+}
+
 func (ed *Editor) Load(path string, force bool) error {
-	if !force && ed.modified {
+	b := ed.Buffer()
+	if !force && b.modified {
 		ed.Ring("File modified since last complete write; write or use ! to override.")
 		return fmt.Errorf("file modified")
 	}
 	ed.Clear()
-	ed.path = path
+	b = ed.Buffer()
+	b.path = path
 	if path == "" {
 		ed.Message("(memory): new file: line 1")
 		return nil
@@ -117,44 +121,42 @@ func (ed *Editor) Load(path string, force bool) error {
 		return err
 	}
 	if len(data) < 1 {
-		ed.lines = []string{}
-		ed.modified = false
+		b.lines = []string{}
+		b.modified = false
 		return nil
 	}
 	// TODO should also support CRLF or not?
 	if data[len(data)-1] == '\n' {
 		data = data[:len(data)-1]
 	}
-	ed.lines = strings.Split(string(data), "\n")
-	ed.stamp = stamp
-	ed.modified = false
-
-	ed.Message("%s: unmodified: line 1", path)
+	b.lines = strings.Split(string(data), "\n")
+	b.stamp = stamp
+	b.modified = false
 	return nil
 }
 
 func Init(args []string) *Editor {
-	var path string
-	if len(args) > 1 {
-		path = args[1]
-	}
-
 	w, h := termi.Size()
 	ed := &Editor{
 		cfg:      DefaultConfig(),
 		w:        w,
 		h:        h,
+		buffers:  []*Buffer{},
+		bIndex:   0,
+		inp:      NewInput(),
+		inpRow:   0,
+		mode:     ModeCommand,
 		alive:    true,
 		message:  "",
 		ring:     "",
 		parser:   NewParser(),
 		prompt:   termi.RuneBuf{},
+		killed:   KillBuf{},
 		redraw:   true,
 		view:     []string{},
 		listener: nil,
 		esc:      false,
 	}
-	ed.Clear()
 
 	termi.TabWidth = ed.cfg.TabWidth
 	termi.Raw()
@@ -166,9 +168,21 @@ func Init(args []string) *Editor {
 		ed.PlaceCursor()
 	}
 	ed.listener = termi.EscapeListener(&listener)
-	termi.AddEscapeListener(ed.listener)
 
-	ed.Load(path, true)
+	if len(args) < 2 {
+		ed.Clear()
+		ed.Load("", true)
+	} else {
+		for _, path := range args[1:] {
+			ed.Clear()
+			ed.Load(path, true)
+			ed.bIndex++
+		}
+		ed.bIndex = 0
+	}
+	ed.InitialInfo()
+
+	termi.AddEscapeListener(ed.listener)
 	return ed
 }
 
@@ -188,7 +202,8 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 			Size: info.Size(),
 		}
 	}
-	if !force && path == ed.path && stamp != ed.stamp {
+	b := ed.Buffer()
+	if !force && path == b.path && stamp != b.stamp {
 		ed.Ring(
 			"%s: file modified more recently than this copy; use ! to override.",
 			path,
@@ -197,8 +212,8 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	}
 
 	text := ""
-	if len(ed.lines) > 0 {
-		text = strings.Join(ed.lines, "\n") + "\n"
+	if len(b.lines) > 0 {
+		text = strings.Join(b.lines, "\n") + "\n"
 	}
 	err = os.WriteFile(path, []byte(text), 0666)
 	if err != nil {
@@ -215,21 +230,22 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 
 	ed.Message(
 		"%s:%s %d lines, %d bytes, %d runes.",
-		path, newFile, len(ed.lines), len(text), utf8.RuneCountInString(text),
+		path, newFile, len(b.lines), len(text), utf8.RuneCountInString(text),
 	)
 
-	if ed.path == "" {
-		ed.path = path
+	if b.path == "" {
+		b.path = path
 	}
-	if path == ed.path {
-		ed.stamp = stamp
+	if path == b.path {
+		b.stamp = stamp
 	}
-	ed.modified = false
+	b.modified = false
 	return nil
 }
 
 func (ed *Editor) Save(force bool) error {
-	return ed.SaveAs(ed.path, force)
+	b := ed.Buffer()
+	return ed.SaveAs(b.path, force)
 }
 
 func (ed *Editor) Finish() {
@@ -244,24 +260,27 @@ func (ed *Editor) Finish() {
 }
 
 func (ed *Editor) Line(row int) string {
+	b := ed.Buffer()
+
 	if ed.mode == ModeInsert {
 		if row < ed.inpRow {
-			return ed.lines[row]
+			return b.lines[row]
 		} else if row < ed.inpRow+ed.inp.LineLen() {
 			return ed.inp.Line(row - ed.inpRow)
 		} else {
-			return ed.lines[row-ed.inp.LineLen()+1]
+			return b.lines[row-ed.inp.LineLen()+1]
 		}
 	}
 
-	if len(ed.lines) < 1 {
+	if len(b.lines) < 1 {
 		return ""
 	}
-	return ed.lines[row]
+	return b.lines[row]
 }
 
 func (ed *Editor) CurrentLine() string {
-	return ed.Line(ed.row)
+	b := ed.Buffer()
+	return ed.Line(b.row)
 }
 
 func (ed *Editor) RuneCount() int {
@@ -282,9 +301,10 @@ func (ed *Editor) EnsureCommand() {
 	case ModeCommand:
 		return
 	case ModeInsert:
+		b := ed.Buffer()
 		lines := []string{}
 		if ed.inpRow > 0 {
-			lines = append(lines, ed.lines[:ed.inpRow]...)
+			lines = append(lines, b.lines[:ed.inpRow]...)
 		}
 		inputLines := ed.inp.Lines()
 		if ed.cfg.AutoIndent {
@@ -295,15 +315,15 @@ func (ed *Editor) EnsureCommand() {
 			}
 		}
 		lines = append(lines, inputLines...)
-		if ed.inpRow+1 <= len(ed.lines)-1 {
-			lines = append(lines, ed.lines[ed.inpRow+1:]...)
+		if ed.inpRow+1 <= len(b.lines)-1 {
+			lines = append(lines, b.lines[ed.inpRow+1:]...)
 		}
-		ed.lines = lines
+		b.lines = lines
 		ed.inp.Reset()
 		ed.mode = ModeCommand
 		ed.MoveLeft(1)
 
-		ed.modified = true
+		b.modified = true
 		return
 	case ModeSearch:
 		ed.mode = ModeCommand

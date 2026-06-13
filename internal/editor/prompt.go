@@ -1,6 +1,8 @@
 package editor
 
 import (
+	"fmt"
+
 	"tea.kareha.org/cup/termi"
 )
 
@@ -15,8 +17,9 @@ func (ed *Editor) PromptMoveByLine(n int) {
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	if !ed.adjustRow(n) {
-		ed.Ring("Illegal address: only %d lines in the file.", len(ed.lines))
+		ed.Ring("Illegal address: only %d lines in the file.", len(b.lines))
 		return
 	}
 	ed.toNonBlankCol()
@@ -29,7 +32,8 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	if ed.row-n == -1 {
+	b := ed.Buffer()
+	if b.row-n == -1 {
 		n++
 	}
 	if !ed.adjustRow(-n) {
@@ -46,11 +50,12 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	if n == 0 {
 		n = 1
 	}
 	if !ed.setRow(n - 1) {
-		ed.Ring("Illegal address: only %d lines in the file.", len(ed.lines))
+		ed.Ring("Illegal address: only %d lines in the file.", len(b.lines))
 		return
 	}
 	ed.toNonBlankCol()
@@ -59,11 +64,12 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 // :wq Enter : Save current file and quit.
 func (ed *Editor) PromptSaveAndQuit() {
 	ed.EnsureCommand()
-	if ed.modified && ed.path == "" {
+	b := ed.Buffer()
+	if b.modified && b.path == "" {
 		ed.Ring("File is a temporary; exit will discard modifications.")
 		return
 	}
-	if ed.modified && ed.path != "" {
+	if b.modified && b.path != "" {
 		err := ed.Save(false)
 		if err != nil {
 			return
@@ -95,8 +101,9 @@ func (ed *Editor) PromptForceSave(name string) {
 // :q Enter : Quit editor.
 func (ed *Editor) PromptQuit() {
 	ed.EnsureCommand()
-	if ed.modified {
-		if ed.path == "" {
+	b := ed.Buffer()
+	if b.modified {
+		if b.path == "" {
 			ed.Ring("File is a temporary; exit will discard modifications.")
 			return
 		}
@@ -116,12 +123,14 @@ func (ed *Editor) PromptForceQuit() {
 func (ed *Editor) PromptOpen(name string) {
 	ed.EnsureCommand()
 	ed.Load(name, false)
+	ed.InitialInfo()
 }
 
 // :e! Enter : Force open file.
 func (ed *Editor) PromptForceOpen(name string) {
 	ed.EnsureCommand()
 	ed.Load(name, true)
+	ed.InitialInfo()
 }
 
 // :r Enter : Read file and insert to current buffer.
@@ -130,16 +139,47 @@ func (ed *Editor) PromptRead() {
 	ed.Unimplemented("PromptRead")
 }
 
+func (ed *Editor) InitialInfo() {
+	b := ed.Buffer()
+	path := b.path
+	if path == "" {
+		path = "(memory)"
+	}
+	modified := "unmodified"
+	if b.modified {
+		modified = "modified"
+	}
+	info := "empty file"
+	linesLen := len(b.lines)
+	if linesLen > 0 {
+		info = fmt.Sprintf("line %d", b.row+1)
+	}
+	ed.Message("%s: %s: %s", path, modified, info)
+}
+
 // :n Enter : Switch to next buffer (tab).
 func (ed *Editor) PromptNext() {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptNext")
+	if ed.bIndex+1 >= len(ed.buffers) {
+		ed.Ring("No more files to edit.")
+		return
+	}
+	ed.bIndex++
+	ed.redraw = true
+	ed.InitialInfo()
 }
 
 // :prev Enter : Switch to previous buffer (tab).
 func (ed *Editor) PromptPrev() {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptPrev")
+	ed.EnsureCommand()
+	if ed.bIndex-1 < 0 {
+		ed.Ring("No previous files to edit.")
+		return
+	}
+	ed.bIndex--
+	ed.redraw = true
+	ed.InitialInfo()
 }
 
 // :sh Enter : Execute shell.

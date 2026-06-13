@@ -15,10 +15,11 @@ func (ed *Editor) OpCopyLine(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	if ed.row+n > len(ed.lines) {
+	b := ed.Buffer()
+	if b.row+n > len(b.lines) {
 		return
 	}
-	ed.killed.SetLines(ed.lines[ed.row : ed.row+n])
+	ed.killed.SetLines(b.lines[b.row : b.row+n])
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
@@ -74,48 +75,49 @@ func (ed *Editor) OpPaste(n int) {
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	if ed.killed.mode == KillNone {
 		ed.Ring("The default buffer is empty")
 		return
 	}
 	switch ed.killed.mode {
 	case KillRunes:
-		if len(ed.lines) < 1 {
-			ed.lines = append(ed.lines, "")
+		if len(b.lines) < 1 {
+			b.lines = append(b.lines, "")
 		}
-		runes := []rune(ed.lines[ed.row])
+		runes := []rune(b.lines[b.row])
 		rs := []rune{}
-		if ed.col+1 <= len(runes) {
-			rs = append(rs, runes[:ed.col+1]...)
+		if b.col+1 <= len(runes) {
+			rs = append(rs, runes[:b.col+1]...)
 		}
 		for i := 0; i < n; i++ {
 			rs = append(rs, ed.killed.runes...)
 		}
-		if ed.col+1 < len(runes) {
-			rs = append(rs, runes[ed.col+1:]...)
+		if b.col+1 < len(runes) {
+			rs = append(rs, runes[b.col+1:]...)
 		}
-		ed.lines[ed.row] = string(rs)
+		b.lines[b.row] = string(rs)
 		if len(runes) > 0 {
-			ed.col++
+			b.col++
 		}
 	case KillLines:
 		lines := []string{}
-		if ed.row+1 <= len(ed.lines) {
-			lines = append(lines, ed.lines[:ed.row+1]...)
+		if b.row+1 <= len(b.lines) {
+			lines = append(lines, b.lines[:b.row+1]...)
 		}
 		for i := 0; i < n; i++ {
 			lines = append(lines, ed.killed.lines...)
 		}
-		if ed.row+1 <= len(ed.lines)-1 {
-			lines = append(lines, ed.lines[ed.row+1:]...)
+		if b.row+1 <= len(b.lines)-1 {
+			lines = append(lines, b.lines[b.row+1:]...)
 		}
-		move := len(ed.lines) > 0
-		ed.lines = lines
+		move := len(b.lines) > 0
+		b.lines = lines
 		if move {
 			ed.MoveByLine(1)
 		}
 	}
-	ed.modified = true
+	b.modified = true
 }
 
 // P : Paste before cursor.
@@ -125,32 +127,33 @@ func (ed *Editor) OpPasteBefore(n int) {
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	if ed.killed.mode == KillNone {
 		ed.Ring("The default buffer is empty")
 		return
 	}
 	switch ed.killed.mode {
 	case KillRunes:
-		if len(ed.lines) < 1 {
-			ed.lines = append(ed.lines, "")
+		if len(b.lines) < 1 {
+			b.lines = append(b.lines, "")
 		}
-		runes := []rune(ed.lines[ed.row])
-		rs := append([]rune{}, runes[:ed.col]...)
+		runes := []rune(b.lines[b.row])
+		rs := append([]rune{}, runes[:b.col]...)
 		for i := 0; i < n; i++ {
 			rs = append(rs, ed.killed.runes...)
 		}
-		rs = append(rs, runes[ed.col:]...)
-		ed.lines[ed.row] = string(rs)
+		rs = append(rs, runes[b.col:]...)
+		b.lines[b.row] = string(rs)
 	case KillLines:
-		lines := append([]string{}, ed.lines[:ed.row]...)
+		lines := append([]string{}, b.lines[:b.row]...)
 		for i := 0; i < n; i++ {
 			lines = append(lines, ed.killed.lines...)
 		}
-		lines = append(lines, ed.lines[ed.row:]...)
-		ed.lines = lines
+		lines = append(lines, b.lines[b.row:]...)
+		b.lines = lines
 		ed.toNonBlankCol()
 	}
-	ed.modified = true
+	b.modified = true
 }
 
 // "<reg>p : Paste from register <reg>.
@@ -174,21 +177,22 @@ func (ed *Editor) OpDelete(n int) {
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	if len(ed.CurrentLine()) < 1 {
 		return
 	}
 	rs := []rune(ed.CurrentLine())
-	n = min(n, len(rs)-ed.col)
-	ed.killed.SetRunes(rs[ed.col : ed.col+n])
-	if ed.col < 1 {
-		ed.lines[ed.row] = string(rs[n:])
+	n = min(n, len(rs)-b.col)
+	ed.killed.SetRunes(rs[b.col : b.col+n])
+	if b.col < 1 {
+		b.lines[b.row] = string(rs[n:])
 	} else {
-		head := string(rs[:ed.col])
-		tail := string(rs[ed.col+n:])
-		ed.lines[ed.row] = head + tail
+		head := string(rs[:b.col])
+		tail := string(rs[b.col+n:])
+		b.lines[b.row] = head + tail
 	}
 	ed.confine()
-	ed.modified = true
+	b.modified = true
 }
 
 // X : Delete character before cursor.
@@ -208,20 +212,21 @@ func (ed *Editor) OpDeleteLine(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	if ed.row+n > len(ed.lines) {
+	b := ed.Buffer()
+	if b.row+n > len(b.lines) {
 		return
 	}
 	lines := []string{}
-	if ed.row > 0 {
-		lines = append(lines, ed.lines[:ed.row]...)
+	if b.row > 0 {
+		lines = append(lines, b.lines[:b.row]...)
 	}
-	ed.killed.SetLines(ed.lines[ed.row : ed.row+n])
-	if ed.row+n <= len(ed.lines)-1 {
-		lines = append(lines, ed.lines[ed.row+n:]...)
+	ed.killed.SetLines(b.lines[b.row : b.row+n])
+	if b.row+n <= len(b.lines)-1 {
+		lines = append(lines, b.lines[b.row+n:]...)
 	}
-	ed.lines = lines
+	b.lines = lines
 	ed.confine()
-	ed.modified = true
+	b.modified = true
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
@@ -309,13 +314,14 @@ func (ed *Editor) OpSubst(n int) {
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	rs := []rune(ed.CurrentLine())
-	nrs := append([]rune{}, rs[:ed.col]...)
-	if ed.col+n <= len(rs)-1 {
-		nrs = append(nrs, rs[ed.col+n:]...)
+	nrs := append([]rune{}, rs[:b.col]...)
+	if b.col+n <= len(rs)-1 {
+		nrs = append(nrs, rs[b.col+n:]...)
 	}
-	ed.inp.Init(string(nrs), ed.col)
-	ed.inpRow = ed.row
+	ed.inp.Init(string(nrs), b.col)
+	ed.inpRow = b.row
 	ed.mode = ModeInsert
 }
 

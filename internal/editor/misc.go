@@ -11,20 +11,21 @@ import (
 // Ctrl-g : Show info such as current cursor position.
 func (ed *Editor) MiscShowInfo() {
 	ed.EnsureCommand()
-	path := ed.path
+	b := ed.Buffer()
+	path := b.path
 	if path == "" {
 		path = "(memory)"
 	}
 	modified := "unmodified"
-	if ed.modified {
+	if b.modified {
 		modified = "modified"
 	}
 	info := "empty file"
-	linesLen := len(ed.lines)
+	linesLen := len(b.lines)
 	if linesLen > 0 {
 		info = fmt.Sprintf(
 			"line %d of %d [%d%%]",
-			ed.row+1, linesLen, 100*(ed.row+1)/linesLen,
+			b.row+1, linesLen, 100*(b.row+1)/linesLen,
 		)
 	}
 	ed.Message("%s: %s: %s", path, modified, info)
@@ -51,11 +52,12 @@ func (ed *Editor) MiscRestore() {
 // ZZ : Save and quit.
 func (ed *Editor) MiscSaveAndQuit() {
 	ed.EnsureCommand()
-	if ed.modified && ed.path == "" {
+	b := ed.Buffer()
+	if b.modified && b.path == "" {
 		ed.Ring("File is a temporary; exit will discard modifications")
 		return
 	}
-	if ed.modified && ed.path != "" {
+	if b.modified && b.path != "" {
 		err := ed.Save(false)
 		if err != nil {
 			return

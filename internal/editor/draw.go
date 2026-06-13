@@ -19,38 +19,39 @@ func runeAt(s string, i int) rune {
 }
 
 func (ed *Editor) UpdateCursor() {
+	b := ed.Buffer()
 	current := ed.CurrentLine()
-	col := ed.col
-	if ed.mode == ModeInsert && ed.col > 0 {
+	col := b.col
+	if ed.mode == ModeInsert && b.col > 0 {
 		col--
 	}
-	ed.x = 0
+	b.x = 0
 	dy := 0
 	if current != "" {
 		lines := termi.Wrap(current, ed.w, ed.mode == ModeInsert)
 		for _, line := range lines {
 			rc := utf8.RuneCountInString(line)
 			if col < rc {
-				ed.x = termi.StringWidth(line, col)
+				b.x = termi.StringWidth(line, col)
 				r := runeAt(line, col)
 				if r == '\t' {
-					ed.x += termi.TabWidth - (ed.x % termi.TabWidth) - 1
+					b.x += termi.TabWidth - (b.x % termi.TabWidth) - 1
 				}
-				if ed.mode == ModeInsert && ed.col > 0 {
+				if ed.mode == ModeInsert && b.col > 0 {
 					if termi.IsWide(r) || termi.IsEmoji(r) {
-						ed.x += 2
+						b.x += 2
 					} else {
-						ed.x++
+						b.x++
 					}
-					if ed.x > ed.w {
+					if b.x > ed.w {
 						if r == '\t' {
-							ed.x = termi.TabWidth
+							b.x = termi.TabWidth
 						} else {
-							ed.x = 2
+							b.x = 2
 						}
 						dy++
-					} else if ed.x == ed.w {
-						ed.x = 0
+					} else if b.x == ed.w {
+						b.x = 0
 						dy++
 					}
 				}
@@ -61,48 +62,49 @@ func (ed *Editor) UpdateCursor() {
 		}
 	}
 
-	if ed.row < ed.vrow {
-		ed.vrow = ed.row
+	if b.row < b.vrow {
+		b.vrow = b.row
 	}
 
 	y := 0
-	for i := ed.vrow; i < ed.row; i++ {
+	for i := b.vrow; i < b.row; i++ {
 		lines := termi.Wrap(ed.Line(i), ed.w, false)
 		y += len(lines)
 	}
-	ed.y = y + dy
+	b.y = y + dy
 
-	for ed.y >= ed.h-1 {
-		ed.vrow++
+	for b.y >= ed.h-1 {
+		b.vrow++
 
 		y := 0
-		for i := ed.vrow; i < ed.row; i++ {
+		for i := b.vrow; i < b.row; i++ {
 			lines := termi.Wrap(ed.Line(i), ed.w, false)
 			y += len(lines)
 		}
-		ed.y = y + dy
+		b.y = y + dy
 	}
 }
 
 func (ed *Editor) DrawBuffer() {
+	b := ed.Buffer()
 	view := []string{}
-	linesLen := max(len(ed.lines), 1)
-	b := strings.Builder{}
+	linesLen := max(len(b.lines), 1)
+	sb := strings.Builder{}
 
 	y := 0
-	for i := ed.vrow; i < linesLen+ed.inp.LineLen()-1; i++ {
-		tail := i == ed.row && ed.mode == ModeInsert
+	for i := b.vrow; i < linesLen+ed.inp.LineLen()-1; i++ {
+		tail := i == b.row && ed.mode == ModeInsert
 		lines := termi.Wrap(ed.Line(i), ed.w, tail)
 
 		for _, line := range lines {
-			b.WriteString(termi.MoveCursor(0, y))
-			b.WriteString(termi.Render(line))
+			sb.WriteString(termi.MoveCursor(0, y))
+			sb.WriteString(termi.Render(line))
 			rc := utf8.RuneCountInString(line)
 			if termi.StringWidth(line, rc) < ed.w {
-				b.WriteString(termi.ClearTail)
+				sb.WriteString(termi.ClearTail)
 			}
-			view = append(view, b.String())
-			b.Reset()
+			view = append(view, sb.String())
+			sb.Reset()
 
 			y++
 			if y >= ed.h-1 {
@@ -116,11 +118,11 @@ func (ed *Editor) DrawBuffer() {
 	}
 
 	for ; y < ed.h-1; y++ {
-		b.WriteString(termi.MoveCursor(0, y))
-		b.WriteString(termi.Render("~"))
-		b.WriteString(termi.ClearTail)
-		view = append(view, b.String())
-		b.Reset()
+		sb.WriteString(termi.MoveCursor(0, y))
+		sb.WriteString(termi.Render("~"))
+		sb.WriteString(termi.ClearTail)
+		view = append(view, sb.String())
+		sb.Reset()
 	}
 
 	for i, line := range view {
@@ -179,7 +181,8 @@ func (ed *Editor) PlaceCursor() {
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
 	} else {
-		fmt.Print(termi.MoveCursor(ed.x, ed.y))
+		b := ed.Buffer()
+		fmt.Print(termi.MoveCursor(b.x, b.y))
 	}
 }
 

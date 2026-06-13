@@ -73,7 +73,7 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		}
 	case "r":
 		return Pcmd{Kind: PcmdRead}, true
-	case "n":
+	case "n", "next":
 		return Pcmd{Kind: PcmdNext}, true
 	case "prev":
 		return Pcmd{Kind: PcmdPrev}, true

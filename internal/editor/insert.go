@@ -22,8 +22,9 @@ func getIndent(s string) string {
 // i : Switch to insert mode before cursor.
 func (ed *Editor) InsertBefore(n int) {
 	ed.EnsureCommand()
-	ed.inp.Init(ed.CurrentLine(), ed.col)
-	ed.inpRow = ed.row
+	b := ed.Buffer()
+	ed.inp.Init(ed.CurrentLine(), b.col)
+	ed.inpRow = b.row
 	ed.mode = ModeInsert
 	// XXX n
 }
@@ -31,9 +32,10 @@ func (ed *Editor) InsertBefore(n int) {
 // a : Switch to insert mode after cursor.
 func (ed *Editor) InsertAfter(n int) {
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	rc := ed.RuneCount()
-	if ed.col >= rc-1 {
-		ed.col = rc
+	if b.col >= rc-1 {
+		b.col = rc
 	} else {
 		ed.MoveRight(1)
 	}
@@ -68,20 +70,21 @@ func (ed *Editor) InsertOverwrite(n int) {
 // o : Open a new line below and switch to insert mode.
 func (ed *Editor) InsertOpenBelow(n int) {
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	indent := ""
 	if ed.cfg.AutoIndent {
 		indent = getIndent(ed.CurrentLine())
 	}
 	lines := []string{}
-	if len(ed.lines) > 0 {
-		lines = append(lines, ed.lines[:ed.row+1]...)
+	if len(b.lines) > 0 {
+		lines = append(lines, b.lines[:b.row+1]...)
 	}
 	lines = append(lines, indent)
-	if ed.row+1 <= len(ed.lines)-1 {
-		lines = append(lines, ed.lines[ed.row+1:]...)
+	if b.row+1 <= len(b.lines)-1 {
+		lines = append(lines, b.lines[b.row+1:]...)
 	}
-	ed.lines = lines
-	ed.row++
+	b.lines = lines
+	b.row++
 	ed.toNonBlankCol()
 	ed.InsertAfter(n)
 	// XXX n
@@ -90,19 +93,20 @@ func (ed *Editor) InsertOpenBelow(n int) {
 // O : Open a new line above and switch to insert mode.
 func (ed *Editor) InsertOpenAbove(n int) {
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	indent := ""
 	if ed.cfg.AutoIndent {
 		indent = getIndent(ed.CurrentLine())
 	}
 	lines := []string{}
-	if ed.row > 0 {
-		lines = append(lines, ed.lines[:ed.row]...)
+	if b.row > 0 {
+		lines = append(lines, b.lines[:b.row]...)
 	}
 	lines = append(lines, indent)
-	if ed.row <= len(ed.lines)-1 {
-		lines = append(lines, ed.lines[ed.row:]...)
+	if b.row <= len(b.lines)-1 {
+		lines = append(lines, b.lines[b.row:]...)
 	}
-	ed.lines = lines
+	b.lines = lines
 	ed.toNonBlankCol()
 	ed.InsertAfter(n)
 	// XXX n

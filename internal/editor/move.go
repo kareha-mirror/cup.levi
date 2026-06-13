@@ -4,39 +4,43 @@ func (ed *Editor) setRow(row int) bool {
 	if row < 0 {
 		return false
 	}
-	linesLen := len(ed.lines)
+	b := ed.Buffer()
+	linesLen := len(b.lines)
 	if linesLen == 0 && row == 0 {
-		ed.row = row
+		b.row = row
 		return true
 	}
 	if row >= linesLen {
 		return false
 	}
-	ed.row = row
+	b.row = row
 	return true
 }
 
 func (ed *Editor) adjustRow(n int) bool {
-	return ed.setRow(ed.row + n)
+	b := ed.Buffer()
+	return ed.setRow(b.row + n)
 }
 
 func (ed *Editor) confineRow() {
-	n := len(ed.lines)
-	if ed.row < 0 {
-		ed.row = 0
-	} else if ed.row >= n {
-		ed.row = max(n-1, 0)
+	b := ed.Buffer()
+	n := len(b.lines)
+	if b.row < 0 {
+		b.row = 0
+	} else if b.row >= n {
+		b.row = max(n-1, 0)
 	}
 }
 
 func (ed *Editor) confineCol() {
-	if ed.col < 0 {
-		ed.col = 0
+	b := ed.Buffer()
+	if b.col < 0 {
+		b.col = 0
 		return
 	}
 	rc := ed.RuneCount()
-	if ed.col >= rc {
-		ed.col = max(rc-1, 0)
+	if b.col >= rc {
+		b.col = max(rc-1, 0)
 	}
 }
 
@@ -46,21 +50,25 @@ func (ed *Editor) confine() {
 }
 
 func (ed *Editor) saveVirtCol() {
-	ed.virtCol = ed.col
+	b := ed.Buffer()
+	b.virtCol = b.col
 }
 
 func (ed *Editor) loadVirtCol() {
-	ed.col = ed.virtCol
+	b := ed.Buffer()
+	b.col = b.virtCol
 }
 
 func (ed *Editor) setCol(col int) {
-	ed.col = col
+	b := ed.Buffer()
+	b.col = col
 	ed.confineCol()
 	ed.saveVirtCol()
 }
 
 func (ed *Editor) adjustCol(n int) {
-	ed.setCol(ed.col + n)
+	b := ed.Buffer()
+	ed.setCol(b.col + n)
 }
 
 func isBlank(r rune) bool {
@@ -269,7 +277,8 @@ func (ed *Editor) MoveBackwardByLine(n int) {
 // G : Move cursor to first non-blank character of last line.
 func (ed *Editor) MoveToLastLine() {
 	ed.EnsureCommand()
-	ed.row = len(ed.lines) - 1
+	b := ed.Buffer()
+	b.row = len(b.lines) - 1
 	ed.confineRow()
 	ed.toNonBlankCol()
 }
@@ -358,7 +367,8 @@ func (ed *Editor) MoveBackwardBySection(n int) {
 // H : Move cursor to top of view.
 func (ed *Editor) MoveToTopOfView() {
 	ed.EnsureCommand()
-	ed.row = ed.vrow
+	b := ed.Buffer()
+	b.row = b.vrow
 	ed.confineRow()
 	ed.toNonBlankCol()
 }
@@ -366,7 +376,8 @@ func (ed *Editor) MoveToTopOfView() {
 // M : Move cursor to middle of view.
 func (ed *Editor) MoveToMiddleOfView() {
 	ed.EnsureCommand()
-	ed.row = ed.vrow + ed.h/2 - 1
+	b := ed.Buffer()
+	b.row = b.vrow + ed.h/2 - 1
 	ed.confineRow()
 	ed.toNonBlankCol()
 }
@@ -374,7 +385,8 @@ func (ed *Editor) MoveToMiddleOfView() {
 // L : Move cursor to bottom of view.
 func (ed *Editor) MoveToBottomOfView() {
 	ed.EnsureCommand()
-	ed.row = ed.vrow + ed.h - 2
+	b := ed.Buffer()
+	b.row = b.vrow + ed.h - 2
 	ed.confineRow()
 	ed.toNonBlankCol()
 }
@@ -386,11 +398,12 @@ func (ed *Editor) MoveToBelowTopOfView(n int) {
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	if n-1 > ed.h-2 {
 		ed.Ring("Out of range")
 		return
 	}
-	ed.row = ed.vrow + n - 1
+	b.row = b.vrow + n - 1
 	ed.confineRow()
 	ed.toNonBlankCol()
 }
@@ -402,11 +415,12 @@ func (ed *Editor) MoveToAboveBottomOfView(n int) {
 		return
 	}
 	ed.EnsureCommand()
+	b := ed.Buffer()
 	if n-1 > ed.h-2 {
 		ed.Ring("Out of range")
 		return
 	}
-	ed.row = ed.vrow + ed.h - 2 - (n - 1)
+	b.row = b.vrow + ed.h - 2 - (n - 1)
 	ed.confineRow()
 	ed.toNonBlankCol()
 }
