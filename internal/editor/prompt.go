@@ -113,15 +113,15 @@ func (ed *Editor) PromptForceQuit() {
 }
 
 // :e Enter : Open file.
-func (ed *Editor) PromptOpen() {
+func (ed *Editor) PromptOpen(name string) {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptOpen")
+	ed.Load(name, false)
 }
 
 // :e! Enter : Force open file.
-func (ed *Editor) PromptForceOpen() {
+func (ed *Editor) PromptForceOpen(name string) {
 	ed.EnsureCommand()
-	ed.Unimplemented("PromptForceOpen")
+	ed.Load(name, true)
 }
 
 // :r Enter : Read file and insert to current buffer.

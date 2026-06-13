@@ -60,9 +60,17 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 	case "q!":
 		return Pcmd{Kind: PcmdForceQuit}, true
 	case "e":
-		return Pcmd{Kind: PcmdOpen}, true
+		if len(parts) > 1 {
+			return Pcmd{Kind: PcmdOpen, Name: parts[1]}, true
+		} else {
+			return Pcmd{Kind: PcmdOpen}, true
+		}
 	case "e!":
-		return Pcmd{Kind: PcmdForceOpen}, true
+		if len(parts) > 1 {
+			return Pcmd{Kind: PcmdForceOpen, Name: parts[1]}, true
+		} else {
+			return Pcmd{Kind: PcmdForceOpen}, true
+		}
 	case "r":
 		return Pcmd{Kind: PcmdRead}, true
 	case "n":

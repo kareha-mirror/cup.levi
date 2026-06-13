@@ -74,10 +74,38 @@ type Editor struct {
 	esc      bool
 }
 
-func (ed *Editor) Load(path string) error {
+func (ed *Editor) Clear() {
+	ed.col = 0
+	ed.row = 0
+	ed.vrow = 0
+	ed.virtCol = 0
+	ed.x = 0
+	ed.y = 0
+	ed.lines = []string{}
+	ed.inp = NewInput()
+	ed.inpRow = 0
+	ed.mode = ModeCommand
+	ed.stamp = Stamp{}
+	ed.modified = false
+	ed.killed = KillBuf{}
+	ed.redraw = true
+}
+
+func (ed *Editor) Load(path string, force bool) error {
+	if !force && ed.modified {
+		ed.Ring("File modified since last complete write; write or use ! to override.")
+		return fmt.Errorf("file modified")
+	}
+	ed.Clear()
+	ed.path = path
+	if path == "" {
+		ed.Message("(memory): new file: line 1")
+		return nil
+	}
 	info, err := os.Stat(path)
 	if err != nil {
-		return err
+		ed.Message("%s: new file: line 1", path)
+		return nil
 	}
 	stamp := Stamp{
 		Time: info.ModTime(),
@@ -100,6 +128,8 @@ func (ed *Editor) Load(path string) error {
 	ed.lines = strings.Split(string(data), "\n")
 	ed.stamp = stamp
 	ed.modified = false
+
+	ed.Message("%s: unmodified: line 1", path)
 	return nil
 }
 
@@ -112,39 +142,19 @@ func Init(args []string) *Editor {
 	w, h := termi.Size()
 	ed := &Editor{
 		cfg:      DefaultConfig(),
-		col:      0,
-		row:      0,
-		vrow:     0,
-		virtCol:  0,
 		w:        w,
 		h:        h,
-		x:        0,
-		y:        0,
-		lines:    []string{},
-		inp:      NewInput(),
-		inpRow:   0,
-		mode:     ModeCommand,
-		path:     path,
-		stamp:    Stamp{},
 		alive:    true,
 		message:  "",
 		ring:     "",
 		parser:   NewParser(),
 		prompt:   termi.RuneBuf{},
-		modified: false,
-		killed:   KillBuf{},
 		redraw:   true,
 		view:     []string{},
 		listener: nil,
 		esc:      false,
 	}
-
-	if path != "" {
-		_, err := os.Stat(path)
-		if err == nil { // file exists
-			ed.Load(path)
-		}
-	}
+	ed.Clear()
 
 	termi.TabWidth = ed.cfg.TabWidth
 	termi.Raw()
@@ -158,6 +168,7 @@ func Init(args []string) *Editor {
 	ed.listener = termi.EscapeListener(&listener)
 	termi.AddEscapeListener(ed.listener)
 
+	ed.Load(path, true)
 	return ed
 }
 

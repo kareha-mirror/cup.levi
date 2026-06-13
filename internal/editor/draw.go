@@ -159,8 +159,7 @@ func (ed *Editor) DrawStatus() {
 		}
 
 		fmt.Printf(
-			"[%s] %s %d,%d %s",
-			ed.parser.Cache(), m, ed.row+1, ed.col+1, ed.path,
+			"[%s] %s", ed.parser.Cache(), m,
 		)
 	}
 	fmt.Print(termi.ClearTail)
@@ -174,7 +173,14 @@ func (ed *Editor) DrawStatus() {
 }
 
 func (ed *Editor) PlaceCursor() {
-	fmt.Print(termi.MoveCursor(ed.x, ed.y))
+	if ed.mode == ModePrompt {
+		line := ":" + ed.prompt.String()
+		rc := utf8.RuneCountInString(line)
+		x := termi.StringWidth(line, rc)
+		fmt.Print(termi.MoveCursor(x, ed.h-1))
+	} else {
+		fmt.Print(termi.MoveCursor(ed.x, ed.y))
+	}
 }
 
 func (ed *Editor) Draw() {

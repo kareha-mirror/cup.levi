@@ -22,10 +22,10 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 		ed.PromptForceQuit()
 		return true
 	case PcmdOpen:
-		ed.PromptOpen()
+		ed.PromptOpen(c.Name)
 		return true
 	case PcmdForceOpen:
-		ed.PromptForceOpen()
+		ed.PromptForceOpen(c.Name)
 		return true
 	case PcmdRead:
 		ed.PromptRead()
