@@ -63,5 +63,5 @@ func (ed *Editor) MiscSaveAndQuit() {
 			return
 		}
 	}
-	ed.alive = false
+	ed.Close(false)
 }

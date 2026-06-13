@@ -73,7 +73,7 @@ func (ed *Editor) PromptSaveAndQuit() {
 			return
 		}
 	}
-	ed.alive = false
+	ed.Close(false)
 }
 
 // :w Enter : Save current file.
@@ -108,13 +108,13 @@ func (ed *Editor) PromptQuit() {
 		ed.Ring("File modified since last complete write; write or use ! to override.")
 		return
 	}
-	ed.alive = false
+	ed.Close(false)
 }
 
 // :q! Enter : Force quit editor.
 func (ed *Editor) PromptForceQuit() {
 	ed.EnsureCommand()
-	ed.alive = false
+	ed.Close(true)
 }
 
 // :e Enter : Open file.

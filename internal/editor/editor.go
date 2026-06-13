@@ -93,6 +93,25 @@ func (ed *Editor) Buffer() *Buffer {
 	return ed.buffers[ed.bIndex]
 }
 
+func (ed *Editor) Close(force bool) {
+	b := ed.Buffer()
+	if !force && b.modified {
+		ed.Ring("File modified since last complete write; write or use ! to override.")
+		return
+	}
+	buffers := []*Buffer{}
+	if ed.bIndex-1 > 0 {
+		buffers = append(buffers, ed.buffers[:ed.bIndex-1]...)
+	}
+	if ed.bIndex+1 <= len(ed.buffers)-1 {
+		buffers = append(buffers, ed.buffers[ed.bIndex+1:]...)
+	}
+	ed.buffers = buffers
+	if len(ed.buffers) < 1 {
+		ed.alive = false
+	}
+}
+
 func (ed *Editor) Load(path string, force bool) error {
 	b := ed.Buffer()
 	if !force && b.modified {
