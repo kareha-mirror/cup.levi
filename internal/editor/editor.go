@@ -135,6 +135,24 @@ func (ed *Editor) Load(path string, force bool) error {
 	return nil
 }
 
+func (ed *Editor) InitialInfo() {
+	b := ed.Buffer()
+	path := b.path
+	if path == "" {
+		path = "(memory)"
+	}
+	modified := "unmodified"
+	if b.modified {
+		modified = "modified"
+	}
+	info := "empty file"
+	linesLen := len(b.lines)
+	if linesLen > 0 {
+		info = fmt.Sprintf("line %d", b.row+1)
+	}
+	ed.Message("%s: %s: %s", path, modified, info)
+}
+
 func Init(args []string) *Editor {
 	w, h := termi.Size()
 	ed := &Editor{
@@ -159,6 +177,7 @@ func Init(args []string) *Editor {
 	}
 
 	termi.TabWidth = ed.cfg.TabWidth
+	fmt.Print(termi.SetAlternate)
 	termi.Raw()
 	termi.Init()
 
@@ -257,6 +276,7 @@ func (ed *Editor) Finish() {
 	fmt.Print(termi.HomeCursor)
 	termi.Cooked()
 	fmt.Print(termi.ShowCursor)
+	fmt.Print(termi.ResetAlternate)
 }
 
 func (ed *Editor) Line(row int) string {

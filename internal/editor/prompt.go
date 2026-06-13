@@ -1,8 +1,6 @@
 package editor
 
 import (
-	"fmt"
-
 	"tea.kareha.org/cup/termi"
 )
 
@@ -137,24 +135,6 @@ func (ed *Editor) PromptForceOpen(name string) {
 func (ed *Editor) PromptRead() {
 	ed.EnsureCommand()
 	ed.Unimplemented("PromptRead")
-}
-
-func (ed *Editor) InitialInfo() {
-	b := ed.Buffer()
-	path := b.path
-	if path == "" {
-		path = "(memory)"
-	}
-	modified := "unmodified"
-	if b.modified {
-		modified = "modified"
-	}
-	info := "empty file"
-	linesLen := len(b.lines)
-	if linesLen > 0 {
-		info = fmt.Sprintf("line %d", b.row+1)
-	}
-	ed.Message("%s: %s: %s", path, modified, info)
 }
 
 // :n Enter : Switch to next buffer (tab).
