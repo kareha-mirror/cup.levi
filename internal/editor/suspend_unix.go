@@ -27,16 +27,17 @@ func (ed *Editor) MiscSuspend() {
 	fmt.Print(termi.ShowCursor)
 	ed.redraw = true
 
+	ed.suspended.Store(true)
 	err = p.Signal(syscall.SIGTSTP)
 	if err != nil {
 		ed.Error("Cannot send signal")
+		ed.suspended.Store(false)
 		termi.Raw()
 		fmt.Print(termi.SetAlternate)
 		termi.StartInput()
 		return
 	}
 
-	termi.Raw()
-	fmt.Print(termi.SetAlternate)
-	termi.StartInput()
+	_ = <-ed.resume
+	ed.suspended.Store(false)
 }

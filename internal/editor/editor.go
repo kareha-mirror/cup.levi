@@ -3,9 +3,10 @@ package editor
 import (
 	"fmt"
 	"os"
-	//"os/signal"
+	"os/signal"
 	"strings"
-	//"syscall"
+	"sync/atomic"
+	"syscall"
 	"time"
 	"unicode/utf8"
 
@@ -62,24 +63,26 @@ func (k *KillBuf) SetLines(lines []string) {
 }
 
 type Editor struct {
-	cfg     *Config
-	w, h    int
-	buffers []*Buffer
-	bIndex  int
-	inp     *Input
-	inpRow  int // 0-based
-	mode    Mode
-	alive   bool
-	message string
-	ring    string
-	parser  *Parser
-	prompt  termi.RuneBuf
-	killed  KillBuf
-	redraw  bool
-	view    []string
-	//sigch    chan os.Signal
-	listener termi.EscapeListener
-	esc      bool
+	cfg       *Config
+	w, h      int
+	buffers   []*Buffer
+	bIndex    int
+	inp       *Input
+	inpRow    int // 0-based
+	mode      Mode
+	alive     bool
+	message   string
+	ring      string
+	parser    *Parser
+	prompt    termi.RuneBuf
+	killed    KillBuf
+	redraw    bool
+	view      []string
+	sigch     chan os.Signal
+	suspended atomic.Bool
+	resume    chan struct{}
+	listener  termi.EscapeListener
+	esc       bool
 }
 
 func (ed *Editor) Clear() {
@@ -178,25 +181,27 @@ func (ed *Editor) InitialInfo() {
 func Init(args []string) *Editor {
 	w, h := termi.Size()
 	ed := &Editor{
-		cfg:     DefaultConfig(),
-		w:       w,
-		h:       h,
-		buffers: []*Buffer{},
-		bIndex:  0,
-		inp:     NewInput(),
-		inpRow:  0,
-		mode:    ModeCommand,
-		alive:   true,
-		message: "",
-		ring:    "",
-		parser:  NewParser(),
-		prompt:  termi.RuneBuf{},
-		killed:  KillBuf{},
-		redraw:  true,
-		view:    []string{},
-		//sigch:    make(chan os.Signal, 1),
-		listener: nil,
-		esc:      false,
+		cfg:       DefaultConfig(),
+		w:         w,
+		h:         h,
+		buffers:   []*Buffer{},
+		bIndex:    0,
+		inp:       NewInput(),
+		inpRow:    0,
+		mode:      ModeCommand,
+		alive:     true,
+		message:   "",
+		ring:      "",
+		parser:    NewParser(),
+		prompt:    termi.RuneBuf{},
+		killed:    KillBuf{},
+		redraw:    true,
+		view:      []string{},
+		sigch:     make(chan os.Signal, 1),
+		suspended: atomic.Bool{},
+		resume:    make(chan struct{}, 1),
+		listener:  nil,
+		esc:       false,
 	}
 
 	termi.TabWidth = ed.cfg.TabWidth
@@ -204,16 +209,20 @@ func Init(args []string) *Editor {
 	fmt.Print(termi.SetAlternate)
 	termi.StartInput()
 
-	/*
-		signal.Notify(ed.sigch, syscall.SIGCONT)
-		go func() {
-			for range ed.sigch {
+	signal.Notify(ed.sigch, syscall.SIGCONT)
+	go func() {
+		for range ed.sigch {
+			if ed.suspended.Load() {
 				termi.Raw()
 				fmt.Print(termi.SetAlternate)
 				termi.StartInput()
+				select {
+				case ed.resume <- struct{}{}:
+				default:
+				}
 			}
-		}()
-	*/
+		}
+	}()
 
 	listener := func(esc bool) {
 		ed.esc = esc
@@ -303,7 +312,8 @@ func (ed *Editor) Save(force bool) error {
 
 func (ed *Editor) Finish() {
 	termi.RemoveEscapeListener(ed.listener)
-	//close(ed.sigch)
+	close(ed.resume)
+	close(ed.sigch)
 	termi.StopInput()
 
 	fmt.Print(termi.Clear)
