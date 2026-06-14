@@ -3,7 +3,9 @@ package editor
 import (
 	"fmt"
 	"os"
+	//"os/signal"
 	"strings"
+	//"syscall"
 	"time"
 	"unicode/utf8"
 
@@ -60,21 +62,22 @@ func (k *KillBuf) SetLines(lines []string) {
 }
 
 type Editor struct {
-	cfg      *Config
-	w, h     int
-	buffers  []*Buffer
-	bIndex   int
-	inp      *Input
-	inpRow   int // 0-based
-	mode     Mode
-	alive    bool
-	message  string
-	ring     string
-	parser   *Parser
-	prompt   termi.RuneBuf
-	killed   KillBuf
-	redraw   bool
-	view     []string
+	cfg     *Config
+	w, h    int
+	buffers []*Buffer
+	bIndex  int
+	inp     *Input
+	inpRow  int // 0-based
+	mode    Mode
+	alive   bool
+	message string
+	ring    string
+	parser  *Parser
+	prompt  termi.RuneBuf
+	killed  KillBuf
+	redraw  bool
+	view    []string
+	//sigch    chan os.Signal
 	listener termi.EscapeListener
 	esc      bool
 }
@@ -175,30 +178,42 @@ func (ed *Editor) InitialInfo() {
 func Init(args []string) *Editor {
 	w, h := termi.Size()
 	ed := &Editor{
-		cfg:      DefaultConfig(),
-		w:        w,
-		h:        h,
-		buffers:  []*Buffer{},
-		bIndex:   0,
-		inp:      NewInput(),
-		inpRow:   0,
-		mode:     ModeCommand,
-		alive:    true,
-		message:  "",
-		ring:     "",
-		parser:   NewParser(),
-		prompt:   termi.RuneBuf{},
-		killed:   KillBuf{},
-		redraw:   true,
-		view:     []string{},
+		cfg:     DefaultConfig(),
+		w:       w,
+		h:       h,
+		buffers: []*Buffer{},
+		bIndex:  0,
+		inp:     NewInput(),
+		inpRow:  0,
+		mode:    ModeCommand,
+		alive:   true,
+		message: "",
+		ring:    "",
+		parser:  NewParser(),
+		prompt:  termi.RuneBuf{},
+		killed:  KillBuf{},
+		redraw:  true,
+		view:    []string{},
+		//sigch:    make(chan os.Signal, 1),
 		listener: nil,
 		esc:      false,
 	}
 
 	termi.TabWidth = ed.cfg.TabWidth
-	fmt.Print(termi.SetAlternate)
 	termi.Raw()
-	termi.Init()
+	fmt.Print(termi.SetAlternate)
+	termi.StartInput()
+
+	/*
+		signal.Notify(ed.sigch, syscall.SIGCONT)
+		go func() {
+			for range ed.sigch {
+				termi.Raw()
+				fmt.Print(termi.SetAlternate)
+				termi.StartInput()
+			}
+		}()
+	*/
 
 	listener := func(esc bool) {
 		ed.esc = esc
@@ -288,14 +303,14 @@ func (ed *Editor) Save(force bool) error {
 
 func (ed *Editor) Finish() {
 	termi.RemoveEscapeListener(ed.listener)
-
-	termi.Finish()
+	//close(ed.sigch)
+	termi.StopInput()
 
 	fmt.Print(termi.Clear)
 	fmt.Print(termi.HomeCursor)
+	fmt.Print(termi.ResetAlternate)
 	termi.Cooked()
 	fmt.Print(termi.ShowCursor)
-	fmt.Print(termi.ResetAlternate)
 }
 
 func (ed *Editor) Line(row int) string {
