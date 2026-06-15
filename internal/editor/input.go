@@ -92,6 +92,9 @@ func (inp *Input) Newline(ai bool) {
 	b := termi.RuneBuf{}
 	b.WriteString(indent)
 	inp.bodies = append(inp.bodies, b)
+	if ai {
+		inp.tail = trimLeftBlanks(inp.tail)
+	}
 }
 
 func (inp *Input) Column() int {
