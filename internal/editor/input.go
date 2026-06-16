@@ -78,6 +78,14 @@ func (inp *Input) Lines() []string {
 	return lines
 }
 
+func (inp *Input) Inserted() []string {
+	lines := []string{}
+	for _, body := range inp.bodies {
+		lines = append(lines, body.String())
+	}
+	return lines
+}
+
 func (inp *Input) Newline(ai bool) {
 	indent := ""
 	if ai {

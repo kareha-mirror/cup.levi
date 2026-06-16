@@ -69,6 +69,7 @@ type Editor struct {
 	bIndex    int
 	inp       *Input
 	inpRow    int // 0-based
+	inserted  []string
 	mode      Mode
 	alive     bool
 	message   string
@@ -76,6 +77,7 @@ type Editor struct {
 	parser    *Parser
 	prompt    termi.RuneBuf
 	killed    KillBuf
+	lastCmd   Cmd
 	redraw    bool
 	view      []string
 	sigch     chan os.Signal
@@ -188,6 +190,7 @@ func Init(args []string) *Editor {
 		bIndex:    0,
 		inp:       NewInput(),
 		inpRow:    0,
+		inserted:  []string{},
 		mode:      ModeCommand,
 		alive:     true,
 		message:   "",
@@ -195,6 +198,7 @@ func Init(args []string) *Editor {
 		parser:    NewParser(),
 		prompt:    termi.RuneBuf{},
 		killed:    KillBuf{},
+		lastCmd:   Cmd{Kind: CmdInvalid},
 		redraw:    true,
 		view:      []string{},
 		sigch:     make(chan os.Signal, 1),
@@ -366,10 +370,7 @@ func (ed *Editor) EnsureCommand() {
 		return
 	case ModeInsert:
 		b := ed.Buffer()
-		lines := []string{}
-		if ed.inpRow > 0 {
-			lines = append(lines, b.lines[:ed.inpRow]...)
-		}
+		lines := append([]string{}, b.lines[:ed.inpRow]...)
 		inputLines := ed.inp.Lines()
 		if ed.cfg.AutoIndent {
 			for i := 0; i < len(inputLines); i++ {
@@ -383,10 +384,10 @@ func (ed *Editor) EnsureCommand() {
 			lines = append(lines, b.lines[ed.inpRow+1:]...)
 		}
 		b.lines = lines
+		ed.inserted = ed.inp.Inserted()
 		ed.inp.Reset()
 		ed.mode = ModeCommand
 		ed.MoveLeft(1)
-
 		b.modified = true
 		return
 	case ModeSearch:

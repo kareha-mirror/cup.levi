@@ -1,6 +1,6 @@
 package editor
 
-func (ed *Editor) Run(c Cmd) bool {
+func (ed *Editor) Run(c Cmd, replay bool) bool {
 	switch c.Kind {
 	case CmdInvalid:
 		ed.Ring("not (yet) a vi command [" + ed.parser.String() + "]")
@@ -201,26 +201,26 @@ func (ed *Editor) Run(c Cmd) bool {
 
 	switch c.Kind {
 	case CmdInsertBefore:
-		ed.InsertBefore(c.Num)
+		ed.InsertBefore(c.Num, replay)
 		return true
 	case CmdInsertAfter:
-		ed.InsertAfter(c.Num)
+		ed.InsertAfter(c.Num, replay)
 		return true
 	case CmdInsertBeforeNonBlank:
-		ed.InsertBeforeNonBlank(c.Num)
+		ed.InsertBeforeNonBlank(c.Num, replay)
 		return true
 	case CmdInsertAfterEnd:
-		ed.InsertAfterEnd(c.Num)
+		ed.InsertAfterEnd(c.Num, replay)
 		return true
 	case CmdInsertOverwrite:
-		ed.InsertOverwrite(c.Num)
+		ed.InsertOverwrite(c.Num, replay)
 		return true
 
 	case CmdInsertOpenBelow:
-		ed.InsertOpenBelow(c.Num)
+		ed.InsertOpenBelow(c.Num, replay)
 		return true
 	case CmdInsertOpenAbove:
-		ed.InsertOpenAbove(c.Num)
+		ed.InsertOpenAbove(c.Num, replay)
 		return true
 
 	case CmdOpCopyLine:
@@ -275,31 +275,31 @@ func (ed *Editor) Run(c Cmd) bool {
 		return true
 
 	case CmdOpChangeLine:
-		ed.OpChangeLine(c.Num)
+		ed.OpChangeLine(c.Num, replay)
 		return true
 	case CmdOpChangeRegion:
-		ed.OpChangeRegion(c.Start, c.End)
+		ed.OpChangeRegion(c.Start, c.End, replay)
 		return true
 	case CmdOpChangeLineRegion:
-		ed.OpChangeLineRegion(c.StartRow, c.EndRow)
+		ed.OpChangeLineRegion(c.StartRow, c.EndRow, replay)
 		return true
 	case CmdOpChangeWord:
-		ed.OpChangeWord(c.Num)
+		ed.OpChangeWord(c.Num, replay)
 		return true
 	case CmdOpChangeToEnd:
-		ed.OpChangeToEnd(c.Num)
+		ed.OpChangeToEnd(c.Num, replay)
 		return true
 	case CmdOpSubst:
-		ed.OpSubst(c.Num)
+		ed.OpSubst(c.Num, replay)
 		return true
 	case CmdOpSubstLine:
-		ed.OpSubstLine(c.Num)
+		ed.OpSubstLine(c.Num, replay)
 		return true
 	}
 
 	switch c.Kind {
 	case CmdEditReplace:
-		ed.EditReplace(c.Letter, c.Num)
+		ed.EditReplace(c.Letter, c.Num, replay)
 		return true
 	case CmdEditJoin:
 		ed.EditJoin(c.Num)
@@ -326,7 +326,7 @@ func (ed *Editor) Run(c Cmd) bool {
 		ed.MiscRepeat(c.Num)
 		return true
 	case CmdMiscUndo:
-		ed.MiscUndo(c.Num)
+		ed.MiscUndo(c.Num, replay)
 		return true
 	case CmdMiscRestore:
 		ed.MiscRestore()

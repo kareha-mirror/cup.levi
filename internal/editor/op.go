@@ -266,7 +266,7 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 //
 
 // cc : Change current line.
-func (ed *Editor) OpChangeLine(n int) {
+func (ed *Editor) OpChangeLine(n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpChangeLine: n < 1")
 		return
@@ -276,19 +276,19 @@ func (ed *Editor) OpChangeLine(n int) {
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpChangeRegion(start Loc, end Loc) {
+func (ed *Editor) OpChangeRegion(start Loc, end Loc, replay bool) {
 	ed.EnsureCommand()
 	ed.Unimplemented("OpChangeRegion")
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpChangeLineRegion(start int, end int) {
+func (ed *Editor) OpChangeLineRegion(start int, end int, replay bool) {
 	ed.EnsureCommand()
 	ed.Unimplemented("OpChangeLineRegion")
 }
 
 // cw : Change word.
-func (ed *Editor) OpChangeWord(n int) {
+func (ed *Editor) OpChangeWord(n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpChangeWord: n < 1")
 		return
@@ -298,7 +298,7 @@ func (ed *Editor) OpChangeWord(n int) {
 }
 
 // C : Change to end of current line.
-func (ed *Editor) OpChangeToEnd(n int) {
+func (ed *Editor) OpChangeToEnd(n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpChangeToEnd: n < 1")
 		return
@@ -308,7 +308,7 @@ func (ed *Editor) OpChangeToEnd(n int) {
 }
 
 // s : Substitute one character under cursor.
-func (ed *Editor) OpSubst(n int) {
+func (ed *Editor) OpSubst(n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpSubst: n < 1")
 		return
@@ -326,10 +326,10 @@ func (ed *Editor) OpSubst(n int) {
 }
 
 // S : Substtute current line (equals cc).
-func (ed *Editor) OpSubstLine(n int) {
+func (ed *Editor) OpSubstLine(n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpSubstLine: n < 1")
 		return
 	}
-	ed.OpChangeLine(n)
+	ed.OpChangeLine(n, replay)
 }

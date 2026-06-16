@@ -141,3 +141,50 @@ const (
 	CmdMiscSaveAndQuit
 	CmdMiscSuspend
 )
+
+var RepeatableCmds = map[CmdKind]bool{
+	CmdInsertBefore:         true,
+	CmdInsertAfter:          true,
+	CmdInsertBeforeNonBlank: true,
+	CmdInsertAfterEnd:       true,
+	CmdInsertOverwrite:      true,
+
+	CmdInsertOpenBelow: true,
+	CmdInsertOpenAbove: true,
+
+	CmdOpCopyLine:        true,
+	CmdOpCopyRegion:      true,
+	CmdOpCopyLineRegion:  true,
+	CmdOpCopyWord:        true,
+	CmdOpCopyToEnd:       true,
+	CmdOpCopyLineIntoReg: true,
+
+	CmdOpPaste:        true,
+	CmdOpPasteBefore:  true,
+	CmdOpPasteFromReg: true,
+
+	CmdOpDelete:           true,
+	CmdOpDeleteBefore:     true,
+	CmdOpDeleteLine:       true,
+	CmdOpDeleteRegion:     true,
+	CmdOpDeleteLineRegion: true,
+	CmdOpDeleteWord:       true,
+	CmdOpDeleteToEnd:      true,
+
+	CmdOpChangeLine:       true,
+	CmdOpChangeRegion:     true,
+	CmdOpChangeLineRegion: true,
+	CmdOpChangeWord:       true,
+	CmdOpChangeToEnd:      true,
+	CmdOpSubst:            true,
+	CmdOpSubstLine:        true,
+
+	CmdEditReplace:       true,
+	CmdEditJoin:          true,
+	CmdEditIndent:        true,
+	CmdEditOutdent:       true,
+	CmdEditIndentRegion:  true,
+	CmdEditOutdentRegion: true,
+
+	CmdMiscUndo: true,
+}

@@ -9,7 +9,7 @@ import (
 //////////////////////
 
 // r : Replace single character under cursor.
-func (ed *Editor) EditReplace(letter rune, n int) {
+func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
 	ed.EnsureCommand()
 	ed.Unimplemented("EditReplace")
 }

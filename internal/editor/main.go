@@ -29,7 +29,10 @@ func (ed *Editor) Main() {
 
 				c, ok := ed.parser.Parse()
 				if ok {
-					if ed.Run(c) {
+					if ed.Run(c, false) {
+						if RepeatableCmds[c.Kind] {
+							ed.lastCmd = c
+						}
 						ed.parser.Clear()
 					}
 				}

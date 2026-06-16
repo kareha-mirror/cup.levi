@@ -34,11 +34,11 @@ func (ed *Editor) MiscShowInfo() {
 // . : Repeat last edit.
 func (ed *Editor) MiscRepeat(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("MiscRepeat")
+	ed.Run(ed.lastCmd, true)
 }
 
 // u : Undo.
-func (ed *Editor) MiscUndo(n int) {
+func (ed *Editor) MiscUndo(n int, replay bool) {
 	ed.EnsureCommand()
 	ed.Unimplemented("MiscUndo")
 }
