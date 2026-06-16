@@ -248,7 +248,7 @@ func Init(args []string) *Editor {
 	}
 	ed.InitialInfo()
 
-	termi.AddEscapeListener(ed.listener)
+	termi.SetEscapeListener(ed.listener)
 	return ed
 }
 
@@ -315,7 +315,7 @@ func (ed *Editor) Save(force bool) error {
 }
 
 func (ed *Editor) Finish() {
-	termi.RemoveEscapeListener(ed.listener)
+	termi.SetEscapeListener(nil)
 	close(ed.resume)
 	close(ed.sigch)
 	termi.StopInput()

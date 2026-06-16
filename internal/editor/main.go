@@ -53,7 +53,7 @@ func (ed *Editor) Main() {
 				switch seq.Rune {
 				case termi.RuneEscape:
 					ed.EnsureCommand()
-				case termi.RuneEnter, '\n':
+				case termi.RuneEnter, termi.RuneNewline:
 					ed.InsertNewline()
 				case termi.RuneBackspace:
 					ed.Backspace()
@@ -80,7 +80,7 @@ func (ed *Editor) Main() {
 				case termi.RuneEscape:
 					ed.prompt.Reset()
 					ed.mode = ModeCommand
-				case termi.RuneEnter, '\n':
+				case termi.RuneEnter, termi.RuneNewline:
 					c, ok := ed.ParsePrompt()
 					if ok {
 						ed.prompt.Reset()
