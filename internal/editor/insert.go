@@ -62,7 +62,7 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 		ed.MoveLeft(1)
 		b.modified = true
 	} else {
-		ed.inp.Init(ed.CurrentLine(), b.col)
+		ed.inp.Init(ed.CurrentLine(), b.col, ed.cfg.AutoIndent)
 		ed.inpRow = b.row
 		ed.mode = ModeInsert
 	}

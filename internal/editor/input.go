@@ -25,7 +25,7 @@ func (inp *Input) Reset() {
 	inp.bodies = []termi.RuneBuf{termi.RuneBuf{}}
 }
 
-func (inp *Input) Init(line string, col int) {
+func (inp *Input) Init(line string, col int, ai bool) {
 	inp.Reset()
 	rs := []rune(line)
 	inp.head = string(rs[:col])
@@ -33,6 +33,10 @@ func (inp *Input) Init(line string, col int) {
 		inp.tail = string(rs[col:])
 	} else {
 		inp.tail = ""
+	}
+	if ai && isBlankLine(inp.head) {
+		inp.bodies[0].WriteString(inp.head)
+		inp.head = ""
 	}
 }
 

@@ -320,7 +320,7 @@ func (ed *Editor) OpSubst(n int, replay bool) {
 	if b.col+n <= len(rs)-1 {
 		nrs = append(nrs, rs[b.col+n:]...)
 	}
-	ed.inp.Init(string(nrs), b.col)
+	ed.inp.Init(string(nrs), b.col, false)
 	ed.inpRow = b.row
 	ed.mode = ModeInsert
 }
