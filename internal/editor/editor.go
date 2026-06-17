@@ -38,6 +38,12 @@ type Buffer struct {
 	modified bool
 }
 
+func (b *Buffer) EnsureLine() {
+	if len(b.lines) < 1 {
+		b.lines = append(b.lines, "")
+	}
+}
+
 type KillMode int
 
 const (

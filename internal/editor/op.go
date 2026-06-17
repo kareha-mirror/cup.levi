@@ -259,11 +259,11 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if len(ed.CurrentLine()) < 1 {
-		return
-	}
 	rs := []rune(ed.CurrentLine())
-	ed.killed.SetRunes(rs[b.col:])
+	if b.col < len(rs) {
+		ed.killed.SetRunes(rs[b.col:])
+	}
+	b.EnsureLine()
 	b.lines[b.row] = string(rs[:b.col])
 	ed.confine()
 	b.modified = true
@@ -314,12 +314,12 @@ func (ed *Editor) OpChangeToEnd(n int, replay bool) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if len(ed.CurrentLine()) < 1 {
-		return
-	}
 	rs := []rune(ed.CurrentLine())
-	ed.killed.SetRunes(rs[b.col:])
+	if b.col < len(rs) {
+		ed.killed.SetRunes(rs[b.col:])
+	}
 	line := string(rs[:b.col])
+	b.EnsureLine()
 	b.lines[b.row] = line
 	ed.inp.Init(line, b.col, ed.cfg.AutoIndent)
 	ed.inpRow = b.row
