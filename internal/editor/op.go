@@ -313,7 +313,18 @@ func (ed *Editor) OpChangeToEnd(n int, replay bool) {
 		return
 	}
 	ed.EnsureCommand()
-	ed.Unimplemented("OpChangeToEnd")
+	b := ed.Buffer()
+	if len(ed.CurrentLine()) < 1 {
+		return
+	}
+	rs := []rune(ed.CurrentLine())
+	ed.killed.SetRunes(rs[b.col:])
+	line := string(rs[:b.col])
+	b.lines[b.row] = line
+	ed.inp.Init(line, b.col, ed.cfg.AutoIndent)
+	ed.inpRow = b.row
+	ed.mode = ModeInsert
+	// TODO n
 }
 
 // s : Substitute one character under cursor.
