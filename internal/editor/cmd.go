@@ -188,3 +188,14 @@ var RepeatableCmds = map[CmdKind]bool{
 
 	CmdMiscUndo: true,
 }
+
+var MultiInsertCmds = map[CmdKind]bool{
+	CmdInsertBefore:         true,
+	CmdInsertAfter:          true,
+	CmdInsertBeforeNonBlank: true,
+	CmdInsertAfterEnd:       true,
+	CmdInsertOverwrite:      true,
+
+	CmdInsertOpenBelow: true,
+	CmdInsertOpenAbove: true,
+}
