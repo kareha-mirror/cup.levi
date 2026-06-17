@@ -320,9 +320,16 @@ func (ed *Editor) OpSubst(n int, replay bool) {
 	if b.col+n <= len(rs)-1 {
 		nrs = append(nrs, rs[b.col+n:]...)
 	}
-	ed.inp.Init(string(nrs), b.col, false)
-	ed.inpRow = b.row
-	ed.mode = ModeInsert
+	if replay {
+		if len(ed.inserted) < 0 {
+			return
+		}
+		ed.replayInsert(string(nrs))
+	} else {
+		ed.inp.Init(string(nrs), b.col, ed.cfg.AutoIndent)
+		ed.inpRow = b.row
+		ed.mode = ModeInsert
+	}
 }
 
 // S : Substtute current line (equals cc).

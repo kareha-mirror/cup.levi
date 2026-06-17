@@ -389,6 +389,12 @@ func (ed *Editor) EnsureCommand() {
 		ed.mode = ModeCommand
 		ed.MoveLeft(1)
 		b.modified = true
+
+		if ed.lastCmd.Kind != CmdOpSubst && ed.lastCmd.Num > 1 {
+			cmd := ed.lastCmd
+			cmd.Num--
+			ed.Run(cmd, true)
+		}
 		return
 	case ModeSearch:
 		ed.mode = ModeCommand
