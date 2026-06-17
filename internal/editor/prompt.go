@@ -193,7 +193,7 @@ func (ed *Editor) PromptTabStop(n int) {
 		ed.Ring("set: the ts option may never be set to 0.")
 		return
 	}
-	ed.cfg.TabWidth = n
+	ed.cfg.TabStop = n
 	termi.TabWidth = n
 	ed.redraw = true
 }

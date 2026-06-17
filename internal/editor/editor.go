@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -12,6 +13,10 @@ import (
 
 	"tea.kareha.org/cup/termi"
 )
+
+func getConfigPath(dir string) string {
+	return filepath.Join(dir, "editor.yaml")
+}
 
 type Mode int
 
@@ -186,10 +191,20 @@ func (ed *Editor) InitialInfo() {
 	ed.Message("%s: %s: %s", path, modified, info)
 }
 
-func Init(args []string) *Editor {
+func Init(dir string, args []string) (*Editor, error) {
+	var cfg *Config
+	cfgPath := getConfigPath(dir)
+	_, err := os.Stat(cfgPath)
+	if err != nil {
+		cfg = DefaultConfig()
+		SaveConfig(cfgPath, cfg)
+	} else {
+		cfg = LoadConfig(cfgPath)
+	}
+
 	w, h := termi.Size()
 	ed := &Editor{
-		cfg:       DefaultConfig(),
+		cfg:       cfg,
 		w:         w,
 		h:         h,
 		buffers:   []*Buffer{},
@@ -214,10 +229,15 @@ func Init(args []string) *Editor {
 		esc:       false,
 	}
 
-	termi.TabWidth = ed.cfg.TabWidth
+	termi.TabWidth = ed.cfg.TabStop
 	termi.Raw()
 	fmt.Print(termi.SetAlternate)
-	termi.StartInput()
+	err = termi.StartInput()
+	if err != nil {
+		fmt.Print(termi.ResetAlternate)
+		termi.Cooked()
+		return nil, err
+	}
 
 	signal.Notify(ed.sigch, syscall.SIGCONT)
 	go func() {
@@ -241,11 +261,11 @@ func Init(args []string) *Editor {
 	}
 	ed.listener = termi.EscapeListener(&listener)
 
-	if len(args) < 2 {
+	if len(args) < 1 {
 		ed.Clear()
 		ed.Load("", true)
 	} else {
-		for _, path := range args[1:] {
+		for _, path := range args {
 			ed.Clear()
 			ed.Load(path, true)
 			ed.bIndex++
@@ -255,7 +275,7 @@ func Init(args []string) *Editor {
 	ed.InitialInfo()
 
 	termi.SetEscapeListener(ed.listener)
-	return ed
+	return ed, nil
 }
 
 func (ed *Editor) SaveAs(path string, force bool) error {
@@ -320,17 +340,19 @@ func (ed *Editor) Save(force bool) error {
 	return ed.SaveAs(b.path, force)
 }
 
-func (ed *Editor) Finish() {
+func (ed *Editor) Finish() error {
 	termi.SetEscapeListener(nil)
 	close(ed.resume)
 	close(ed.sigch)
-	termi.StopInput()
+	err := termi.StopInput()
 
 	fmt.Print(termi.Clear)
 	fmt.Print(termi.HomeCursor)
 	fmt.Print(termi.ResetAlternate)
 	termi.Cooked()
 	fmt.Print(termi.ShowCursor)
+
+	return err
 }
 
 func (ed *Editor) Line(row int) string {
