@@ -258,7 +258,16 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	ed.Unimplemented("OpDeleteToEnd")
+	b := ed.Buffer()
+	if len(ed.CurrentLine()) < 1 {
+		return
+	}
+	rs := []rune(ed.CurrentLine())
+	ed.killed.SetRunes(rs[b.col:])
+	b.lines[b.row] = string(rs[:b.col])
+	ed.confine()
+	b.modified = true
+	// TODO n
 }
 
 //
