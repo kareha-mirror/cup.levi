@@ -60,6 +60,10 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 	case PcmdNoAutoIndent:
 		ed.PromptNoAutoIndent()
 		return true
+
+	case PcmdColors:
+		ed.PromptColors(c.Name)
+		return true
 	}
 
 	return false

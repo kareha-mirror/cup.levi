@@ -1,6 +1,9 @@
 package editor
 
 import (
+	"fmt"
+	"strings"
+
 	"tea.kareha.org/cup/termi"
 )
 
@@ -208,4 +211,30 @@ func (ed *Editor) PromptAutoIndent() {
 func (ed *Editor) PromptNoAutoIndent() {
 	ed.EnsureCommand()
 	ed.cfg.AutoIndent = false
+}
+
+// :colors Enter
+func (ed *Editor) PromptColors(name string) {
+	ed.EnsureCommand()
+	if name == "" {
+		names, err := ListEmbeddedColors()
+		if err != nil {
+			ed.Error("%v", err)
+			return
+		}
+		ed.Message(strings.Join(names, " "))
+		return
+	}
+	cfg, err := LoadEmbeddedColorsConfig(fmt.Sprintf("colors/%s.yaml", name))
+	if err != nil {
+		ed.Error("%v", err)
+		return
+	}
+	colors, err := cfg.Colors()
+	if err != nil {
+		ed.Error("%v", err)
+		return
+	}
+	ed.colors = colors
+	ed.redraw = true
 }

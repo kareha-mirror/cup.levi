@@ -109,6 +109,14 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 			return Pcmd{Kind: PcmdNoAutoIndent}, true
 		}
 		return Pcmd{Kind: PcmdInvalid}, false
+
+	case "colors":
+		if len(parts) > 1 {
+			return Pcmd{Kind: PcmdColors, Name: parts[1]}, true
+		} else {
+			return Pcmd{Kind: PcmdColors}, true
+		}
+
 	default:
 		return Pcmd{Kind: PcmdInvalid}, false
 	}

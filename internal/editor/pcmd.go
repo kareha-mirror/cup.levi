@@ -35,4 +35,6 @@ const (
 	PcmdTabStop
 	PcmdAutoIndent
 	PcmdNoAutoIndent
+
+	PcmdColors
 )

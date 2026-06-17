@@ -96,6 +96,7 @@ type Editor struct {
 	resume    chan struct{}
 	listener  termi.EscapeListener
 	esc       bool
+	colors    *Colors
 }
 
 func (ed *Editor) Clear() {
@@ -202,6 +203,14 @@ func Init(dir string, args []string) (*Editor, error) {
 		cfg = LoadConfig(cfgPath)
 	}
 
+	var colors *Colors
+	colorsCfg, err := LoadEmbeddedColorsConfig(
+		fmt.Sprintf("colors/%s.yaml", cfg.Colors),
+	)
+	if err == nil {
+		colors, err = colorsCfg.Colors()
+	}
+
 	w, h := termi.Size()
 	ed := &Editor{
 		cfg:       cfg,
@@ -227,6 +236,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		resume:    make(chan struct{}, 1),
 		listener:  nil,
 		esc:       false,
+		colors:    colors,
 	}
 
 	termi.TabWidth = ed.cfg.TabStop

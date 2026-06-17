@@ -98,10 +98,22 @@ func (ed *Editor) DrawBuffer() {
 
 		for _, line := range lines {
 			sb.WriteString(termi.MoveCursor(0, y))
+			if ed.colors != nil {
+				if i == b.row {
+					sb.WriteString(ed.colors.CurrentFg.Fg())
+					sb.WriteString(ed.colors.CurrentBg.Bg())
+				} else {
+					sb.WriteString(ed.colors.TextFg.Fg())
+					sb.WriteString(ed.colors.TextBg.Bg())
+				}
+			}
 			sb.WriteString(termi.Render(line))
 			rc := utf8.RuneCountInString(line)
 			if termi.StringWidth(line, rc) < ed.w {
 				sb.WriteString(termi.ClearTail)
+			}
+			if ed.colors != nil {
+				sb.WriteString(termi.ResetAttr)
 			}
 			view = append(view, sb.String())
 			sb.Reset()
@@ -119,8 +131,15 @@ func (ed *Editor) DrawBuffer() {
 
 	for ; y < ed.h-1; y++ {
 		sb.WriteString(termi.MoveCursor(0, y))
+		if ed.colors != nil {
+			sb.WriteString(ed.colors.TextFg.Fg())
+			sb.WriteString(ed.colors.TextBg.Bg())
+		}
 		sb.WriteString(termi.Render("~"))
 		sb.WriteString(termi.ClearTail)
+		if ed.colors != nil {
+			sb.WriteString(termi.ResetAttr)
+		}
 		view = append(view, sb.String())
 		sb.Reset()
 	}
@@ -136,6 +155,10 @@ func (ed *Editor) DrawBuffer() {
 
 func (ed *Editor) DrawStatus() {
 	fmt.Print(termi.MoveCursor(0, ed.h-1))
+	if ed.colors != nil {
+		fmt.Print(ed.colors.StatusFg.Fg())
+		fmt.Print(ed.colors.StatusBg.Bg())
+	}
 
 	if ed.ring != "" {
 		fmt.Print(termi.SetInvert)
@@ -171,6 +194,10 @@ func (ed *Editor) DrawStatus() {
 		fmt.Print(" *")
 	} else {
 		fmt.Print(" .")
+	}
+
+	if ed.colors != nil {
+		fmt.Print(termi.ResetAttr)
 	}
 }
 
