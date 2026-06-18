@@ -409,6 +409,8 @@ func (ed *Editor) EnsureCommand() {
 			cmd.Num--
 			ed.Run(cmd, true)
 		}
+
+		ed.parser.ClearAll()
 		return
 	case ModeSearch:
 		ed.mode = ModeCommand

@@ -171,21 +171,14 @@ func (ed *Editor) DrawStatus() {
 	} else if ed.mode == ModePrompt {
 		fmt.Printf(":%s", ed.prompt.String())
 	} else {
-		var m string
+		mode := ""
 		switch ed.mode {
 		case ModeCommand:
-			m = "command"
+			mode = "command"
 		case ModeInsert:
-			m = "insert"
-		case ModeSearch:
-			m = "search"
-		default:
-			m = "invalid"
+			mode = "insert"
 		}
-
-		fmt.Printf(
-			"[%s] %s", ed.parser.Cache(), m,
-		)
+		fmt.Printf("(%s)%s", mode, ed.parser.Cache())
 	}
 	fmt.Print(termi.ClearTail)
 

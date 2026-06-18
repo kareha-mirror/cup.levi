@@ -25,6 +25,7 @@ func (ed *Editor) Main() {
 					}
 
 					if ed.parser.String() == "" && key.Rune == ':' {
+						ed.parser.ClearAll()
 						ed.mode = ModePrompt
 						continue
 					}
@@ -94,10 +95,10 @@ func (ed *Editor) Main() {
 						} else {
 							ed.Ring("unknown prompt command")
 						}
-					case termi.RuneBackspace:
-						ed.prompt.RemoveTail()
-					case termi.RuneDelete:
-						ed.prompt.RemoveTail()
+					case termi.RuneBackspace, termi.RuneDelete:
+						if !ed.prompt.RemoveTail() {
+							ed.mode = ModeCommand
+						}
 					default:
 						ed.prompt.WriteRune(key.Rune)
 					}
