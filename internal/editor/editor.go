@@ -3,11 +3,8 @@ package editor
 import (
 	"fmt"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
-	"syscall"
 	"time"
 	"unicode/utf8"
 
@@ -74,29 +71,26 @@ func (k *KillBuf) SetLines(lines []string) {
 }
 
 type Editor struct {
-	cfg       *Config
-	w, h      int
-	buffers   []*Buffer
-	bIndex    int
-	inp       *Input
-	inpRow    int // 0-based
-	inserted  []string
-	mode      Mode
-	alive     bool
-	message   string
-	ring      string
-	parser    *Parser
-	prompt    termi.RuneBuf
-	killed    KillBuf
-	lastCmd   Cmd
-	redraw    bool
-	view      []string
-	sigch     chan os.Signal
-	suspended atomic.Bool
-	resume    chan struct{}
-	listener  termi.EscapeListener
-	esc       bool
-	colors    *Colors
+	cfg      *Config
+	w, h     int
+	buffers  []*Buffer
+	bIndex   int
+	inp      *Input
+	inpRow   int // 0-based
+	inserted []string
+	mode     Mode
+	alive    bool
+	message  string
+	ring     string
+	parser   *Parser
+	prompt   termi.RuneBuf
+	killed   KillBuf
+	lastCmd  Cmd
+	redraw   bool
+	view     []string
+	listener termi.EscapeListener
+	esc      bool
+	colors   *Colors
 }
 
 func (ed *Editor) Clear() {
@@ -213,56 +207,39 @@ func Init(dir string, args []string) (*Editor, error) {
 
 	w, h := termi.Size()
 	ed := &Editor{
-		cfg:       cfg,
-		w:         w,
-		h:         h,
-		buffers:   []*Buffer{},
-		bIndex:    0,
-		inp:       NewInput(),
-		inpRow:    0,
-		inserted:  []string{},
-		mode:      ModeCommand,
-		alive:     true,
-		message:   "",
-		ring:      "",
-		parser:    NewParser(),
-		prompt:    termi.RuneBuf{},
-		killed:    KillBuf{},
-		lastCmd:   Cmd{Kind: CmdInvalid},
-		redraw:    true,
-		view:      []string{},
-		sigch:     make(chan os.Signal, 1),
-		suspended: atomic.Bool{},
-		resume:    make(chan struct{}, 1),
-		listener:  nil,
-		esc:       false,
-		colors:    colors,
+		cfg:      cfg,
+		w:        w,
+		h:        h,
+		buffers:  []*Buffer{},
+		bIndex:   0,
+		inp:      NewInput(),
+		inpRow:   0,
+		inserted: []string{},
+		mode:     ModeCommand,
+		alive:    true,
+		message:  "",
+		ring:     "",
+		parser:   NewParser(),
+		prompt:   termi.RuneBuf{},
+		killed:   KillBuf{},
+		lastCmd:  Cmd{Kind: CmdInvalid},
+		redraw:   true,
+		view:     []string{},
+		listener: nil,
+		esc:      false,
+		colors:   colors,
 	}
 
 	termi.TabWidth = ed.cfg.TabStop
 	termi.Raw()
 	fmt.Print(termi.SetAlternate)
-	err = termi.StartInput()
+	err = termi.StartKey()
 	if err != nil {
 		fmt.Print(termi.ResetAlternate)
 		termi.Cooked()
 		return nil, err
 	}
-
-	signal.Notify(ed.sigch, syscall.SIGCONT)
-	go func() {
-		for range ed.sigch {
-			if ed.suspended.Load() {
-				termi.Raw()
-				fmt.Print(termi.SetAlternate)
-				termi.StartInput()
-				select {
-				case ed.resume <- struct{}{}:
-				default:
-				}
-			}
-		}
-	}()
+	termi.StartSig()
 
 	listener := func(esc bool) {
 		ed.esc = esc
@@ -352,9 +329,8 @@ func (ed *Editor) Save(force bool) error {
 
 func (ed *Editor) Finish() error {
 	termi.SetEscapeListener(nil)
-	close(ed.resume)
-	close(ed.sigch)
-	err := termi.StopInput()
+	termi.StopSig()
+	err := termi.StopKey()
 
 	fmt.Print(termi.Clear)
 	fmt.Print(termi.HomeCursor)

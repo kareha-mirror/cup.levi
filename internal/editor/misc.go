@@ -2,6 +2,8 @@ package editor
 
 import (
 	"fmt"
+
+	"tea.kareha.org/cup/termi"
 )
 
 ////////////////////////////
@@ -64,4 +66,10 @@ func (ed *Editor) MiscSaveAndQuit() {
 		}
 	}
 	ed.Close(false)
+}
+
+// Ctrl-z : Suspend.
+func (ed *Editor) MiscSuspend() {
+	ed.EnsureCommand()
+	termi.Suspend()
 }

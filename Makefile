@@ -14,3 +14,6 @@ fmt:
 
 test:
 	go test ./...
+
+windows:
+	GOOS=windows go build -o levi-windows ./cmd/levi
