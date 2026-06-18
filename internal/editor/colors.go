@@ -19,6 +19,8 @@ type Colors struct {
 	StatusBg  termi.Color
 	CurrentFg termi.Color
 	CurrentBg termi.Color
+	BorderFg  termi.Color
+	BorderBg  termi.Color
 }
 
 type ColorsConfig struct {
@@ -28,6 +30,8 @@ type ColorsConfig struct {
 	StatusBg  string `yaml:"status-bg"`
 	CurrentFg string `yaml:"current-fg"`
 	CurrentBg string `yaml:"current-bg"`
+	BorderFg  string `yaml:"border-fg"`
+	BorderBg  string `yaml:"border-bg"`
 }
 
 func (cfg *ColorsConfig) Colors() (*Colors, error) {
@@ -55,6 +59,14 @@ func (cfg *ColorsConfig) Colors() (*Colors, error) {
 	if err != nil {
 		return nil, err
 	}
+	borderFg, err := termi.ParseColor(cfg.BorderFg)
+	if err != nil {
+		return nil, err
+	}
+	borderBg, err := termi.ParseColor(cfg.BorderBg)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Colors{
 		TextFg:    textFg,
@@ -63,6 +75,8 @@ func (cfg *ColorsConfig) Colors() (*Colors, error) {
 		StatusBg:  statusBg,
 		CurrentFg: currentFg,
 		CurrentBg: currentBg,
+		BorderFg:  borderFg,
+		BorderBg:  borderBg,
 	}, nil
 }
 

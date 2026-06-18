@@ -132,8 +132,8 @@ func (ed *Editor) DrawBuffer() {
 	for ; y < ed.h-1; y++ {
 		sb.WriteString(termi.MoveCursor(0, y))
 		if ed.colors != nil {
-			sb.WriteString(ed.colors.TextFg.Fg())
-			sb.WriteString(ed.colors.TextBg.Bg())
+			sb.WriteString(ed.colors.BorderFg.Fg())
+			sb.WriteString(ed.colors.BorderBg.Bg())
 		}
 		sb.WriteString(termi.Render("~"))
 		sb.WriteString(termi.ClearTail)
