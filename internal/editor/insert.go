@@ -32,7 +32,6 @@ func (ed *Editor) replayInsert(line string) {
 	if b.col < len(rs) {
 		tail = string(rs[b.col:])
 	}
-	insertedOrig := inserted[0]
 	inserted[0] = head + inserted[0]
 	inserted[len(inserted)-1] = inserted[len(inserted)-1] + tail
 	if ed.cfg.AutoIndent {
@@ -49,10 +48,10 @@ func (ed *Editor) replayInsert(line string) {
 	}
 	b.lines = lines
 	if len(inserted) < 2 {
-		b.col += utf8.RuneCountInString(insertedOrig)
+		b.col += utf8.RuneCountInString(ed.inserted[0])
 	} else {
-		b.row += len(inserted) - 1
-		b.col = utf8.RuneCountInString(inserted[len(inserted)-1])
+		b.row += len(ed.inserted) - 1
+		b.col = utf8.RuneCountInString(ed.inserted[len(ed.inserted)-1])
 	}
 	ed.MoveLeft(1)
 	b.modified = true
