@@ -3,6 +3,7 @@ package editor
 import (
 	"embed"
 	"io/fs"
+	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -24,46 +25,50 @@ type Colors struct {
 }
 
 type ColorsConfig struct {
-	TextFg    string `yaml:"text-fg"`
-	TextBg    string `yaml:"text-bg"`
-	StatusFg  string `yaml:"status-fg"`
-	StatusBg  string `yaml:"status-bg"`
-	CurrentFg string `yaml:"current-fg"`
-	CurrentBg string `yaml:"current-bg"`
-	BorderFg  string `yaml:"border-fg"`
-	BorderBg  string `yaml:"border-bg"`
+	Text    string `yaml:"text"`
+	Status  string `yaml:"status"`
+	Current string `yaml:"current"`
+	Border  string `yaml:"border"`
+}
+
+func splitColorPairString(s string) (string, string) {
+	parts := strings.Split(s, ",")
+	if len(parts[0]) < 1 {
+		parts[0] = "default"
+	}
+	if len(parts) < 2 {
+		parts = append(parts, "default")
+	}
+	return parts[0], parts[1]
+}
+
+func parseColorPair(s string) (termi.Color, termi.Color, error) {
+	fgStr, bgStr := splitColorPairString(s)
+	fg, err := termi.ParseColor(fgStr)
+	if err != nil {
+		return termi.Color{}, termi.Color{}, err
+	}
+	bg, err := termi.ParseColor(bgStr)
+	if err != nil {
+		return termi.Color{}, termi.Color{}, err
+	}
+	return fg, bg, nil
 }
 
 func (cfg *ColorsConfig) Colors() (*Colors, error) {
-	textFg, err := termi.ParseColor(cfg.TextFg)
+	textFg, textBg, err := parseColorPair(cfg.Text)
 	if err != nil {
 		return nil, err
 	}
-	textBg, err := termi.ParseColor(cfg.TextBg)
+	statusFg, statusBg, err := parseColorPair(cfg.Status)
 	if err != nil {
 		return nil, err
 	}
-	statusFg, err := termi.ParseColor(cfg.StatusFg)
+	currentFg, currentBg, err := parseColorPair(cfg.Current)
 	if err != nil {
 		return nil, err
 	}
-	statusBg, err := termi.ParseColor(cfg.StatusBg)
-	if err != nil {
-		return nil, err
-	}
-	currentFg, err := termi.ParseColor(cfg.CurrentFg)
-	if err != nil {
-		return nil, err
-	}
-	currentBg, err := termi.ParseColor(cfg.CurrentBg)
-	if err != nil {
-		return nil, err
-	}
-	borderFg, err := termi.ParseColor(cfg.BorderFg)
-	if err != nil {
-		return nil, err
-	}
-	borderBg, err := termi.ParseColor(cfg.BorderBg)
+	borderFg, borderBg, err := parseColorPair(cfg.Border)
 	if err != nil {
 		return nil, err
 	}
@@ -100,16 +105,26 @@ func ListEmbeddedColors() ([]string, error) {
 	return names, nil
 }
 
+func LoadColorsConfigFromString(s string) (*ColorsConfig, error) {
+	var cfg ColorsConfig
+	if err := yaml.Unmarshal([]byte(s), &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
 func LoadEmbeddedColorsConfig(path string) (*ColorsConfig, error) {
 	data, err := fs.ReadFile(colorsFS, path)
 	if err != nil {
 		return nil, err
 	}
+	return LoadColorsConfigFromString(string(data))
+}
 
-	var cfg ColorsConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+func LoadColorsConfig(path string) (*ColorsConfig, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
 		return nil, err
 	}
-
-	return &cfg, nil
+	return LoadColorsConfigFromString(string(data))
 }

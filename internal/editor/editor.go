@@ -265,6 +265,13 @@ func Init(dir string, args []string) (*Editor, error) {
 	return ed, nil
 }
 
+func (b *Buffer) Text() string {
+	if len(b.lines) < 1 {
+		return ""
+	}
+	return strings.Join(b.lines, "\n") + "\n"
+}
+
 func (ed *Editor) SaveAs(path string, force bool) error {
 	if path == "" {
 		ed.Ring("No filename specified")
@@ -290,10 +297,7 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 		return fmt.Errorf("file modified more recently")
 	}
 
-	text := ""
-	if len(b.lines) > 0 {
-		text = strings.Join(b.lines, "\n") + "\n"
-	}
+	text := b.Text()
 	err = os.WriteFile(path, []byte(text), 0666)
 	if err != nil {
 		return err

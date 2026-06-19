@@ -18,7 +18,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		AutoIndent: true,
 		TabStop:    4,
-		Colors:     "default",
+		Colors:     "standard",
 	}
 }
 

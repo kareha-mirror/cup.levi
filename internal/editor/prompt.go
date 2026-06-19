@@ -225,7 +225,13 @@ func (ed *Editor) PromptColors(name string) {
 		ed.Message(strings.Join(names, " "))
 		return
 	}
-	cfg, err := LoadEmbeddedColorsConfig(fmt.Sprintf("colors/%s.yaml", name))
+	var cfg *ColorsConfig
+	var err error
+	if name == "." {
+		cfg, err = LoadColorsConfigFromString(ed.Buffer().Text())
+	} else {
+		cfg, err = LoadEmbeddedColorsConfig(fmt.Sprintf("colors/%s.yaml", name))
+	}
 	if err != nil {
 		ed.Error("%v", err)
 		return
