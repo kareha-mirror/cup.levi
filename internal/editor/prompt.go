@@ -1,9 +1,12 @@
 package editor
 
 import (
+	"fmt"
 	"strings"
 
 	"tea.kareha.org/cup/termi"
+
+	"tea.kareha.org/cup/levi/internal/colors"
 )
 
 /////////////////////
@@ -217,12 +220,7 @@ func (ed *Editor) PromptColors(name string) {
 	ed.EnsureCommand()
 
 	if name == "." {
-		cfg, err := LoadColorsConfigFromString(ed.Buffer().Text())
-		if err != nil {
-			ed.Error("%v", err)
-			return
-		}
-		colors, err := cfg.Colors()
+		colors, err := colors.Parse(ed.Buffer().Text())
 		if err != nil {
 			ed.Error("%v", err)
 			return
@@ -232,12 +230,12 @@ func (ed *Editor) PromptColors(name string) {
 		return
 	}
 
-	list := LoadColorsList(ed.dir)
+	list := colors.LoadList(ed.dir)
 
 	if name == "" {
-		names := append([]string{}, list.User...)
-		names = append(names, list.Embedded...)
-		ed.Message(strings.Join(names, " "))
+		users := strings.Join(list.Users, " ")
+		builtins := strings.Join(list.Builtins, " ")
+		ed.Message(fmt.Sprintf("%s | %s", users, builtins))
 		return
 	}
 

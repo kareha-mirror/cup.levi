@@ -102,7 +102,7 @@ func (ed *Editor) DrawBuffer() {
 				if i == b.row {
 					sb.WriteString(ed.colors.Current.Seq())
 				} else {
-					sb.WriteString(ed.colors.Text.Seq())
+					sb.WriteString(ed.colors.Buffer.Seq())
 				}
 			}
 			sb.WriteString(termi.Render(line))

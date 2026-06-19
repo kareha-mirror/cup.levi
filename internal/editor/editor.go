@@ -9,6 +9,8 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
+
+	"tea.kareha.org/cup/levi/internal/colors"
 )
 
 func getConfigPath(dir string) string {
@@ -91,7 +93,7 @@ type Editor struct {
 	view     []string
 	listener termi.EscapeListener
 	esc      bool
-	colors   *Colors
+	colors   *colors.Colors
 }
 
 func (ed *Editor) Clear() {
@@ -198,11 +200,8 @@ func Init(dir string, args []string) (*Editor, error) {
 		cfg = LoadConfig(cfgPath)
 	}
 
-	list := LoadColorsList(dir)
-	colors, err := list.Load(cfg.Colors)
-	if err != nil {
-		colors = nil
-	}
+	list := colors.LoadList(dir)
+	colors, _ := list.Load(cfg.Colors)
 
 	w, h := termi.Size()
 	ed := &Editor{
