@@ -1,7 +1,6 @@
 package editor
 
 import (
-	"fmt"
 	"strings"
 
 	"tea.kareha.org/cup/termi"
@@ -216,27 +215,33 @@ func (ed *Editor) PromptNoAutoIndent() {
 // :colors Enter
 func (ed *Editor) PromptColors(name string) {
 	ed.EnsureCommand()
-	if name == "" {
-		names, err := ListEmbeddedColors()
+
+	if name == "." {
+		cfg, err := LoadColorsConfigFromString(ed.Buffer().Text())
 		if err != nil {
 			ed.Error("%v", err)
 			return
 		}
+		colors, err := cfg.Colors()
+		if err != nil {
+			ed.Error("%v", err)
+			return
+		}
+		ed.colors = colors
+		ed.redraw = true
+		return
+	}
+
+	list := LoadColorsList(ed.dir)
+
+	if name == "" {
+		names := append([]string{}, list.User...)
+		names = append(names, list.Embedded...)
 		ed.Message(strings.Join(names, " "))
 		return
 	}
-	var cfg *ColorsConfig
-	var err error
-	if name == "." {
-		cfg, err = LoadColorsConfigFromString(ed.Buffer().Text())
-	} else {
-		cfg, err = LoadEmbeddedColorsConfig(fmt.Sprintf("colors/%s.yaml", name))
-	}
-	if err != nil {
-		ed.Error("%v", err)
-		return
-	}
-	colors, err := cfg.Colors()
+
+	colors, err := list.Load(name)
 	if err != nil {
 		ed.Error("%v", err)
 		return

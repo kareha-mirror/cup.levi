@@ -2,8 +2,10 @@ package editor
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -12,6 +14,11 @@ import (
 
 //go:embed colors/*.yaml
 var colorsFS embed.FS
+
+const userColors = `text: "252,235"
+status: "248,233"
+current: "254,238"
+border: "250,234"`
 
 type Colors struct {
 	Text    termi.ColorPair
@@ -51,6 +58,77 @@ func (cfg *ColorsConfig) Colors() (*Colors, error) {
 		Current: current,
 		Border:  border,
 	}, nil
+}
+
+type ColorsList struct {
+	dir      string
+	User     []string
+	Embedded []string
+}
+
+func LoadColorsList(dir string) *ColorsList {
+	colorsDir := filepath.Join(dir, "colors")
+	os.Mkdir(colorsDir, 0777)
+	colorsPath := filepath.Join(colorsDir, "user.yaml")
+	_, err := os.Stat(colorsPath)
+	if err != nil {
+		os.WriteFile(colorsPath, []byte(userColors), 0666)
+	}
+
+	user, err := ListUserColors(dir)
+	if err != nil {
+		user = []string{}
+	}
+	embedded, err := ListEmbeddedColors()
+	if err != nil {
+		embedded = []string{}
+	}
+	return &ColorsList{dir, user, embedded}
+}
+
+func (cl *ColorsList) Load(name string) (*Colors, error) {
+	for _, n := range cl.User {
+		if n == name {
+			path := filepath.Join(cl.dir, "colors", name+".yaml")
+			cfg, err := LoadColorsConfig(path)
+			if err != nil {
+				return nil, err
+			}
+			return cfg.Colors()
+		}
+	}
+	for _, n := range cl.Embedded {
+		if n == name {
+			path := filepath.Join("colors", name+".yaml")
+			cfg, err := LoadEmbeddedColorsConfig(path)
+			if err != nil {
+				return nil, err
+			}
+			return cfg.Colors()
+		}
+	}
+	return nil, fmt.Errorf("not found")
+}
+
+func ListUserColors(dir string) ([]string, error) {
+	colorsDir := filepath.Join(dir, "colors")
+	entries, err := os.ReadDir(colorsDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var names []string
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		if strings.HasSuffix(name, ".yaml") {
+			name = name[:len(name)-5]
+		}
+		names = append(names, name)
+	}
+	return names, nil
 }
 
 func ListEmbeddedColors() ([]string, error) {

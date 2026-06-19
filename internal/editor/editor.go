@@ -71,6 +71,7 @@ func (k *KillBuf) SetLines(lines []string) {
 }
 
 type Editor struct {
+	dir      string
 	cfg      *Config
 	w, h     int
 	buffers  []*Buffer
@@ -197,16 +198,15 @@ func Init(dir string, args []string) (*Editor, error) {
 		cfg = LoadConfig(cfgPath)
 	}
 
-	var colors *Colors
-	colorsCfg, err := LoadEmbeddedColorsConfig(
-		fmt.Sprintf("colors/%s.yaml", cfg.Colors),
-	)
-	if err == nil {
-		colors, err = colorsCfg.Colors()
+	list := LoadColorsList(dir)
+	colors, err := list.Load(cfg.Colors)
+	if err != nil {
+		colors = nil
 	}
 
 	w, h := termi.Size()
 	ed := &Editor{
+		dir:      dir,
 		cfg:      cfg,
 		w:        w,
 		h:        h,
