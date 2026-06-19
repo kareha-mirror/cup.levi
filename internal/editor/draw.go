@@ -100,11 +100,9 @@ func (ed *Editor) DrawBuffer() {
 			sb.WriteString(termi.MoveCursor(0, y))
 			if ed.colors != nil {
 				if i == b.row {
-					sb.WriteString(ed.colors.CurrentFg.Fg())
-					sb.WriteString(ed.colors.CurrentBg.Bg())
+					sb.WriteString(ed.colors.Current.Seq())
 				} else {
-					sb.WriteString(ed.colors.TextFg.Fg())
-					sb.WriteString(ed.colors.TextBg.Bg())
+					sb.WriteString(ed.colors.Text.Seq())
 				}
 			}
 			sb.WriteString(termi.Render(line))
@@ -132,8 +130,7 @@ func (ed *Editor) DrawBuffer() {
 	for ; y < ed.h-1; y++ {
 		sb.WriteString(termi.MoveCursor(0, y))
 		if ed.colors != nil {
-			sb.WriteString(ed.colors.BorderFg.Fg())
-			sb.WriteString(ed.colors.BorderBg.Bg())
+			sb.WriteString(ed.colors.Border.Seq())
 		}
 		sb.WriteString(termi.Render("~"))
 		sb.WriteString(termi.ClearTail)
@@ -156,8 +153,7 @@ func (ed *Editor) DrawBuffer() {
 func (ed *Editor) DrawStatus() {
 	fmt.Print(termi.MoveCursor(0, ed.h-1))
 	if ed.colors != nil {
-		fmt.Print(ed.colors.StatusFg.Fg())
-		fmt.Print(ed.colors.StatusBg.Bg())
+		fmt.Print(ed.colors.Status.Seq())
 	}
 
 	if ed.ring != "" {
