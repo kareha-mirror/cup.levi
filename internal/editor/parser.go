@@ -54,14 +54,6 @@ func (p *Parser) ClearAll() {
 	p.cache = ""
 }
 
-var moveSet = map[rune]struct{}{
-	'h': {},
-	'j': {},
-	'k': {},
-	'l': {},
-	// TODO
-}
-
 var letterOpSet = map[rune]struct{}{
 	'm': {},
 	'r': {},
@@ -677,7 +669,26 @@ func (ed *Editor) ParseEdit(num int, op string, noSubnum bool, subnum int, mv st
 	return Cmd{}, false
 }
 
-var compoundSet = map[rune]struct{}{
+var compoundSet = map[string]struct{}{
+	"]]": {},
+	"[[": {},
+
+	"``": {},
+	"''": {},
+
+	"z\r": {},
+	"z.":  {},
+	"z-":  {},
+
+	"yy": {},
+	"dd": {},
+	"cc": {},
+	">>": {},
+	"<<": {},
+	"ZZ": {},
+}
+
+var compoundHeadSet = map[rune]struct{}{
 	']': {},
 	'[': {},
 
@@ -765,11 +776,11 @@ func (ed *Editor) Parse() (Cmd, bool) {
 
 	iPrev = i
 	for i < len(p.buf) {
-		_, ok1 := compoundSet[p.buf[iPrev]]
-		_, ok2 := moveSet[p.buf[i]]
-		_, ok3 := letterMoveSet[p.buf[i]]
-		if ok1 && (ok2 || ok3) { // TODO
-			break
+		if i+1-iPrev == 2 {
+			_, ok := compoundSet[string(p.buf[iPrev:i+1])]
+			if !ok {
+				break
+			}
 		}
 		if p.buf[i] >= '0' && p.buf[i] <= '9' {
 			break
@@ -856,7 +867,7 @@ func (ed *Editor) Parse() (Cmd, bool) {
 	}
 
 	if len(op) < 2 {
-		_, ok := compoundSet[opFirst]
+		_, ok := compoundHeadSet[opFirst]
 		if ok {
 			return Cmd{}, false
 		}
