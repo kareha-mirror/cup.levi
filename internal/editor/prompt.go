@@ -20,8 +20,8 @@ func (ed *Editor) PromptMoveByLine(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if !ed.adjustRow(n) {
-		ed.Ring("Illegal address: only %d lines in the file.", len(b.lines))
+	if !b.AdjustRow(n) {
+		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
 	ed.toNonBlankCol()
@@ -35,10 +35,10 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if b.row-n == -1 {
+	if b.Loc.Row-n == -1 {
 		n++
 	}
-	if !ed.adjustRow(-n) {
+	if !b.AdjustRow(-n) {
 		ed.Ring("Reference to a line number less than 0.")
 		return
 	}
@@ -56,8 +56,8 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 	if n == 0 {
 		n = 1
 	}
-	if !ed.setRow(n - 1) {
-		ed.Ring("Illegal address: only %d lines in the file.", len(b.lines))
+	if !b.MoveRow(n - 1) {
+		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
 	ed.toNonBlankCol()
@@ -67,11 +67,11 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 func (ed *Editor) PromptSaveAndQuit() {
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if b.modified && b.path == "" {
+	if b.Modified && b.Path == "" {
 		ed.Ring("File is a temporary; exit will discard modifications.")
 		return
 	}
-	if b.modified && b.path != "" {
+	if b.Modified && b.Path != "" {
 		err := ed.Save(false)
 		if err != nil {
 			return
@@ -104,8 +104,8 @@ func (ed *Editor) PromptForceSave(name string) {
 func (ed *Editor) PromptQuit() {
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if b.modified {
-		if b.path == "" {
+	if b.Modified {
+		if b.Path == "" {
 			ed.Ring("File is a temporary; exit will discard modifications.")
 			return
 		}

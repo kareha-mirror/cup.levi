@@ -1,11 +1,10 @@
 package editor
 
-type CmdKind int
+import (
+	"tea.kareha.org/cup/levi/internal/buffer"
+)
 
-type Loc struct {
-	Row int
-	Col int
-}
+type CmdKind int
 
 type Cmd struct {
 	Kind     CmdKind
@@ -13,8 +12,8 @@ type Cmd struct {
 	Letter   rune
 	Pat      string
 	Reg      rune
-	Start    Loc
-	End      Loc
+	Start    buffer.Loc
+	End      buffer.Loc
 	StartRow int
 	EndRow   int
 }

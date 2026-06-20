@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
 
+	"tea.kareha.org/cup/levi/internal/buffer"
 	"tea.kareha.org/cup/levi/internal/colors"
 )
 
@@ -25,28 +24,6 @@ const (
 	ModeSearch
 	ModePrompt
 )
-
-type Stamp struct {
-	Time time.Time
-	Size int64
-}
-
-type Buffer struct {
-	col, row int // 0-based
-	vrow     int // 0-based
-	virtCol  int // 0-based
-	x, y     int // 0-based
-	lines    []string
-	path     string
-	stamp    Stamp
-	modified bool
-}
-
-func (b *Buffer) EnsureLine() {
-	if len(b.lines) < 1 {
-		b.lines = append(b.lines, "")
-	}
-}
 
 type KillMode int
 
@@ -76,7 +53,7 @@ type Editor struct {
 	dir      string
 	cfg      *Config
 	w, h     int
-	buffers  []*Buffer
+	buffers  []*buffer.Buffer
 	bIndex   int
 	inp      *Input
 	inpRow   int // 0-based
@@ -98,25 +75,25 @@ type Editor struct {
 
 func (ed *Editor) Clear() {
 	if ed.bIndex < len(ed.buffers) {
-		ed.buffers[ed.bIndex] = new(Buffer)
+		ed.buffers[ed.bIndex] = new(buffer.Buffer)
 	} else {
-		ed.buffers = append(ed.buffers, new(Buffer))
+		ed.buffers = append(ed.buffers, new(buffer.Buffer))
 	}
 	ed.mode = ModeCommand
 	ed.redraw = true
 }
 
-func (ed *Editor) Buffer() *Buffer {
+func (ed *Editor) Buffer() *buffer.Buffer {
 	return ed.buffers[ed.bIndex]
 }
 
 func (ed *Editor) Close(force bool) {
 	b := ed.Buffer()
-	if !force && b.modified {
+	if !force && b.Modified {
 		ed.Ring("File modified since last complete write; write or use ! to override.")
 		return
 	}
-	buffers := []*Buffer{}
+	buffers := []*buffer.Buffer{}
 	if ed.bIndex-1 > 0 {
 		buffers = append(buffers, ed.buffers[:ed.bIndex-1]...)
 	}
@@ -131,13 +108,13 @@ func (ed *Editor) Close(force bool) {
 
 func (ed *Editor) Load(path string, force bool) error {
 	b := ed.Buffer()
-	if !force && b.modified {
+	if !force && b.Modified {
 		ed.Ring("File modified since last complete write; write or use ! to override.")
 		return fmt.Errorf("file modified")
 	}
 	ed.Clear()
 	b = ed.Buffer()
-	b.path = path
+	b.Path = path
 	if path == "" {
 		ed.Message("(memory): new file: line 1")
 		return nil
@@ -147,7 +124,7 @@ func (ed *Editor) Load(path string, force bool) error {
 		ed.Message("%s: new file: line 1", path)
 		return nil
 	}
-	stamp := Stamp{
+	stamp := buffer.Stamp{
 		Time: info.ModTime(),
 		Size: info.Size(),
 	}
@@ -156,35 +133,26 @@ func (ed *Editor) Load(path string, force bool) error {
 	if err != nil {
 		return err
 	}
-	if len(data) < 1 {
-		b.lines = []string{}
-		b.modified = false
-		return nil
-	}
-	// TODO should also support CRLF or not?
-	if data[len(data)-1] == '\n' {
-		data = data[:len(data)-1]
-	}
-	b.lines = strings.Split(string(data), "\n")
-	b.stamp = stamp
-	b.modified = false
+	b.SetText(string(data))
+	b.Stamp = stamp
+	b.Modified = false
 	return nil
 }
 
 func (ed *Editor) InitialInfo() {
 	b := ed.Buffer()
-	path := b.path
+	path := b.Path
 	if path == "" {
 		path = "(memory)"
 	}
 	modified := "unmodified"
-	if b.modified {
+	if b.Modified {
 		modified = "modified"
 	}
 	info := "empty file"
-	linesLen := len(b.lines)
-	if linesLen > 0 {
-		info = fmt.Sprintf("line %d", b.row+1)
+	numLines := b.NumLines()
+	if numLines > 0 {
+		info = fmt.Sprintf("line %d", b.Loc.Row+1)
 	}
 	ed.Message("%s: %s: %s", path, modified, info)
 }
@@ -209,7 +177,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		cfg:      cfg,
 		w:        w,
 		h:        h,
-		buffers:  []*Buffer{},
+		buffers:  []*buffer.Buffer{},
 		bIndex:   0,
 		inp:      NewInput(),
 		inpRow:   0,
@@ -264,13 +232,6 @@ func Init(dir string, args []string) (*Editor, error) {
 	return ed, nil
 }
 
-func (b *Buffer) Text() string {
-	if len(b.lines) < 1 {
-		return ""
-	}
-	return strings.Join(b.lines, "\n") + "\n"
-}
-
 func (ed *Editor) SaveAs(path string, force bool) error {
 	if path == "" {
 		ed.Ring("No filename specified")
@@ -278,17 +239,17 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	}
 	info, err := os.Stat(path)
 	newFile := ""
-	stamp := Stamp{}
+	stamp := buffer.Stamp{}
 	if err != nil {
 		newFile = " new file:"
 	} else {
-		stamp = Stamp{
+		stamp = buffer.Stamp{
 			Time: info.ModTime(),
 			Size: info.Size(),
 		}
 	}
 	b := ed.Buffer()
-	if !force && path == b.path && stamp != b.stamp {
+	if !force && path == b.Path && stamp != b.Stamp {
 		ed.Ring(
 			"%s: file modified more recently than this copy; use ! to override.",
 			path,
@@ -305,29 +266,29 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	if err != nil {
 		return err
 	}
-	stamp = Stamp{
+	stamp = buffer.Stamp{
 		Time: info.ModTime(),
 		Size: info.Size(),
 	}
 
 	ed.Message(
 		"%s:%s %d lines, %d bytes, %d runes.",
-		path, newFile, len(b.lines), len(text), utf8.RuneCountInString(text),
+		path, newFile, b.NumLines(), len(text), utf8.RuneCountInString(text),
 	)
 
-	if b.path == "" {
-		b.path = path
+	if b.Path == "" {
+		b.Path = path
 	}
-	if path == b.path {
-		b.stamp = stamp
+	if path == b.Path {
+		b.Stamp = stamp
 	}
-	b.modified = false
+	b.Modified = false
 	return nil
 }
 
 func (ed *Editor) Save(force bool) error {
 	b := ed.Buffer()
-	return ed.SaveAs(b.path, force)
+	return ed.SaveAs(b.Path, force)
 }
 
 func (ed *Editor) Finish() error {
@@ -349,23 +310,20 @@ func (ed *Editor) Line(row int) string {
 
 	if ed.mode == ModeInsert {
 		if row < ed.inpRow {
-			return b.lines[row]
+			return b.Line(row)
 		} else if row < ed.inpRow+ed.inp.LineLen() {
 			return ed.inp.Line(row - ed.inpRow)
 		} else {
-			return b.lines[row-ed.inp.LineLen()+1]
+			return b.Line(row - ed.inp.LineLen() + 1)
 		}
 	}
 
-	if len(b.lines) < 1 {
-		return ""
-	}
-	return b.lines[row]
+	return b.Line(row)
 }
 
 func (ed *Editor) CurrentLine() string {
 	b := ed.Buffer()
-	return ed.Line(b.row)
+	return ed.Line(b.Loc.Row)
 }
 
 func (ed *Editor) RuneCount() int {
@@ -387,7 +345,7 @@ func (ed *Editor) EnsureCommand() {
 		return
 	case ModeInsert:
 		b := ed.Buffer()
-		lines := append([]string{}, b.lines[:ed.inpRow]...)
+		lines := append([]string{}, b.Lines[:ed.inpRow]...)
 		inputLines := ed.inp.Lines()
 		if ed.cfg.AutoIndent {
 			for i := 0; i < len(inputLines); i++ {
@@ -397,15 +355,15 @@ func (ed *Editor) EnsureCommand() {
 			}
 		}
 		lines = append(lines, inputLines...)
-		if ed.inpRow+1 <= len(b.lines)-1 {
-			lines = append(lines, b.lines[ed.inpRow+1:]...)
+		if ed.inpRow+1 <= b.NumLines()-1 {
+			lines = append(lines, b.Lines[ed.inpRow+1:]...)
 		}
-		b.lines = lines
+		b.Lines = lines
 		ed.inserted = ed.inp.Inserted()
 		ed.inp.Reset()
 		ed.mode = ModeCommand
 		ed.MoveLeft(1)
-		b.modified = true
+		b.Modified = true
 
 		if MultiInsertCmds[ed.lastCmd.Kind] && ed.lastCmd.Num > 1 {
 			cmd := ed.lastCmd

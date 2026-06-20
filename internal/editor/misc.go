@@ -14,20 +14,20 @@ import (
 func (ed *Editor) MiscShowInfo() {
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	path := b.path
+	path := b.Path
 	if path == "" {
 		path = "(memory)"
 	}
 	modified := "unmodified"
-	if b.modified {
+	if b.Modified {
 		modified = "modified"
 	}
 	info := "empty file"
-	linesLen := len(b.lines)
-	if linesLen > 0 {
+	numLines := b.NumLines()
+	if numLines > 0 {
 		info = fmt.Sprintf(
 			"line %d of %d [%d%%]",
-			b.row+1, linesLen, 100*(b.row+1)/linesLen,
+			b.Loc.Row+1, numLines, 100*(b.Loc.Row+1)/numLines,
 		)
 	}
 	ed.Message("%s: %s: %s", path, modified, info)
@@ -55,11 +55,11 @@ func (ed *Editor) MiscRestore() {
 func (ed *Editor) MiscSaveAndQuit() {
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if b.modified && b.path == "" {
+	if b.Modified && b.Path == "" {
 		ed.Ring("File is a temporary; exit will discard modifications")
 		return
 	}
-	if b.modified && b.path != "" {
+	if b.Modified && b.Path != "" {
 		err := ed.Save(false)
 		if err != nil {
 			return

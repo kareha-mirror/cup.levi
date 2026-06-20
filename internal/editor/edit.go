@@ -2,6 +2,8 @@ package editor
 
 import (
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/levi/internal/buffer"
 )
 
 //////////////////////
@@ -31,7 +33,7 @@ func (ed *Editor) EditJoin(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if b.row+1 >= len(b.lines) {
+	if b.Loc.Row+1 >= b.NumLines() {
 		ed.Ring("No following lines to join")
 		return
 	}
@@ -39,14 +41,14 @@ func (ed *Editor) EditJoin(n int) {
 		n--
 	}
 
-	current := b.lines[b.row]
-	col := b.col
+	current := b.CurrentLine()
+	col := b.Loc.Col
 
 	for i := 1; i <= n; i++ {
-		if b.row+i >= len(b.lines) {
+		if b.Loc.Row+i >= b.NumLines() {
 			break
 		}
-		next := trimLeftBlanks(b.lines[b.row+i])
+		next := trimLeftBlanks(b.Line(b.Loc.Row + i))
 		link := ""
 		if len(next) > 0 {
 			r, _ := utf8.DecodeLastRuneInString(current)
@@ -58,15 +60,15 @@ func (ed *Editor) EditJoin(n int) {
 		current = current + link + next
 	}
 
-	lines := append([]string{}, b.lines[:b.row]...)
+	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 	lines = append(lines, current)
-	if b.row+1+n < len(b.lines) {
-		lines = append(lines, b.lines[b.row+1+n:]...)
+	if b.Loc.Row+1+n < b.NumLines() {
+		lines = append(lines, b.Lines[b.Loc.Row+1+n:]...)
 	}
-	b.lines = lines
+	b.Lines = lines
 
-	b.col = col
-	ed.confineCol()
+	b.Loc.Col = col
+	b.ConfineCol()
 }
 
 // >> : Indent current line.
@@ -82,13 +84,13 @@ func (ed *Editor) EditOutdent(n int) {
 }
 
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
-func (ed *Editor) EditIndentRegion(start Loc, end Loc) {
+func (ed *Editor) EditIndentRegion(start buffer.Loc, end buffer.Loc) {
 	ed.EnsureCommand()
 	ed.Unimplemented("EditIndentRegion")
 }
 
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
-func (ed *Editor) EditOutdentRegion(start Loc, end Loc) {
+func (ed *Editor) EditOutdentRegion(start buffer.Loc, end buffer.Loc) {
 	ed.EnsureCommand()
 	ed.Unimplemented("EditOutdentRegion")
 }

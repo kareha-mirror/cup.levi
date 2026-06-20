@@ -137,7 +137,7 @@ func (ed *Editor) InsertRune(r rune) {
 	}
 	ed.inp.WriteRune(r)
 	b := ed.Buffer()
-	b.col = ed.inp.Column()
+	b.Loc.Col = ed.inp.Column()
 }
 
 func (ed *Editor) Backspace() {
@@ -146,9 +146,9 @@ func (ed *Editor) Backspace() {
 	}
 	b := ed.Buffer()
 	if !ed.inp.Backspace() {
-		b.row--
+		b.Loc.Row--
 	}
-	b.col = ed.inp.Column()
+	b.Loc.Col = ed.inp.Column()
 	// col and row are already confined
 }
 
@@ -158,8 +158,8 @@ func (ed *Editor) InsertNewline() {
 	}
 	b := ed.Buffer()
 	ed.inp.Newline(ed.cfg.AutoIndent)
-	b.row++
-	b.col = ed.inp.Column()
+	b.Loc.Row++
+	b.Loc.Col = ed.inp.Column()
 	// col is already confined
 	// XXX row is not confined
 }

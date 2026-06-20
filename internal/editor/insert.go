@@ -27,10 +27,10 @@ func (ed *Editor) replayInsert(line string) {
 	b := ed.Buffer()
 	inserted := append([]string{}, ed.inserted...)
 	rs := []rune(line)
-	head := string(rs[:b.col])
+	head := string(rs[:b.Loc.Col])
 	tail := ""
-	if b.col < len(rs) {
-		tail = string(rs[b.col:])
+	if b.Loc.Col < len(rs) {
+		tail = string(rs[b.Loc.Col:])
 	}
 	inserted[0] = head + inserted[0]
 	inserted[len(inserted)-1] = inserted[len(inserted)-1] + tail
@@ -41,20 +41,20 @@ func (ed *Editor) replayInsert(line string) {
 			}
 		}
 	}
-	lines := append([]string{}, b.lines[:b.row]...)
+	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 	lines = append(lines, inserted...)
-	if b.row+1 <= len(b.lines)-1 {
-		lines = append(lines, b.lines[b.row+1:]...)
+	if b.Loc.Row+1 <= b.NumLines()-1 {
+		lines = append(lines, b.Lines[b.Loc.Row+1:]...)
 	}
-	b.lines = lines
+	b.Lines = lines
 	if len(inserted) < 2 {
-		b.col += utf8.RuneCountInString(ed.inserted[0])
+		b.Loc.Col += utf8.RuneCountInString(ed.inserted[0])
 	} else {
-		b.row += len(ed.inserted) - 1
-		b.col = utf8.RuneCountInString(ed.inserted[len(ed.inserted)-1])
+		b.Loc.Row += len(ed.inserted) - 1
+		b.Loc.Col = utf8.RuneCountInString(ed.inserted[len(ed.inserted)-1])
 	}
 	ed.MoveLeft(1)
-	b.modified = true
+	b.Modified = true
 }
 
 // i : Switch to insert mode before cursor.
@@ -69,8 +69,8 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 		}
 	} else {
 		b := ed.Buffer()
-		ed.inp.Init(ed.CurrentLine(), b.col, ed.cfg.AutoIndent)
-		ed.inpRow = b.row
+		ed.inp.Init(ed.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
+		ed.inpRow = b.Loc.Row
 		ed.mode = ModeInsert
 	}
 }
@@ -84,8 +84,8 @@ func (ed *Editor) InsertAfter(n int, replay bool) {
 	b := ed.Buffer()
 	for i := 0; i < n; i++ {
 		rc := ed.RuneCount()
-		if b.col >= rc-1 {
-			b.col = rc
+		if b.Loc.Col >= rc-1 {
+			b.Loc.Col = rc
 		} else {
 			ed.MoveRight(1)
 		}
@@ -133,7 +133,7 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 	}
 	b := ed.Buffer()
 	for i := 0; i < n; i++ {
-		if len(b.lines) < 1 {
+		if b.NumLines() < 1 {
 			ed.InsertAfter(n, replay)
 			return
 		}
@@ -142,15 +142,15 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 			indent = getIndent(ed.CurrentLine())
 		}
 		lines := []string{}
-		if len(b.lines) > 0 {
-			lines = append(lines, b.lines[:b.row+1]...)
+		if b.NumLines() > 0 {
+			lines = append(lines, b.Lines[:b.Loc.Row+1]...)
 		}
 		lines = append(lines, indent)
-		if b.row+1 <= len(b.lines)-1 {
-			lines = append(lines, b.lines[b.row+1:]...)
+		if b.Loc.Row+1 <= b.NumLines()-1 {
+			lines = append(lines, b.Lines[b.Loc.Row+1:]...)
 		}
-		b.lines = lines
-		b.row++
+		b.Lines = lines
+		b.Loc.Row++
 		ed.toNonBlankCol()
 		ed.InsertAfter(1, replay)
 	}
@@ -169,14 +169,14 @@ func (ed *Editor) InsertOpenAbove(n int, replay bool) {
 			indent = getIndent(ed.CurrentLine())
 		}
 		lines := []string{}
-		if b.row > 0 {
-			lines = append(lines, b.lines[:b.row]...)
+		if b.Loc.Row > 0 {
+			lines = append(lines, b.Lines[:b.Loc.Row]...)
 		}
 		lines = append(lines, indent)
-		if b.row <= len(b.lines)-1 {
-			lines = append(lines, b.lines[b.row:]...)
+		if b.Loc.Row <= b.NumLines()-1 {
+			lines = append(lines, b.Lines[b.Loc.Row:]...)
 		}
-		b.lines = lines
+		b.Lines = lines
 		ed.toNonBlankCol()
 		ed.InsertAfter(1, replay)
 	}
