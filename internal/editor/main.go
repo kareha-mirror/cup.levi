@@ -31,7 +31,7 @@ func (ed *Editor) Main() {
 					}
 					ed.parser.InsertRune(key.Rune)
 
-					c, ok := ed.parser.Parse()
+					c, ok := ed.Parse()
 					if ok {
 						if ed.Run(c, false) {
 							if RepeatableCmds[c.Kind] {

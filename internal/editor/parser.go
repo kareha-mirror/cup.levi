@@ -54,21 +54,29 @@ func (p *Parser) ClearAll() {
 	p.cache = ""
 }
 
+var moveSet = map[rune]struct{}{
+	'h': {},
+	'j': {},
+	'k': {},
+	'l': {},
+	// TODO
+}
+
 var letterOpSet = map[rune]struct{}{
-	'm':  {},
-	'\'': {},
-	'`':  {},
-	'r':  {},
+	'm': {},
+	'r': {},
 }
 
 var letterMoveSet = map[rune]struct{}{
-	'f': {},
-	'F': {},
-	't': {},
-	'T': {},
+	'\'': {},
+	'`':  {},
+	'f':  {},
+	'F':  {},
+	't':  {},
+	'T':  {},
 }
 
-func (p *Parser) ParseMove(noNum bool, num int, mv string, letter rune) (Cmd, bool) {
+func (ed *Editor) ParseMove(noNum bool, num int, mv string, letter rune) (Cmd, bool) {
 	switch mv {
 	case "h":
 		return Cmd{
@@ -207,10 +215,10 @@ func (p *Parser) ParseMove(noNum bool, num int, mv string, letter rune) (Cmd, bo
 		}
 	}
 
-	return p.ParseFind(num, mv, letter)
+	return ed.ParseMoveLetter(num, mv, letter)
 }
 
-func (p *Parser) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
+func (ed *Editor) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
 	if letter == 0 {
 		return Cmd{}, false
 	}
@@ -221,24 +229,6 @@ func (p *Parser) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
 			Kind:   CmdMarkSet,
 			Letter: letter,
 		}, true
-	case "`":
-		if letter == '`' {
-			return Cmd{Kind: CmdMarkBack}, true
-		} else {
-			return Cmd{
-				Kind:   CmdMarkMoveTo,
-				Letter: letter,
-			}, true
-		}
-	case "'":
-		if letter == '\'' {
-			return Cmd{Kind: CmdMarkBackToLine}, true
-		} else {
-			return Cmd{
-				Kind:   CmdMarkMoveToLine,
-				Letter: letter,
-			}, true
-		}
 	}
 
 	switch op {
@@ -253,7 +243,7 @@ func (p *Parser) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (p *Parser) ParseView(num int, op string) (Cmd, bool) {
+func (ed *Editor) ParseView(num int, op string) (Cmd, bool) {
 	switch op {
 	case "\x06": // Ctrl-f
 		return Cmd{
@@ -300,7 +290,7 @@ func (p *Parser) ParseView(num int, op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (p *Parser) ParseSearch(op string, pat string) (Cmd, bool) {
+func (ed *Editor) ParseSearch(op string, pat string) (Cmd, bool) {
 	switch op {
 	case "/":
 		if pat == "" {
@@ -329,7 +319,7 @@ func (p *Parser) ParseSearch(op string, pat string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (p *Parser) ParseFind(num int, op string, letter rune) (Cmd, bool) {
+func (ed *Editor) ParseMoveLetter(num int, op string, letter rune) (Cmd, bool) {
 	switch op {
 	case "f":
 		if letter == 0 {
@@ -379,10 +369,37 @@ func (p *Parser) ParseFind(num int, op string, letter rune) (Cmd, bool) {
 		}, true
 	}
 
+	switch op {
+	case "`":
+		if letter == 0 {
+			return Cmd{}, false
+		}
+		if letter == '`' {
+			return Cmd{Kind: CmdMarkBack}, true
+		} else {
+			return Cmd{
+				Kind:   CmdMarkMoveTo,
+				Letter: letter,
+			}, true
+		}
+	case "'":
+		if letter == 0 {
+			return Cmd{}, false
+		}
+		if letter == '\'' {
+			return Cmd{Kind: CmdMarkBackToLine}, true
+		} else {
+			return Cmd{
+				Kind:   CmdMarkMoveToLine,
+				Letter: letter,
+			}, true
+		}
+	}
+
 	return Cmd{}, false
 }
 
-func (p *Parser) ParseInsert(num int, op string) (Cmd, bool) {
+func (ed *Editor) ParseInsert(num int, op string) (Cmd, bool) {
 	switch op {
 	case "i":
 		return Cmd{
@@ -425,7 +442,7 @@ func (p *Parser) ParseInsert(num int, op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (p *Parser) ParseMisc(num int, op string) (Cmd, bool) {
+func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 	switch op {
 	case "\x07": // Ctrl-g
 		return Cmd{Kind: CmdMiscShowInfo}, true
@@ -450,7 +467,78 @@ func (p *Parser) ParseMisc(num int, op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (p *Parser) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int, mv string) (Cmd, bool) {
+func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int, mv string, letter rune) (Cmd, bool) {
+	if mv != "" {
+		switch op {
+		case "y":
+			start := ed.Buffer().Loc
+			/*
+				return Cmd{
+					Kind: CmdOpCopyRegion,
+					Start: Loc{}, // TODO
+					End: Loc{}, // TODO
+				}, true
+			*/
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+			if !ok {
+				return Cmd{}, false
+			}
+			if !ed.Run(cmd, false) { // XXX replay?
+				return Cmd{}, false
+			}
+			end := ed.Buffer().Loc
+			return Cmd{
+				Kind:     CmdOpCopyLineRegion,
+				StartRow: start.Row,
+				EndRow:   end.Row,
+			}, true
+		case "d":
+			start := ed.Buffer().Loc
+			/*
+				return Cmd{
+					Kind: CmdOpDeleteRegion,
+					Start: Loc{}, // TODO
+					End: Loc{}, // TODO
+				}, true
+			*/
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+			if !ok {
+				return Cmd{}, false
+			}
+			if !ed.Run(cmd, false) { // XXX replay?
+				return Cmd{}, false
+			}
+			end := ed.Buffer().Loc
+			return Cmd{
+				Kind:     CmdOpDeleteLineRegion,
+				StartRow: start.Row,
+				EndRow:   end.Row,
+			}, true
+		case "c":
+			start := ed.Buffer().Loc
+			/*
+				return Cmd{
+					Kind: CmdOpChangeRegion,
+					Start: Loc{}, // TODO
+					End: Loc{}, // TODO
+				}, true
+			*/
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+			if !ok {
+				return Cmd{}, false
+			}
+			if !ed.Run(cmd, false) { // XXX replay?
+				return Cmd{}, false
+			}
+			end := ed.Buffer().Loc
+			return Cmd{
+				Kind:     CmdOpChangeLineRegion,
+				StartRow: start.Row,
+				EndRow:   end.Row,
+			}, true
+		}
+	}
+
 	switch op {
 	case "yy", "Y":
 		if reg == 0 {
@@ -465,19 +553,6 @@ func (p *Parser) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int
 				Reg:  reg,
 			}, true
 		}
-	case "y":
-		/*
-			return Cmd{
-				Kind: CmdOpCopyRegion,
-				Start: Loc{}, // TODO
-				End: Loc{}, // TODO
-			}, true
-			return Cmd{
-				Kind: CmdOpCopyLineRegion,
-				StartRow: 0, // TODO
-				EndRow: 0, // TODO
-			}, true
-		*/
 	case "yw":
 		return Cmd{
 			Kind: CmdOpCopyWord,
@@ -523,19 +598,6 @@ func (p *Parser) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int
 			Kind: CmdOpDeleteLine,
 			Num:  num,
 		}, true
-	case "d":
-		/*
-			return Cmd{
-				Kind: CmdOpDeleteRegion,
-				Start: Loc{}, // TODO
-				End: Loc{}, // TODO
-			}, true
-			return Cmd{
-				Kind: CmdOpDeleteLineRegion,
-				StartRow: 0, // TODO
-				EndRow: 0, // TODO
-			}, true
-		*/
 	case "dw":
 		return Cmd{
 			Kind: CmdOpDeleteWord,
@@ -552,19 +614,6 @@ func (p *Parser) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int
 			Kind: CmdOpChangeLine,
 			Num:  num,
 		}, true
-	case "c":
-		/*
-			return Cmd{
-				Kind: CmdOpChangeRegion,
-				Start: Loc{}, // TODO
-				End: Loc{}, // TODO
-			}, true
-			return Cmd{
-				Kind: CmdOpChangeLineRegion,
-				StartRow: 0, // TODO
-				EndRow: 0, // TODO
-			}, true
-		*/
 	case "cw":
 		return Cmd{
 			Kind: CmdOpChangeWord,
@@ -590,7 +639,7 @@ func (p *Parser) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int
 	return Cmd{}, false
 }
 
-func (p *Parser) ParseEdit(num int, op string, noSubnum bool, subnum int, mv string) (Cmd, bool) {
+func (ed *Editor) ParseEdit(num int, op string, noSubnum bool, subnum int, mv string) (Cmd, bool) {
 	switch op {
 	case "J":
 		return Cmd{
@@ -645,7 +694,9 @@ var compoundSet = map[rune]struct{}{
 	'Z': {},
 }
 
-func (p *Parser) Parse() (Cmd, bool) {
+func (ed *Editor) Parse() (Cmd, bool) {
+	p := ed.parser
+
 	if len(p.buf) < 1 {
 		return Cmd{}, false
 	}
@@ -690,7 +741,7 @@ func (p *Parser) Parse() (Cmd, bool) {
 			}
 			op := string(p.buf[i : i+1])
 			letter = p.buf[i+1]
-			cmd, ok := p.ParseLetter(num, op, letter)
+			cmd, ok := ed.ParseLetter(num, op, letter)
 			if ok {
 				return cmd, true
 			}
@@ -702,7 +753,7 @@ func (p *Parser) Parse() (Cmd, bool) {
 			}
 			mv := string(p.buf[i : i+1])
 			letter = p.buf[i+1]
-			cmd, ok := p.ParseFind(num, mv, letter)
+			cmd, ok := ed.ParseMoveLetter(num, mv, letter)
 			if ok {
 				return cmd, true
 			}
@@ -714,6 +765,12 @@ func (p *Parser) Parse() (Cmd, bool) {
 
 	iPrev = i
 	for i < len(p.buf) {
+		_, ok1 := compoundSet[p.buf[iPrev]]
+		_, ok2 := moveSet[p.buf[i]]
+		_, ok3 := letterMoveSet[p.buf[i]]
+		if ok1 && (ok2 || ok3) { // TODO
+			break
+		}
 		if p.buf[i] >= '0' && p.buf[i] <= '9' {
 			break
 		}
@@ -725,14 +782,14 @@ func (p *Parser) Parse() (Cmd, bool) {
 
 	mv := string(p.buf[iPrev:i])
 
-	cmd, ok := p.ParseMove(noNum, num, mv, 0)
+	cmd, ok := ed.ParseMove(noNum, num, mv, 0)
 	if ok {
 		return cmd, true
 	}
 	op := mv
 	opFirst := p.buf[iPrev]
 
-	cmd, ok = p.ParseView(num, op)
+	cmd, ok = ed.ParseView(num, op)
 	if ok {
 		return cmd, true
 	}
@@ -740,15 +797,15 @@ func (p *Parser) Parse() (Cmd, bool) {
 	if op == "/" || op == "?" {
 		// TODO input pat
 	}
-	cmd, ok = p.ParseSearch(op, pat)
+	cmd, ok = ed.ParseSearch(op, pat)
 	if ok {
 		return cmd, true
 	}
-	cmd, ok = p.ParseInsert(num, op)
+	cmd, ok = ed.ParseInsert(num, op)
 	if ok {
 		return cmd, true
 	}
-	cmd, ok = p.ParseMisc(num, op)
+	cmd, ok = ed.ParseMisc(num, op)
 	if ok {
 		return cmd, true
 	}
@@ -771,6 +828,7 @@ func (p *Parser) Parse() (Cmd, bool) {
 		subnum = n
 	}
 
+	mv = ""
 	var letter rune = 0
 	if i < len(p.buf) {
 		_, ok := letterMoveSet[p.buf[i]]
@@ -782,18 +840,17 @@ func (p *Parser) Parse() (Cmd, bool) {
 		}
 	}
 
-	if letter == 0 {
-		mv = ""
-		if i > iPrev {
-			mv = string(p.buf[iPrev:i])
+	if mv == "" {
+		if i < len(p.buf) {
+			mv = string(p.buf[i:])
 		}
 	}
 
-	cmd, ok = p.ParseOp(reg, num, op, noSubnum, subnum, mv)
+	cmd, ok = ed.ParseOp(reg, num, op, noSubnum, subnum, mv, letter)
 	if ok {
 		return cmd, true
 	}
-	cmd, ok = p.ParseEdit(num, op, noSubnum, subnum, mv)
+	cmd, ok = ed.ParseEdit(num, op, noSubnum, subnum, mv)
 	if ok {
 		return cmd, true
 	}
