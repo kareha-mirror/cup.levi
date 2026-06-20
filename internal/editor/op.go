@@ -35,7 +35,14 @@ func (ed *Editor) OpCopyRegion(start buffer.Loc, end buffer.Loc) {
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
 func (ed *Editor) OpCopyLineRegion(start int, end int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("OpCopyLineRegion")
+	if end < start {
+		start, end = end, start
+	}
+	b := ed.Buffer()
+	if end+1 > b.NumLines() {
+		return
+	}
+	ed.killed.SetLines(b.Lines[start : end+1])
 }
 
 // yw : Copy word.
