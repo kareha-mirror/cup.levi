@@ -30,6 +30,7 @@ type Buffer struct {
 	Path     string
 	Modified bool
 	Stamp    Stamp
+	Marks    map[rune]Loc
 }
 
 func (b *Buffer) NumLines() int {
@@ -141,4 +142,11 @@ func (b *Buffer) MoveCol(col int) {
 
 func (b *Buffer) AdjustCol(n int) {
 	b.MoveCol(b.Loc.Col + n)
+}
+
+func (b *Buffer) Mark(r rune) {
+	if b.Marks == nil {
+		b.Marks = map[rune]Loc{}
+	}
+	b.Marks[r] = b.Loc
 }
