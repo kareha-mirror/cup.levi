@@ -75,10 +75,10 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		return Pcmd{Kind: PcmdRead}, true
 	case "n", "next":
 		return Pcmd{Kind: PcmdNext}, true
-	case "prev":
+	case "prev", "previous":
 		return Pcmd{Kind: PcmdPrev}, true
 
-	case "sh":
+	case "sh", "shell":
 		return Pcmd{Kind: PcmdShell}, true
 
 	case "wa":
@@ -103,14 +103,14 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 			return Pcmd{Kind: PcmdTabStop, Num: int(n)}, true
 		}
 		switch parts[1] {
-		case "ai":
+		case "ai", "autoindent":
 			return Pcmd{Kind: PcmdAutoIndent}, true
-		case "noai":
+		case "noai", "noautoindent":
 			return Pcmd{Kind: PcmdNoAutoIndent}, true
 		}
 		return Pcmd{Kind: PcmdInvalid}, false
 
-	case "colors":
+	case "col", "colors", "colorscheme":
 		if len(parts) > 1 {
 			return Pcmd{Kind: PcmdColors, Name: parts[1]}, true
 		} else {

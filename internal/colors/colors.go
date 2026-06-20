@@ -6,14 +6,15 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 	"tea.kareha.org/cup/termi"
 )
 
-//go:embed user.yaml
-var userConfig string
+//go:embed custom.yaml
+var customConfig string
 
 //go:embed colors/*.yaml
 var embedFS embed.FS
@@ -61,45 +62,58 @@ func (cfg *config) Colors() (*Colors, error) {
 type List struct {
 	dir string
 
-	Users    []string
-	Builtins []string
+	customs  map[string]bool
+	builtins map[string]bool
 
-	uMap map[string]bool
-	bMap map[string]bool
+	Total []string
 }
 
 func LoadList(dir string) *List {
-	userDir := filepath.Join(dir, "colors")
-	os.Mkdir(userDir, 0777)
-	userPath := filepath.Join(userDir, "user.yaml")
-	_, err := os.Stat(userPath)
+	customDir := filepath.Join(dir, "colors")
+	os.Mkdir(customDir, 0777)
+	customPath := filepath.Join(customDir, "custom.yaml")
+	_, err := os.Stat(customPath)
 	if err != nil {
-		os.WriteFile(userPath, []byte(userConfig), 0666)
+		os.WriteFile(customPath, []byte(customConfig), 0666)
 	}
 
-	users, _ := listUser(dir)
-	builtins, _ := listBuiltin()
-	uMap := map[string]bool{}
-	for _, name := range users {
-		uMap[name] = true
+	cList, _ := listCustom(dir)
+	bList, _ := listBuiltin()
+	customs := map[string]bool{}
+	for _, name := range cList {
+		customs[name] = true
 	}
-	bMap := map[string]bool{}
-	for _, name := range builtins {
-		bMap[name] = true
+	builtins := map[string]bool{}
+	for _, name := range bList {
+		builtins[name] = true
 	}
-	return &List{dir, users, builtins, uMap, bMap}
+
+	tMap := map[string]bool{}
+	for name := range customs {
+		tMap[name] = true
+	}
+	for name := range builtins {
+		tMap[name] = true
+	}
+	total := []string{}
+	for name := range tMap {
+		total = append(total, name)
+	}
+	sort.Strings(total)
+
+	return &List{dir, customs, builtins, total}
 }
 
 func (list *List) Load(name string) (*Colors, error) {
-	if list.uMap[name] {
+	if list.customs[name] {
 		path := filepath.Join(list.dir, "colors", name+".yaml")
-		cfg, err := loadUser(path)
+		cfg, err := loadCustom(path)
 		if err != nil {
 			return nil, err
 		}
 		return cfg.Colors()
 	}
-	if list.bMap[name] {
+	if list.builtins[name] {
 		path := filepath.Join("colors", name+".yaml")
 		cfg, err := loadBuiltin(path)
 		if err != nil {
@@ -110,7 +124,7 @@ func (list *List) Load(name string) (*Colors, error) {
 	return nil, fmt.Errorf("not found")
 }
 
-func listUser(dir string) ([]string, error) {
+func listCustom(dir string) ([]string, error) {
 	colorsDir := filepath.Join(dir, "colors")
 	entries, err := os.ReadDir(colorsDir)
 	if err != nil {
@@ -159,7 +173,7 @@ func parseConfig(b []byte) (*config, error) {
 	return &cfg, nil
 }
 
-func loadUser(path string) (*config, error) {
+func loadCustom(path string) (*config, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

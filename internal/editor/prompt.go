@@ -1,7 +1,6 @@
 package editor
 
 import (
-	"fmt"
 	"strings"
 
 	"tea.kareha.org/cup/termi"
@@ -233,9 +232,7 @@ func (ed *Editor) PromptColors(name string) {
 	list := colors.LoadList(ed.dir)
 
 	if name == "" {
-		users := strings.Join(list.Users, " ")
-		builtins := strings.Join(list.Builtins, " ")
-		ed.Message(fmt.Sprintf("%s | %s", users, builtins))
+		ed.Message(strings.Join(list.Total, " "))
 		return
 	}
 
