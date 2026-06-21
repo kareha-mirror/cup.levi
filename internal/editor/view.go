@@ -8,37 +8,37 @@ package editor
 // Scroll by View Height / Scroll by Line
 //
 
-// Ctrl-f : Scroll down by view height.
+// Ctrl-F : Scroll down by view height.
 func (ed *Editor) ViewDown(n int) {
 	ed.EnsureCommand()
 	ed.Unimplemented("ViewDown")
 }
 
-// Ctrl-b : Scroll up by view height.
+// Ctrl-B : Scroll up by view height.
 func (ed *Editor) ViewUp(n int) {
 	ed.EnsureCommand()
 	ed.Unimplemented("ViewUp")
 }
 
-// Ctrl-d : Scroll down by half view height.
+// Ctrl-D : Scroll down by half view height.
 func (ed *Editor) ViewDownHalf(n int) {
 	ed.EnsureCommand()
 	ed.Unimplemented("ViewDownHalf")
 }
 
-// Ctrl-u : Scroll up by half view height.
+// Ctrl-U : Scroll up by half view height.
 func (ed *Editor) ViewUpHalf(n int) {
 	ed.EnsureCommand()
 	ed.Unimplemented("ViewUpHalf")
 }
 
-// Ctrl-y : Scroll down by line.
+// Ctrl-Y : Scroll down by line.
 func (ed *Editor) ViewDownLine(n int) {
 	ed.EnsureCommand()
 	ed.Unimplemented("ViewDownLine")
 }
 
-// Ctrl-e : Scroll up by line.
+// Ctrl-E : Scroll up by line.
 func (ed *Editor) ViewUpLine(n int) {
 	ed.EnsureCommand()
 	ed.Unimplemented("ViewUpLine")
@@ -70,7 +70,7 @@ func (ed *Editor) ViewToBottom() {
 // Redraw
 //
 
-// Ctrl-l : Redraw view.
+// Ctrl-L : Redraw view.
 func (ed *Editor) ViewRedraw() {
 	ed.EnsureCommand()
 	ed.redraw = true

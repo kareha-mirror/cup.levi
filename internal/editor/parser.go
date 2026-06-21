@@ -237,32 +237,32 @@ func (ed *Editor) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
 
 func (ed *Editor) ParseView(num int, op string) (Cmd, bool) {
 	switch op {
-	case "\x06": // Ctrl-f
+	case "\x06": // Ctrl-F
 		return Cmd{
 			Kind: CmdViewDown,
 			Num:  num,
 		}, true
-	case "\x02": // Ctrl-b
+	case "\x02": // Ctrl-B
 		return Cmd{
 			Kind: CmdViewUp,
 			Num:  num,
 		}, true
-	case "\x04": // Ctrl-d
+	case "\x04": // Ctrl-D
 		return Cmd{
 			Kind: CmdViewDownHalf,
 			Num:  num,
 		}, true
-	case "\x15": // Ctrl-u
+	case "\x15": // Ctrl-U
 		return Cmd{
 			Kind: CmdViewUpHalf,
 			Num:  num,
 		}, true
-	case "\x19": // Ctrl-y
+	case "\x19": // Ctrl-Y
 		return Cmd{
 			Kind: CmdViewDownLine,
 			Num:  num,
 		}, true
-	case "\x05": // Ctrl-e
+	case "\x05": // Ctrl-E
 		return Cmd{
 			Kind: CmdViewUpLine,
 			Num:  num,
@@ -275,7 +275,7 @@ func (ed *Editor) ParseView(num int, op string) (Cmd, bool) {
 	case "z-":
 		return Cmd{Kind: CmdViewToBottom}, true
 
-	case "\x0c": // Ctrl-l
+	case "\x0c": // Ctrl-L
 		return Cmd{Kind: CmdViewRedraw}, true
 	}
 
@@ -436,7 +436,7 @@ func (ed *Editor) ParseInsert(num int, op string) (Cmd, bool) {
 
 func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 	switch op {
-	case "\x07": // Ctrl-g
+	case "\x07": // Ctrl-G
 		return Cmd{Kind: CmdMiscShowInfo}, true
 	case ".":
 		return Cmd{
@@ -452,7 +452,7 @@ func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 		return Cmd{Kind: CmdMiscRestore}, true
 	case "ZZ":
 		return Cmd{Kind: CmdMiscSaveAndQuit}, true
-	case "\x1a": // Ctrl-z
+	case "\x1a": // Ctrl-Z
 		return Cmd{Kind: CmdMiscSuspend}, true
 	}
 

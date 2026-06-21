@@ -92,12 +92,12 @@ Command categories:
 
 === Scroll by View Height / Scroll by Line ===
 
-* Ctrl-f : Scroll down by view height. (ViewDown)
-* Ctrl-b : Scroll up by view height. (ViewUp)
-* Ctrl-d : Scroll down by half view height. (ViewDownHalf)
-* Ctrl-u : Scroll up by half view height. (ViewUpHalf)
-* Ctrl-y : Scroll down by line. (ViewDownLine)
-* Ctrl-e : Scroll up by line. (ViewUpLine)
+* Ctrl-F : Scroll down by view height. (ViewDown)
+* Ctrl-B : Scroll up by view height. (ViewUp)
+* Ctrl-D : Scroll down by half view height. (ViewDownHalf)
+* Ctrl-U : Scroll up by half view height. (ViewUpHalf)
+* Ctrl-Y : Scroll down by line. (ViewDownLine)
+* Ctrl-E : Scroll up by line. (ViewUpLine)
 
 === Reposition ===
 
@@ -107,7 +107,7 @@ Command categories:
 
 === Redraw ===
 
-* Ctrl-l : Redraw view. (ViewRedraw)
+* Ctrl-L : Redraw view. (ViewRedraw)
 
 == Search Commands ==
 
@@ -187,7 +187,7 @@ Command categories:
 
 == Miscellaneous Commands ==
 
-* Ctrl-g : Show info such as current cursor position. (MiscShowInfo)
+* Ctrl-G : Show info such as current cursor position. (MiscShowInfo)
 * . : Repeat last edit. (MiscRepeat)
 * u : Undo. (MiscUndo)
 * U : Restore current line to previous state. (MiscRestore)

@@ -10,7 +10,7 @@ import (
 // Miscellaneous Commands //
 ////////////////////////////
 
-// Ctrl-g : Show info such as current cursor position.
+// Ctrl-G : Show info such as current cursor position.
 func (ed *Editor) MiscShowInfo() {
 	ed.EnsureCommand()
 	b := ed.Buffer()
@@ -68,7 +68,7 @@ func (ed *Editor) MiscSaveAndQuit() {
 	ed.Close(false)
 }
 
-// Ctrl-z : Suspend.
+// Ctrl-Z : Suspend.
 func (ed *Editor) MiscSuspend() {
 	ed.EnsureCommand()
 	termi.Suspend()
