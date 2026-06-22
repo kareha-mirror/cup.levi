@@ -1,5 +1,9 @@
 package editor
 
+import (
+	"tea.kareha.org/cup/levi/internal/buffer"
+)
+
 ///////////////////
 // View Commands //
 ///////////////////
@@ -17,7 +21,7 @@ func (ed *Editor) ViewDown(n int) {
 	}
 	b := ed.Buffer()
 	b.Loc = ed.vMeta[i].Loc
-	b.ViewRow = b.Loc.Row
+	b.ViewLoc = b.Loc
 	if b.Loc.Col < 1 {
 		ed.toNonBlankCol()
 	}
@@ -27,11 +31,11 @@ func (ed *Editor) ViewDown(n int) {
 func (ed *Editor) ViewUp(n int) {
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	viewRow := b.ViewRow - (ed.h - 3)
+	viewRow := b.ViewLoc.Row - (ed.h - 3)
 	if viewRow < 0 {
 		viewRow = 0
 	}
-	_, viewMeta := ed.DrawBuffer(viewRow)
+	_, viewMeta := ed.DrawBuffer(buffer.Loc{0, viewRow})
 	if len(viewMeta) < 1 {
 		return
 	}
@@ -49,10 +53,17 @@ func (ed *Editor) ViewUp(n int) {
 	if deltaRow >= len(viewMeta) {
 		return
 	}
-	b.Loc = viewMeta[deltaRow].Loc
+	newViewLoc := viewMeta[deltaRow].Loc
+	_, viewMeta = ed.DrawBuffer(newViewLoc)
+	if len(viewMeta) < 2 {
+		return
+	}
+	b.ViewLoc = newViewLoc
+	b.Loc = viewMeta[len(viewMeta)-2].Loc
 	if b.Loc.Col < 1 {
 		ed.toNonBlankCol()
 	}
+	// TODO buggy
 }
 
 // Ctrl-D : Scroll down by half view height.

@@ -29,10 +29,18 @@ func (ed *Editor) UpdateCursor() {
 	}
 	b.Pos.X = 0
 	dy := 0
+	first := true
+	colSum := 0
 	if current != "" {
 		lines := termi.Wrap(current, ed.w, ed.mode == ModeInsert)
 		for _, line := range lines {
 			rc := utf8.RuneCountInString(line)
+			if first && colSum < b.ViewLoc.Col {
+				colSum += rc
+				col -= rc
+				continue
+			}
+			first = false
 			if col < rc {
 				b.Pos.X = termi.StringWidth(line, col)
 				r := runeAt(line, col)
@@ -64,30 +72,52 @@ func (ed *Editor) UpdateCursor() {
 		}
 	}
 
-	if b.Loc.Row < b.ViewRow {
-		b.ViewRow = b.Loc.Row
+	if b.Loc.Row < b.ViewLoc.Row {
+		b.ViewLoc.Row = b.Loc.Row
+		b.ViewLoc.Col = 0
 	}
 
 	y := 0
-	for i := b.ViewRow; i < b.Loc.Row; i++ {
+	first = true
+	colSum = 0
+	for i := b.ViewLoc.Row; i < b.Loc.Row; i++ {
 		lines := termi.Wrap(ed.Line(i), ed.w, false)
-		y += len(lines)
+		for _, line := range lines {
+			rc := utf8.RuneCountInString(line)
+			if first && colSum < b.ViewLoc.Col {
+				colSum += rc
+				continue
+			}
+			first = false
+			y++
+		}
 	}
 	b.Pos.Y = y + dy
 
+	first = true
+	colSum = 0
 	for b.Pos.Y >= ed.h-1 {
-		b.ViewRow++
+		b.ViewLoc.Row++
+		b.ViewLoc.Col = 0
 
 		y := 0
-		for i := b.ViewRow; i < b.Loc.Row; i++ {
+		for i := b.ViewLoc.Row; i < b.Loc.Row; i++ {
 			lines := termi.Wrap(ed.Line(i), ed.w, false)
-			y += len(lines)
+			for _, line := range lines {
+				rc := utf8.RuneCountInString(line)
+				if first && colSum < b.ViewLoc.Col {
+					colSum += rc
+					continue
+				}
+				first = false
+				y++
+			}
 		}
 		b.Pos.Y = y + dy
 	}
 }
 
-func (ed *Editor) DrawBuffer(viewRow int) ([]string, []ViewMeta) {
+func (ed *Editor) DrawBuffer(viewLoc buffer.Loc) ([]string, []ViewMeta) {
 	b := ed.Buffer()
 	view := []string{}
 	vMeta := []ViewMeta{}
@@ -95,7 +125,8 @@ func (ed *Editor) DrawBuffer(viewRow int) ([]string, []ViewMeta) {
 	sb := strings.Builder{}
 
 	y := 0
-	for i := viewRow; i < numLines+ed.inp.LineLen()-1; i++ {
+	first := true
+	for i := viewLoc.Row; i < numLines+ed.inp.LineLen()-1; i++ {
 		tail := i == b.Loc.Row && ed.mode == ModeInsert
 		lines := termi.Wrap(ed.Line(i), ed.w, tail)
 
@@ -111,6 +142,11 @@ func (ed *Editor) DrawBuffer(viewRow int) ([]string, []ViewMeta) {
 			}
 			sb.WriteString(termi.Render(line))
 			rc := utf8.RuneCountInString(line)
+			if first && viewLoc.Col > col {
+				col += rc
+				continue
+			}
+			first = false
 			if termi.StringWidth(line, rc) < ed.w {
 				sb.WriteString(termi.ClearTail)
 			}
@@ -224,7 +260,7 @@ func (ed *Editor) Draw() {
 	ed.UpdateCursor()
 
 	b := ed.Buffer()
-	view, vMeta := ed.DrawBuffer(b.ViewRow)
+	view, vMeta := ed.DrawBuffer(b.ViewLoc)
 	ed.view = view
 	ed.vMeta = vMeta
 

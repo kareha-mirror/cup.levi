@@ -23,7 +23,7 @@ type Stamp struct {
 
 type Buffer struct {
 	Loc      Loc
-	ViewRow  int // 0-based
+	ViewLoc  Loc
 	VirtCol  int // 0-based
 	Pos      Pos
 	Lines    []string
@@ -118,6 +118,9 @@ func (b *Buffer) ConfineCol() {
 	rc := utf8.RuneCountInString(b.CurrentLine())
 	if b.Loc.Col >= rc {
 		b.Loc.Col = max(rc-1, 0)
+	}
+	if b.Loc.Col < b.ViewLoc.Col {
+		b.ViewLoc.Col = 0
 	}
 }
 
