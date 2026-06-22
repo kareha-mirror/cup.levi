@@ -243,7 +243,24 @@ func (ed *Editor) OpDeleteRegion(start buffer.Loc, end buffer.Loc) {
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
 func (ed *Editor) OpDeleteLineRegion(start int, end int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("OpDeleteLineRegion")
+	if end < start {
+		start, end = end, start
+	}
+	b := ed.Buffer()
+	if end+1 > b.NumLines() {
+		return
+	}
+	lines := []string{}
+	if start > 0 {
+		lines = append(lines, b.Lines[:start]...)
+	}
+	ed.killed.SetLines(b.Lines[start : end+1])
+	if end+1 <= b.NumLines()-1 {
+		lines = append(lines, b.Lines[end+1:]...)
+	}
+	b.Lines = lines
+	b.Confine()
+	b.Modified = true
 }
 
 // dw : Delete word.
