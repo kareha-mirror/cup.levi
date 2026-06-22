@@ -298,10 +298,10 @@ func (ed *Editor) MoveBackwardBySection(n int) {
 // H : Move cursor to top of view.
 func (ed *Editor) MoveToTopOfView() {
 	ed.EnsureCommand()
-	i := 0
-	if i >= len(ed.vMeta) {
+	if len(ed.vMeta) < 1 {
 		return
 	}
+	i := 0
 	b := ed.Buffer()
 	b.Loc = ed.vMeta[i].Loc
 	if b.Loc.Col < 1 {
@@ -312,10 +312,10 @@ func (ed *Editor) MoveToTopOfView() {
 // M : Move cursor to middle of view.
 func (ed *Editor) MoveToMiddleOfView() {
 	ed.EnsureCommand()
-	i := len(ed.vMeta)/2 - 1
-	if i >= len(ed.vMeta) {
+	if len(ed.vMeta) < 1 {
 		return
 	}
+	i := len(ed.vMeta)/2 - 1
 	b := ed.Buffer()
 	b.Loc = ed.vMeta[i].Loc
 	if b.Loc.Col < 1 {
@@ -326,10 +326,10 @@ func (ed *Editor) MoveToMiddleOfView() {
 // L : Move cursor to bottom of view.
 func (ed *Editor) MoveToBottomOfView() {
 	ed.EnsureCommand()
-	i := len(ed.vMeta) - 1
-	if i >= len(ed.vMeta) {
+	if len(ed.vMeta) < 1 {
 		return
 	}
+	i := len(ed.vMeta) - 1
 	b := ed.Buffer()
 	b.Loc = ed.vMeta[i].Loc
 	if b.Loc.Col < 1 {
@@ -344,10 +344,10 @@ func (ed *Editor) MoveToBelowTopOfView(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	i := n - 1
-	if i >= len(ed.vMeta) {
+	if len(ed.vMeta) < 1 {
 		return
 	}
+	i := n - 1
 	b := ed.Buffer()
 	b.Loc = ed.vMeta[i].Loc
 	if b.Loc.Col < 1 {
