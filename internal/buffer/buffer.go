@@ -153,3 +153,84 @@ func (b *Buffer) Mark(r rune) {
 	}
 	b.Marks[r] = b.Loc
 }
+
+func isBlank(r rune) bool {
+	return r == ' ' || r == '\t'
+}
+
+func (b *Buffer) SkipBlankLines() bool {
+	for b.Loc.Row < b.NumLines() {
+		line := b.CurrentLine()
+		col := b.Loc.Col
+		i := 0
+		for _, r := range line {
+			if i >= col && !isBlank(r) {
+				b.Loc.Col = col
+				return true
+			}
+			i++
+		}
+		if b.Loc.Row >= b.NumLines()-1 {
+			b.Loc.Col = i
+			return false
+		}
+		b.Loc.Row++
+		b.Loc.Col = 0
+	}
+	return false
+}
+
+func isWordRune(r rune) bool {
+	return (r >= '0' && r <= '9') ||
+		(r >= 'A' && r <= 'Z') ||
+		(r >= 'a' && r <= 'z')
+}
+
+func isSymbol(r rune) bool {
+	return !isBlank(r) && !isWordRune(r) && r < 0x100
+}
+
+func (b *Buffer) MoveByWord(first bool) bool {
+	line := b.CurrentLine()
+	if len(line) < 1 {
+		return false
+	}
+	rs := []rune(line)
+	if first && isWordRune(rs[b.Loc.Col]) {
+		col := b.Loc.Col + 1
+		for ; col < len(rs); col++ {
+			if isSymbol(rs[col]) {
+				b.Loc.Col = col
+				return true
+			}
+			if !isWordRune(rs[col]) {
+				break
+			}
+		}
+		if col >= len(rs) {
+			b.Loc.Col = len(rs) - 1
+			return false
+		}
+		for ; col < len(rs); col++ {
+			if isWordRune(rs[col]) || isSymbol(rs[col]) {
+				b.Loc.Col = col
+				return true
+			}
+		}
+		b.Loc.Col = len(rs) - 1
+		return false
+	} else {
+		col := b.Loc.Col
+		if first {
+			col++
+		}
+		for ; col < len(rs); col++ {
+			if isWordRune(rs[col]) || isSymbol(rs[col]) {
+				b.Loc.Col = col
+				return true
+			}
+		}
+		b.Loc.Col = len(rs) - 1
+		return false
+	}
+}

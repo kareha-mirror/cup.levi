@@ -122,7 +122,23 @@ func (ed *Editor) MoveByWord(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	ed.Unimplemented("MoveByWord")
+	b := ed.Buffer()
+	if b.MoveByWord(true) {
+		return
+	}
+	if b.Loc.Row >= b.NumLines()-1 {
+		ed.MoveToEnd()
+		return
+	}
+	b.Loc.Row++
+	b.Loc.Col = 0
+	if !b.SkipBlankLines() {
+		return
+	}
+	if b.MoveByWord(false) {
+		return
+	}
+	ed.MoveToEnd()
 }
 
 // b : Move cursor backward by word.
