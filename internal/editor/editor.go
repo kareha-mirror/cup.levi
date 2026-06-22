@@ -403,7 +403,14 @@ func (ed *Editor) Ring(format string, a ...any) {
 }
 
 func (ed *Editor) Error(format string, a ...any) {
-	ed.ring = fmt.Sprintf("Error: "+format, a...)
+	ed.Ring("Error: "+format, a...)
+}
+
+func (ed *Editor) Notice(format string, a ...any) {
+	if ed.cfg.Silent {
+		return
+	}
+	ed.Message("Notice: "+format, a...)
 }
 
 func (ed *Editor) Unimplemented(name string) {

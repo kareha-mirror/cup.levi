@@ -6,6 +6,25 @@ import (
 	"tea.kareha.org/cup/levi/internal/buffer"
 )
 
+func (ed *Editor) Locate(loc buffer.Loc) {
+	b := ed.Buffer()
+	b.Loc = loc
+	if len(ed.vMeta) < 1 {
+		return
+	}
+	minRow := ed.vMeta[0].Loc.Row
+	maxRow := ed.vMeta[len(ed.vMeta)-1].Loc.Row
+	if loc.Row >= minRow && loc.Row <= maxRow {
+		// XXX col is not checked
+		return
+	}
+	viewRow := loc.Row - (ed.h-1)/2 + 1
+	if viewRow < 0 {
+		viewRow = 0
+	}
+	b.ViewLoc.Row = viewRow
+}
+
 /////////////////////
 // Search Commands //
 /////////////////////
@@ -36,10 +55,10 @@ func (ed *Editor) SearchForward() {
 		if row == b.Loc.Row {
 			col += b.Loc.Col + 1
 		}
-		b.Loc = buffer.Loc{col, row}
+		ed.Locate(buffer.Loc{col, row})
 		return
 	}
-	ed.Message("Search wrapped")
+	ed.Ring("Search wrapped")
 	for row := 0; row <= b.Loc.Row; row++ {
 		line := b.Line(row)
 		loc := ed.regexp.FindStringIndex(line)
@@ -47,10 +66,10 @@ func (ed *Editor) SearchForward() {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:loc[0]])
-		b.Loc = buffer.Loc{col, row}
+		ed.Locate(buffer.Loc{col, row})
 		return
 	}
-	ed.Message("Pattern not found")
+	ed.Ring("Pattern not found")
 }
 
 // ?<pattern> Enter : Search <pattern> backward.
@@ -88,10 +107,10 @@ func (ed *Editor) SearchBackward() {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		b.Loc = buffer.Loc{col, row}
+		ed.Locate(buffer.Loc{col, row})
 		return
 	}
-	ed.Message("Search wrapped")
+	ed.Ring("Search wrapped")
 	for row := b.NumLines() - 1; row >= b.Loc.Row; row-- {
 		line := b.Line(row)
 		subLine := line
@@ -113,10 +132,10 @@ func (ed *Editor) SearchBackward() {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		b.Loc = buffer.Loc{col, row}
+		ed.Locate(buffer.Loc{col, row})
 		return
 	}
-	ed.Message("Pattern not found")
+	ed.Ring("Pattern not found")
 }
 
 // n : Search next match.

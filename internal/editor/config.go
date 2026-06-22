@@ -12,6 +12,7 @@ type Config struct {
 	AutoIndent bool   `yaml:"auto-indent"`
 	TabStop    int    `yaml:"tab-stop"`
 	Colors     string `yaml:"colors"`
+	Silent     bool   `yaml:"silent"`
 }
 
 func DefaultConfig() *Config {
@@ -19,6 +20,7 @@ func DefaultConfig() *Config {
 		AutoIndent: true,
 		TabStop:    4,
 		Colors:     "standard",
+		Silent:     false,
 	}
 }
 

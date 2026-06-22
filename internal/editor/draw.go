@@ -268,9 +268,13 @@ func (ed *Editor) Draw() {
 	}
 	fmt.Print(termi.HomeCursor)
 
+	b := ed.Buffer()
+	if b.Loc.Row-b.ViewLoc.Row >= ed.h-1 {
+		b.ViewLoc.Row = b.Loc.Row - (ed.h - 2)
+	}
+
 	ed.UpdateCursor()
 
-	b := ed.Buffer()
 	view, vMeta := ed.DrawBuffer(b.ViewLoc)
 	ed.view = view
 	ed.vMeta = vMeta
