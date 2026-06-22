@@ -210,6 +210,12 @@ func (ed *Editor) DrawStatus() {
 		ed.message = ""
 	} else if ed.mode == ModePrompt {
 		fmt.Printf(":%s", ed.prompt.String())
+	} else if ed.mode == ModeSearch {
+		head := "/"
+		if ed.backward {
+			head = "?"
+		}
+		fmt.Printf("%s%s", head, ed.pattern.String())
 	} else {
 		mode := ""
 		switch ed.mode {
@@ -237,6 +243,11 @@ func (ed *Editor) DrawStatus() {
 func (ed *Editor) PlaceCursor() {
 	if ed.mode == ModePrompt {
 		line := ":" + ed.prompt.String()
+		rc := utf8.RuneCountInString(line)
+		x := termi.StringWidth(line, rc)
+		fmt.Print(termi.MoveCursor(x, ed.h-1))
+	} else if ed.mode == ModeSearch {
+		line := "/" + ed.pattern.String()
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))

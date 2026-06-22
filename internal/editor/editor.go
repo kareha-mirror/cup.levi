@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
@@ -69,6 +70,9 @@ type Editor struct {
 	parser   *Parser
 	prompt   termi.RuneBuf
 	killed   KillBuf
+	backward bool
+	pattern  termi.RuneBuf
+	regexp   *regexp.Regexp
 	lastCmd  Cmd
 	redraw   bool
 	view     []string
@@ -194,6 +198,9 @@ func Init(dir string, args []string) (*Editor, error) {
 		parser:   NewParser(),
 		prompt:   termi.RuneBuf{},
 		killed:   KillBuf{},
+		backward: false,
+		pattern:  termi.RuneBuf{},
+		regexp:   nil,
 		lastCmd:  Cmd{Kind: CmdInvalid},
 		redraw:   true,
 		view:     []string{},

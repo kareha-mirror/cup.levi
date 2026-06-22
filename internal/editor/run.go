@@ -159,10 +159,10 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 
 	switch c.Kind {
 	case CmdSearchForward:
-		ed.SearchForward(c.Pat)
+		ed.SearchForward()
 		return true
 	case CmdSearchBackward:
-		ed.SearchBackward(c.Pat)
+		ed.SearchBackward()
 		return true
 	case CmdSearchNextMatch:
 		ed.SearchNextMatch()

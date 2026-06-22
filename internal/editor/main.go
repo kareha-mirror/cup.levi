@@ -2,6 +2,7 @@ package editor
 
 import (
 	"fmt"
+	"regexp"
 
 	"tea.kareha.org/cup/termi"
 )
@@ -27,6 +28,18 @@ func (ed *Editor) Main() {
 					if ed.parser.String() == "" && key.Rune == ':' {
 						ed.parser.ClearAll()
 						ed.mode = ModePrompt
+						continue
+					}
+					if ed.parser.String() == "" && key.Rune == '/' {
+						ed.parser.ClearAll()
+						ed.mode = ModeSearch
+						ed.backward = false
+						continue
+					}
+					if ed.parser.String() == "" && key.Rune == '?' {
+						ed.parser.ClearAll()
+						ed.mode = ModeSearch
+						ed.backward = true
 						continue
 					}
 					ed.parser.InsertRune(key.Rune)
@@ -101,6 +114,44 @@ func (ed *Editor) Main() {
 						}
 					default:
 						ed.prompt.WriteRune(key.Rune)
+					}
+				default:
+					ed.Ring("unknown key")
+				}
+			case ModeSearch:
+				switch key.Kind {
+				case termi.KeyRune:
+					switch key.Rune {
+					case termi.RuneEscape:
+						ed.pattern.Reset()
+						ed.mode = ModeCommand
+					case termi.RuneEnter, termi.RuneNewline:
+						if ed.pattern.Len() < 1 {
+							if ed.backward {
+								ed.SearchRepeatBackward()
+							} else {
+								ed.SearchRepeatForward()
+							}
+							continue
+						}
+						re, err := regexp.Compile(ed.pattern.String())
+						if err != nil {
+							ed.Ring("%v", err)
+							continue
+						}
+						ed.regexp = re
+						ed.pattern.Reset()
+						if ed.backward {
+							ed.SearchBackward()
+						} else {
+							ed.SearchForward()
+						}
+					case termi.RuneBackspace, termi.RuneDelete:
+						if !ed.pattern.RemoveTail() {
+							ed.mode = ModeCommand
+						}
+					default:
+						ed.pattern.WriteRune(key.Rune)
 					}
 				default:
 					ed.Ring("unknown key")
