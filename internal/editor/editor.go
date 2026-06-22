@@ -49,6 +49,10 @@ func (k *KillBuf) SetLines(lines []string) {
 	k.lines = append([]string{}, lines...)
 }
 
+type ViewMeta struct {
+	Row int
+}
+
 type Editor struct {
 	dir      string
 	cfg      *Config
@@ -68,6 +72,7 @@ type Editor struct {
 	lastCmd  Cmd
 	redraw   bool
 	view     []string
+	vMeta    []ViewMeta
 	listener termi.EscapeListener
 	esc      bool
 	colors   *colors.Colors

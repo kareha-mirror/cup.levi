@@ -11,13 +11,35 @@ package editor
 // Ctrl-F : Scroll down by view height.
 func (ed *Editor) ViewDown(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("ViewDown")
+	b := ed.Buffer()
+	i := len(ed.vMeta) - 2
+	if i < 0 {
+		return
+	}
+	b.Loc.Row = ed.vMeta[i].Row
+	b.ViewRow = b.Loc.Row
+	ed.toNonBlankCol()
 }
 
 // Ctrl-B : Scroll up by view height.
 func (ed *Editor) ViewUp(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("ViewUp")
+	b := ed.Buffer()
+	if len(ed.vMeta) < 1 {
+		return
+	}
+	row := ed.vMeta[0].Row
+	row -= ed.h - 3
+	if row < 0 {
+		row = 0
+	}
+	newRow := b.ViewRow
+	if newRow < 0 {
+		newRow = 0
+	}
+	b.ViewRow = row
+	b.Loc.Row = newRow
+	ed.toNonBlankCol()
 }
 
 // Ctrl-D : Scroll down by half view height.

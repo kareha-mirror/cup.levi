@@ -298,8 +298,12 @@ func (ed *Editor) MoveBackwardBySection(n int) {
 // H : Move cursor to top of view.
 func (ed *Editor) MoveToTopOfView() {
 	ed.EnsureCommand()
+	i := 0
+	if i >= len(ed.vMeta) {
+		return
+	}
 	b := ed.Buffer()
-	b.Loc.Row = b.ViewRow
+	b.Loc.Row = ed.vMeta[i].Row
 	b.ConfineRow()
 	ed.toNonBlankCol()
 }
@@ -307,8 +311,12 @@ func (ed *Editor) MoveToTopOfView() {
 // M : Move cursor to middle of view.
 func (ed *Editor) MoveToMiddleOfView() {
 	ed.EnsureCommand()
+	i := len(ed.vMeta)/2 - 1
+	if i >= len(ed.vMeta) {
+		return
+	}
 	b := ed.Buffer()
-	b.Loc.Row = b.ViewRow + ed.h/2 - 1
+	b.Loc.Row = ed.vMeta[i].Row
 	b.ConfineRow()
 	ed.toNonBlankCol()
 }
@@ -316,8 +324,12 @@ func (ed *Editor) MoveToMiddleOfView() {
 // L : Move cursor to bottom of view.
 func (ed *Editor) MoveToBottomOfView() {
 	ed.EnsureCommand()
+	i := len(ed.vMeta) - 1
+	if i >= len(ed.vMeta) {
+		return
+	}
 	b := ed.Buffer()
-	b.Loc.Row = b.ViewRow + ed.h - 2
+	b.Loc.Row = ed.vMeta[i].Row
 	b.ConfineRow()
 	ed.toNonBlankCol()
 }
@@ -329,12 +341,12 @@ func (ed *Editor) MoveToBelowTopOfView(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	b := ed.Buffer()
-	if n-1 > ed.h-2 {
-		ed.Ring("Out of range")
+	i := n - 1
+	if i >= len(ed.vMeta) {
 		return
 	}
-	b.Loc.Row = b.ViewRow + n - 1
+	b := ed.Buffer()
+	b.Loc.Row = ed.vMeta[i].Row
 	b.ConfineRow()
 	ed.toNonBlankCol()
 }
@@ -346,12 +358,12 @@ func (ed *Editor) MoveToAboveBottomOfView(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	b := ed.Buffer()
-	if n-1 > ed.h-2 {
-		ed.Ring("Out of range")
+	i := len(ed.vMeta) - n
+	if i < 0 {
 		return
 	}
-	b.Loc.Row = b.ViewRow + ed.h - 2 - (n - 1)
+	b := ed.Buffer()
+	b.Loc.Row = ed.vMeta[i].Row
 	b.ConfineRow()
 	ed.toNonBlankCol()
 }

@@ -88,6 +88,7 @@ func (ed *Editor) UpdateCursor() {
 func (ed *Editor) DrawBuffer() {
 	b := ed.Buffer()
 	view := []string{}
+	vMeta := []ViewMeta{}
 	numLines := max(b.NumLines(), 1)
 	sb := strings.Builder{}
 
@@ -115,6 +116,7 @@ func (ed *Editor) DrawBuffer() {
 			}
 			view = append(view, sb.String())
 			sb.Reset()
+			vMeta = append(vMeta, ViewMeta{i})
 
 			y++
 			if y >= ed.h-1 {
@@ -126,6 +128,7 @@ func (ed *Editor) DrawBuffer() {
 			break
 		}
 	}
+	ed.vMeta = vMeta
 
 	for ; y < ed.h-1; y++ {
 		sb.WriteString(termi.MoveCursor(0, y))
