@@ -35,7 +35,7 @@ func (ed *Editor) ViewUp(n int) {
 	if viewRow < 0 {
 		viewRow = 0
 	}
-	_, viewMeta := ed.DrawBuffer(buffer.Loc{0, viewRow})
+	viewMeta := ed.RenderMeta(buffer.Loc{0, viewRow})
 	if len(viewMeta) < 1 {
 		return
 	}
@@ -54,7 +54,7 @@ func (ed *Editor) ViewUp(n int) {
 		return
 	}
 	newViewLoc := viewMeta[deltaRow].Loc
-	_, viewMeta = ed.DrawBuffer(newViewLoc)
+	viewMeta = ed.RenderMeta(newViewLoc)
 	if len(viewMeta) < 2 {
 		return
 	}

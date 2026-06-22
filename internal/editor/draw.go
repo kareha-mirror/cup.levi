@@ -22,6 +22,11 @@ func runeAt(s string, i int) rune {
 
 func (ed *Editor) UpdateCursor() {
 	b := ed.Buffer()
+	if b.Loc.Row-b.ViewLoc.Row >= ed.h-1 {
+		b.ViewLoc.Row = b.Loc.Row - (ed.h - 2)
+		b.ViewLoc.Col = 0
+	}
+
 	current := ed.CurrentLine()
 	col := b.Loc.Col
 	if ed.mode == ModeInsert && b.Loc.Col > 0 {
@@ -117,7 +122,9 @@ func (ed *Editor) UpdateCursor() {
 	}
 }
 
-func (ed *Editor) DrawBuffer(viewLoc buffer.Loc) ([]string, []ViewMeta) {
+func (ed *Editor) renderBuffer(
+	viewLoc buffer.Loc, real bool,
+) ([]string, []ViewMeta) {
 	b := ed.Buffer()
 	view := []string{}
 	vMeta := []ViewMeta{}
@@ -132,29 +139,33 @@ func (ed *Editor) DrawBuffer(viewLoc buffer.Loc) ([]string, []ViewMeta) {
 
 		col := 0
 		for _, line := range lines {
-			sb.WriteString(termi.MoveCursor(0, y))
-			if ed.colors != nil {
-				if i == b.Loc.Row {
-					sb.WriteString(ed.colors.Current.Seq())
-				} else {
-					sb.WriteString(ed.colors.Buffer.Seq())
+			if real {
+				sb.WriteString(termi.MoveCursor(0, y))
+				if ed.colors != nil {
+					if i == b.Loc.Row {
+						sb.WriteString(ed.colors.Current.Seq())
+					} else {
+						sb.WriteString(ed.colors.Buffer.Seq())
+					}
 				}
+				sb.WriteString(termi.Render(line))
 			}
-			sb.WriteString(termi.Render(line))
 			rc := utf8.RuneCountInString(line)
 			if first && viewLoc.Col > col {
 				col += rc
 				continue
 			}
 			first = false
-			if termi.StringWidth(line, rc) < ed.w {
-				sb.WriteString(termi.ClearTail)
+			if real {
+				if termi.StringWidth(line, rc) < ed.w {
+					sb.WriteString(termi.ClearTail)
+				}
+				if ed.colors != nil {
+					sb.WriteString(termi.ResetAttr)
+				}
+				view = append(view, sb.String())
+				sb.Reset()
 			}
-			if ed.colors != nil {
-				sb.WriteString(termi.ResetAttr)
-			}
-			view = append(view, sb.String())
-			sb.Reset()
 			loc := buffer.Loc{col, i}
 			vMeta = append(vMeta, ViewMeta{loc})
 			col += rc
@@ -170,28 +181,45 @@ func (ed *Editor) DrawBuffer(viewLoc buffer.Loc) ([]string, []ViewMeta) {
 		}
 	}
 
-	for ; y < ed.h-1; y++ {
-		sb.WriteString(termi.MoveCursor(0, y))
-		if ed.colors != nil {
-			sb.WriteString(ed.colors.Border.Seq())
+	if real {
+		for ; y < ed.h-1; y++ {
+			sb.WriteString(termi.MoveCursor(0, y))
+			if ed.colors != nil {
+				sb.WriteString(ed.colors.Border.Seq())
+			}
+			sb.WriteString(termi.Render("~"))
+			sb.WriteString(termi.ClearTail)
+			if ed.colors != nil {
+				sb.WriteString(termi.ResetAttr)
+			}
+			view = append(view, sb.String())
+			sb.Reset()
 		}
-		sb.WriteString(termi.Render("~"))
-		sb.WriteString(termi.ClearTail)
-		if ed.colors != nil {
-			sb.WriteString(termi.ResetAttr)
-		}
-		view = append(view, sb.String())
-		sb.Reset()
 	}
 
+	return view, vMeta
+}
+
+func (ed *Editor) RenderBuffer(viewLoc buffer.Loc) ([]string, []ViewMeta) {
+	return ed.renderBuffer(viewLoc, true)
+}
+
+func (ed *Editor) RenderMeta(loc buffer.Loc) []ViewMeta {
+	_, vMeta := ed.renderBuffer(loc, false)
+	return vMeta
+}
+
+func (ed *Editor) DrawBuffer() {
+	b := ed.Buffer()
+	view, vMeta := ed.RenderBuffer(b.ViewLoc)
 	for i, line := range view {
 		if i < len(ed.view) && line == ed.view[i] {
 			continue
 		}
 		fmt.Print(line)
 	}
-
-	return view, vMeta
+	ed.view = view
+	ed.vMeta = vMeta
 }
 
 func (ed *Editor) DrawStatus() {
@@ -268,17 +296,8 @@ func (ed *Editor) Draw() {
 	}
 	fmt.Print(termi.HomeCursor)
 
-	b := ed.Buffer()
-	if b.Loc.Row-b.ViewLoc.Row >= ed.h-1 {
-		b.ViewLoc.Row = b.Loc.Row - (ed.h - 2)
-	}
-
 	ed.UpdateCursor()
-
-	view, vMeta := ed.DrawBuffer(b.ViewLoc)
-	ed.view = view
-	ed.vMeta = vMeta
-
+	ed.DrawBuffer()
 	ed.DrawStatus()
 	ed.PlaceCursor()
 
