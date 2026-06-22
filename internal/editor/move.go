@@ -303,9 +303,10 @@ func (ed *Editor) MoveToTopOfView() {
 		return
 	}
 	b := ed.Buffer()
-	b.Loc.Row = ed.vMeta[i].Row
-	b.ConfineRow()
-	ed.toNonBlankCol()
+	b.Loc = ed.vMeta[i].Loc
+	if b.Loc.Col < 1 {
+		ed.toNonBlankCol()
+	}
 }
 
 // M : Move cursor to middle of view.
@@ -316,9 +317,10 @@ func (ed *Editor) MoveToMiddleOfView() {
 		return
 	}
 	b := ed.Buffer()
-	b.Loc.Row = ed.vMeta[i].Row
-	b.ConfineRow()
-	ed.toNonBlankCol()
+	b.Loc = ed.vMeta[i].Loc
+	if b.Loc.Col < 1 {
+		ed.toNonBlankCol()
+	}
 }
 
 // L : Move cursor to bottom of view.
@@ -329,9 +331,10 @@ func (ed *Editor) MoveToBottomOfView() {
 		return
 	}
 	b := ed.Buffer()
-	b.Loc.Row = ed.vMeta[i].Row
-	b.ConfineRow()
-	ed.toNonBlankCol()
+	b.Loc = ed.vMeta[i].Loc
+	if b.Loc.Col < 1 {
+		ed.toNonBlankCol()
+	}
 }
 
 // <num>H : Move cursor below <num> lines from top of view.
@@ -346,9 +349,10 @@ func (ed *Editor) MoveToBelowTopOfView(n int) {
 		return
 	}
 	b := ed.Buffer()
-	b.Loc.Row = ed.vMeta[i].Row
-	b.ConfineRow()
-	ed.toNonBlankCol()
+	b.Loc = ed.vMeta[i].Loc
+	if b.Loc.Col < 1 {
+		ed.toNonBlankCol()
+	}
 }
 
 // <num>L : Move cursor above <num> lines from bottom of view.
@@ -363,7 +367,8 @@ func (ed *Editor) MoveToAboveBottomOfView(n int) {
 		return
 	}
 	b := ed.Buffer()
-	b.Loc.Row = ed.vMeta[i].Row
-	b.ConfineRow()
-	ed.toNonBlankCol()
+	b.Loc = ed.vMeta[i].Loc
+	if b.Loc.Col < 1 {
+		ed.toNonBlankCol()
+	}
 }

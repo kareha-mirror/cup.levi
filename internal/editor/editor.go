@@ -50,7 +50,7 @@ func (k *KillBuf) SetLines(lines []string) {
 }
 
 type ViewMeta struct {
-	Row int
+	Loc buffer.Loc
 }
 
 type Editor struct {

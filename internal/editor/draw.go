@@ -6,6 +6,8 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
+
+	"tea.kareha.org/cup/levi/internal/buffer"
 )
 
 func runeAt(s string, i int) rune {
@@ -85,7 +87,7 @@ func (ed *Editor) UpdateCursor() {
 	}
 }
 
-func (ed *Editor) DrawBuffer() {
+func (ed *Editor) DrawBuffer(viewRow int) ([]string, []ViewMeta) {
 	b := ed.Buffer()
 	view := []string{}
 	vMeta := []ViewMeta{}
@@ -93,10 +95,11 @@ func (ed *Editor) DrawBuffer() {
 	sb := strings.Builder{}
 
 	y := 0
-	for i := b.ViewRow; i < numLines+ed.inp.LineLen()-1; i++ {
+	for i := viewRow; i < numLines+ed.inp.LineLen()-1; i++ {
 		tail := i == b.Loc.Row && ed.mode == ModeInsert
 		lines := termi.Wrap(ed.Line(i), ed.w, tail)
 
+		col := 0
 		for _, line := range lines {
 			sb.WriteString(termi.MoveCursor(0, y))
 			if ed.colors != nil {
@@ -116,7 +119,9 @@ func (ed *Editor) DrawBuffer() {
 			}
 			view = append(view, sb.String())
 			sb.Reset()
-			vMeta = append(vMeta, ViewMeta{i})
+			loc := buffer.Loc{col, i}
+			vMeta = append(vMeta, ViewMeta{loc})
+			col += rc
 
 			y++
 			if y >= ed.h-1 {
@@ -128,7 +133,6 @@ func (ed *Editor) DrawBuffer() {
 			break
 		}
 	}
-	ed.vMeta = vMeta
 
 	for ; y < ed.h-1; y++ {
 		sb.WriteString(termi.MoveCursor(0, y))
@@ -150,7 +154,8 @@ func (ed *Editor) DrawBuffer() {
 		}
 		fmt.Print(line)
 	}
-	ed.view = view
+
+	return view, vMeta
 }
 
 func (ed *Editor) DrawStatus() {
@@ -217,7 +222,12 @@ func (ed *Editor) Draw() {
 	fmt.Print(termi.HomeCursor)
 
 	ed.UpdateCursor()
-	ed.DrawBuffer()
+
+	b := ed.Buffer()
+	view, vMeta := ed.DrawBuffer(b.ViewRow)
+	ed.view = view
+	ed.vMeta = vMeta
+
 	ed.DrawStatus()
 	ed.PlaceCursor()
 

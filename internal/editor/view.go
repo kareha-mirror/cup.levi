@@ -11,35 +11,48 @@ package editor
 // Ctrl-F : Scroll down by view height.
 func (ed *Editor) ViewDown(n int) {
 	ed.EnsureCommand()
-	b := ed.Buffer()
 	i := len(ed.vMeta) - 2
 	if i < 0 {
 		return
 	}
-	b.Loc.Row = ed.vMeta[i].Row
+	b := ed.Buffer()
+	b.Loc = ed.vMeta[i].Loc
 	b.ViewRow = b.Loc.Row
-	ed.toNonBlankCol()
+	if b.Loc.Col < 1 {
+		ed.toNonBlankCol()
+	}
 }
 
 // Ctrl-B : Scroll up by view height.
 func (ed *Editor) ViewUp(n int) {
 	ed.EnsureCommand()
 	b := ed.Buffer()
+	viewRow := b.ViewRow - (ed.h - 3)
+	if viewRow < 0 {
+		viewRow = 0
+	}
+	_, viewMeta := ed.DrawBuffer(viewRow)
+	if len(viewMeta) < 1 {
+		return
+	}
+	lastRow := viewMeta[len(viewMeta)-1].Loc.Row
+
 	if len(ed.vMeta) < 1 {
 		return
 	}
-	row := ed.vMeta[0].Row
-	row -= ed.h - 3
-	if row < 0 {
-		row = 0
+	topRow := ed.vMeta[0].Loc.Row
+
+	deltaRow := topRow - lastRow - 1
+	if deltaRow < 0 {
+		deltaRow = 0
 	}
-	newRow := b.ViewRow
-	if newRow < 0 {
-		newRow = 0
+	if deltaRow >= len(viewMeta) {
+		return
 	}
-	b.ViewRow = row
-	b.Loc.Row = newRow
-	ed.toNonBlankCol()
+	b.Loc = viewMeta[deltaRow].Loc
+	if b.Loc.Col < 1 {
+		ed.toNonBlankCol()
+	}
 }
 
 // Ctrl-D : Scroll down by half view height.
