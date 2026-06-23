@@ -12,11 +12,11 @@ func IsWord(r rune) bool {
 }
 
 func IsSymbol(r rune) bool {
-	return !IsBlank(r) && !IsWord(r) && r < 0x100
+	return !IsBlank(r) && !IsWord(r) && r < 0x80
 }
 
 func IsOther(r rune) bool {
-	return r >= 0x100
+	return r >= 0x80
 }
 
 type RuneKind int
