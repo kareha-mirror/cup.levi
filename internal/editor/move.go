@@ -152,37 +152,21 @@ func (ed *Editor) MoveBackwardByWord(n int) {
 	ed.EnsureCommand()
 	b := ed.Buffer()
 	for i := 0; i < n; i++ {
-		b.Loc.Col--
-		if b.Loc.Col < 0 {
+		if b.Loc.Col > 0 {
+			b.Loc.Col--
+		} else {
 			if b.Loc.Row < 1 {
-				b.Loc.Col = 0
 				return
 			}
 			b.Loc.Row--
-			line := b.CurrentLine()
-			b.Loc.Col = max(utf8.RuneCountInString(line)-1, 0)
+			b.Loc.Col = max(utf8.RuneCountInString(b.CurrentLine())-1, 0)
 		}
-		if b.MoveBackwardByWord() {
-			continue
-		}
-		if b.Loc.Row < 1 {
+		if !b.SkipBackwardBlankLines() {
 			return
 		}
-		b.Loc.Row--
-		line := b.CurrentLine()
-		b.Loc.Col = max(utf8.RuneCountInString(line)-1, 0)
-		if !b.SkipBackwardBlankLines() {
-			if b.Loc.Row < 1 {
-				return
-			}
-			b.Loc.Row--
-			line = b.CurrentLine()
-			b.Loc.Col = max(utf8.RuneCountInString(line)-1, 0)
+		if !b.MoveBackwardByWord() {
+			return
 		}
-		if b.MoveBackwardByWord() {
-			continue
-		}
-		return
 	}
 }
 

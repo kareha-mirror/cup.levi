@@ -28,13 +28,15 @@ func (b *Buffer) SkipBlankLines() bool {
 func (b *Buffer) SkipBackwardBlankLines() bool {
 	for b.Loc.Row >= 0 {
 		line := b.CurrentLine()
-		rs := []rune(line)
-		col := b.Loc.Col
-		for ; col >= 0; col-- {
-			r := rs[col]
-			if !runekind.IsBlank(r) {
-				b.Loc.Col = col
-				return true
+		if line != "" {
+			rs := []rune(line)
+			col := b.Loc.Col
+			for ; col >= 0; col-- {
+				r := rs[col]
+				if !runekind.IsBlank(r) {
+					b.Loc.Col = col
+					return true
+				}
 			}
 		}
 		b.Loc.Row--
@@ -55,7 +57,7 @@ func (b *Buffer) MoveByWord() bool {
 	col := b.Loc.Col
 	kind := runekind.Kind(rs[col])
 	col++
-	var k runekind.RuneKind
+	k := kind
 	for ; col < len(rs); col++ {
 		k = runekind.Kind(rs[col])
 		if k != kind {
@@ -89,45 +91,17 @@ func (b *Buffer) MoveBackwardByWord() bool {
 		return false
 	}
 	rs := []rune(line)
+	kind := runekind.Kind(rs[b.Loc.Col])
+	if kind == runekind.Blank {
+		return false
+	}
 	col := b.Loc.Col
-
 	for ; col >= 0; col-- {
-		r := rs[col]
-		if runekind.IsWord(r) || runekind.IsSymbol(r) {
-			b.Loc.Col = col
+		k := runekind.Kind(rs[col])
+		if k != kind {
 			break
 		}
 	}
-	if col < 0 {
-		b.Loc.Col = 0
-		return false
-	}
-
-	if runekind.IsWord(rs[col]) {
-		if col < 1 {
-			return false
-		}
-		col--
-		for ; col >= 0; col-- {
-			r := rs[col]
-			if !runekind.IsWord(r) {
-				break
-			}
-		}
-		b.Loc.Col = col + 1
-		return true
-	} else {
-		if col < 1 {
-			return false
-		}
-		col--
-		for ; col >= 0; col-- {
-			r := rs[col]
-			if !runekind.IsSymbol(r) {
-				break
-			}
-		}
-		b.Loc.Col = col + 1
-		return true
-	}
+	b.Loc.Col = col + 1
+	return true
 }
