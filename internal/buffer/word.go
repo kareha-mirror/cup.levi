@@ -2,50 +2,40 @@ package buffer
 
 import (
 	"unicode/utf8"
-)
 
-func isBlankRune(r rune) bool {
-	return r == ' ' || r == '\t'
-}
+	"tea.kareha.org/cup/levi/internal/runekind"
+)
 
 func (b *Buffer) SkipBlankLines() bool {
 	for b.Loc.Row < b.NumLines() {
 		line := b.CurrentLine()
-		col := b.Loc.Col
-		i := 0
+		col := 0
 		for _, r := range line {
-			if i >= col && !isBlankRune(r) {
+			if col >= b.Loc.Col && !runekind.IsBlank(r) {
 				b.Loc.Col = col
 				return true
 			}
-			i++
-		}
-		if b.Loc.Row >= b.NumLines()-1 {
-			b.Loc.Col = i
-			return false
+			col++
 		}
 		b.Loc.Row++
 		b.Loc.Col = 0
 	}
+	b.Loc.Row = max(b.NumLines()-1, 0)
+	b.Loc.Col = max(utf8.RuneCountInString(b.CurrentLine())-1, 0)
 	return false
 }
 
 func (b *Buffer) SkipBackwardBlankLines() bool {
 	for b.Loc.Row >= 0 {
 		line := b.CurrentLine()
-		col := b.Loc.Col
 		rs := []rune(line)
-		i := len(rs) - 1
-		for ; i >= 0; i-- {
-			r := rs[i]
-			if i <= col && !isBlankRune(r) {
-				b.Loc.Col = i
+		col := b.Loc.Col
+		for ; col >= 0; col-- {
+			r := rs[col]
+			if !runekind.IsBlank(r) {
+				b.Loc.Col = col
 				return true
 			}
-		}
-		if b.Loc.Row < 1 {
-			b.Loc.Col = max(i, 0)
-			return false
 		}
 		b.Loc.Row--
 		line = b.CurrentLine()
@@ -56,85 +46,41 @@ func (b *Buffer) SkipBackwardBlankLines() bool {
 	return false
 }
 
-func isWordRune(r rune) bool {
-	return (r >= '0' && r <= '9') ||
-		(r >= 'A' && r <= 'Z') ||
-		(r >= 'a' && r <= 'z')
-}
-
-func isSymbolRune(r rune) bool {
-	return !isBlankRune(r) && !isWordRune(r) && r < 0x100
-}
-
-func (b *Buffer) MoveByWord(advance bool) bool {
+func (b *Buffer) MoveByWord() bool {
 	line := b.CurrentLine()
 	if len(line) < 1 {
 		return false
 	}
 	rs := []rune(line)
 	col := b.Loc.Col
-	if advance {
-		col++
+	kind := runekind.Kind(rs[col])
+	col++
+	var k runekind.RuneKind
+	for ; col < len(rs); col++ {
+		k = runekind.Kind(rs[col])
+		if k != kind {
+			break
+		}
 	}
-	if advance && isWordRune(rs[b.Loc.Col]) {
-		for ; col < len(rs); col++ {
-			r := rs[col]
-			if isSymbolRune(r) {
-				b.Loc.Col = col
-				return true
-			}
-			if !isWordRune(r) {
-				break
-			}
-		}
-		if col >= len(rs) {
-			b.Loc.Col = len(rs) - 1
-			return false
-		}
-		for ; col < len(rs); col++ {
-			r := rs[col]
-			if isWordRune(r) || isSymbolRune(r) {
-				b.Loc.Col = col
-				return true
-			}
-		}
-		b.Loc.Col = len(rs) - 1
-		return false
-	} else if advance && isSymbolRune(rs[b.Loc.Col]) {
-		for ; col < len(rs); col++ {
-			r := rs[col]
-			if isWordRune(r) {
-				b.Loc.Col = col
-				return true
-			}
-			if !isSymbolRune(r) {
-				break
-			}
-		}
-		if col >= len(rs) {
-			b.Loc.Col = len(rs) - 1
-			return false
-		}
-		for ; col < len(rs); col++ {
-			r := rs[col]
-			if isWordRune(r) || isSymbolRune(r) {
-				b.Loc.Col = col
-				return true
-			}
-		}
-		b.Loc.Col = len(rs) - 1
-		return false
-	} else {
-		for ; col < len(rs); col++ {
-			r := rs[col]
-			if isWordRune(r) || isSymbolRune(r) {
-				b.Loc.Col = col
-				return true
-			}
-		}
-		b.Loc.Col = len(rs) - 1
+	if col >= len(rs) {
 		return false
 	}
+	if kind == runekind.Blank || k != runekind.Blank {
+		b.Loc.Col = col
+		return true
+	}
+	col++
+	for ; col < len(rs); col++ {
+		k = runekind.Kind(rs[col])
+		if k != runekind.Blank {
+			break
+		}
+	}
+	if col < len(rs) {
+		b.Loc.Col = col
+		return true
+	}
+	return false
 }
 
 func (b *Buffer) MoveBackwardByWord() bool {
@@ -147,7 +93,7 @@ func (b *Buffer) MoveBackwardByWord() bool {
 
 	for ; col >= 0; col-- {
 		r := rs[col]
-		if isWordRune(r) || isSymbolRune(r) {
+		if runekind.IsWord(r) || runekind.IsSymbol(r) {
 			b.Loc.Col = col
 			break
 		}
@@ -157,14 +103,14 @@ func (b *Buffer) MoveBackwardByWord() bool {
 		return false
 	}
 
-	if isWordRune(rs[col]) {
+	if runekind.IsWord(rs[col]) {
 		if col < 1 {
 			return false
 		}
 		col--
 		for ; col >= 0; col-- {
 			r := rs[col]
-			if !isWordRune(r) {
+			if !runekind.IsWord(r) {
 				break
 			}
 		}
@@ -177,7 +123,7 @@ func (b *Buffer) MoveBackwardByWord() bool {
 		col--
 		for ; col >= 0; col-- {
 			r := rs[col]
-			if !isSymbolRune(r) {
+			if !runekind.IsSymbol(r) {
 				break
 			}
 		}

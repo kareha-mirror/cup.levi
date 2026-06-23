@@ -128,7 +128,7 @@ func (ed *Editor) MoveByWord(n int) {
 	ed.EnsureCommand()
 	b := ed.Buffer()
 	for i := 0; i < n; i++ {
-		if b.MoveByWord(true) {
+		if b.MoveByWord() {
 			continue
 		}
 		if b.Loc.Row >= b.NumLines()-1 {
@@ -140,11 +140,6 @@ func (ed *Editor) MoveByWord(n int) {
 		if !b.SkipBlankLines() {
 			return
 		}
-		if b.MoveByWord(false) {
-			continue
-		}
-		ed.MoveToEnd()
-		return
 	}
 }
 
