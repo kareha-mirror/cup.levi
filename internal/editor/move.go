@@ -1,13 +1,17 @@
 package editor
 
-func isBlank(r rune) bool {
+import (
+	"unicode/utf8"
+)
+
+func isBlankRune(r rune) bool {
 	return r == ' ' || r == '\t'
 }
 
 func nonBlankCol(s string) int {
 	i := 0
 	for _, r := range s {
-		if !isBlank(r) {
+		if !isBlankRune(r) {
 			break
 		}
 		i++
@@ -123,22 +127,25 @@ func (ed *Editor) MoveByWord(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buffer()
-	if b.MoveByWord(true) {
-		return
-	}
-	if b.Loc.Row >= b.NumLines()-1 {
+	for i := 0; i < n; i++ {
+		if b.MoveByWord(true) {
+			continue
+		}
+		if b.Loc.Row >= b.NumLines()-1 {
+			ed.MoveToEnd()
+			return
+		}
+		b.Loc.Row++
+		b.Loc.Col = 0
+		if !b.SkipBlankLines() {
+			return
+		}
+		if b.MoveByWord(false) {
+			continue
+		}
 		ed.MoveToEnd()
 		return
 	}
-	b.Loc.Row++
-	b.Loc.Col = 0
-	if !b.SkipBlankLines() {
-		return
-	}
-	if b.MoveByWord(false) {
-		return
-	}
-	ed.MoveToEnd()
 }
 
 // b : Move cursor backward by word.
@@ -148,7 +155,40 @@ func (ed *Editor) MoveBackwardByWord(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	ed.Unimplemented("MoveBackwardByWord")
+	b := ed.Buffer()
+	for i := 0; i < n; i++ {
+		b.Loc.Col--
+		if b.Loc.Col < 0 {
+			if b.Loc.Row < 1 {
+				b.Loc.Col = 0
+				return
+			}
+			b.Loc.Row--
+			line := b.CurrentLine()
+			b.Loc.Col = max(utf8.RuneCountInString(line)-1, 0)
+		}
+		if b.MoveBackwardByWord() {
+			continue
+		}
+		if b.Loc.Row < 1 {
+			return
+		}
+		b.Loc.Row--
+		line := b.CurrentLine()
+		b.Loc.Col = max(utf8.RuneCountInString(line)-1, 0)
+		if !b.SkipBackwardBlankLines() {
+			if b.Loc.Row < 1 {
+				return
+			}
+			b.Loc.Row--
+			line = b.CurrentLine()
+			b.Loc.Col = max(utf8.RuneCountInString(line)-1, 0)
+		}
+		if b.MoveBackwardByWord() {
+			continue
+		}
+		return
+	}
 }
 
 // e : Move cursor to end of word.

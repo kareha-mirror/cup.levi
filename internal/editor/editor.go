@@ -344,7 +344,7 @@ func (ed *Editor) RuneCount() int {
 
 func isBlankLine(s string) bool {
 	for _, r := range s {
-		if !isBlank(r) {
+		if !isBlankRune(r) {
 			return false
 		}
 	}

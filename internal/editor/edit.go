@@ -18,7 +18,7 @@ func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
 
 func trimLeftBlanks(s string) string {
 	for i, r := range s {
-		if !isBlank(r) {
+		if !isBlankRune(r) {
 			return s[i:]
 		}
 	}
@@ -52,7 +52,7 @@ func (ed *Editor) EditJoin(n int) {
 		link := ""
 		if len(next) > 0 {
 			r, _ := utf8.DecodeLastRuneInString(current)
-			if r != utf8.RuneError && !isBlank(r) {
+			if r != utf8.RuneError && !isBlankRune(r) {
 				link = " "
 			}
 		}

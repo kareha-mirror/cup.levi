@@ -7,7 +7,7 @@ import (
 func getIndent(s string) string {
 	runes := []rune{}
 	for _, r := range s {
-		if !isBlank(r) {
+		if !isBlankRune(r) {
 			break
 		}
 		runes = append(runes, r)
