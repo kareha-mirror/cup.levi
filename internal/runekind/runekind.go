@@ -15,8 +15,21 @@ func IsSymbol(r rune) bool {
 	return !IsBlank(r) && !IsWord(r) && r < 0x80
 }
 
+func IsExtraSymbol(r rune) bool {
+	switch r {
+	case '。', '、':
+		return true
+	case '？', '！':
+		return true
+	case '「', '」':
+		return true
+	default:
+		return false
+	}
+}
+
 func IsOther(r rune) bool {
-	return r >= 0x80
+	return r >= 0x80 && !IsExtraSymbol(r)
 }
 
 type RuneKind int
@@ -25,6 +38,7 @@ const (
 	Blank RuneKind = iota
 	Word
 	Symbol
+	ExtraSymbol
 	Other
 )
 
@@ -36,6 +50,8 @@ func Kind(r rune) RuneKind {
 		return Word
 	case IsSymbol(r):
 		return Symbol
+	case IsExtraSymbol(r):
+		return ExtraSymbol
 	default:
 		return Other
 	}
