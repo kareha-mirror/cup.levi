@@ -30,6 +30,7 @@ type Buffer struct {
 	Modified bool
 	Stamp    Stamp
 	Marks    map[rune]Loc
+	Snapshot []string
 }
 
 func (b *Buffer) NumLines() int {

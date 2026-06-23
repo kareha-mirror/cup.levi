@@ -37,12 +37,38 @@ func (ed *Editor) MiscShowInfo() {
 func (ed *Editor) MiscRepeat(n int) {
 	ed.EnsureCommand()
 	ed.Run(ed.lastCmd, true)
+
+	c := ed.lastCmd
+	if InsertCmds[c.Kind] {
+		ed.BeginMemory()
+	} else if EditCmds[c.Kind] {
+		ed.BeginMemory()
+	}
+	if ed.Run(c, false) {
+		if InsertCmds[c.Kind] {
+			ed.EndMemory()
+		} else if EditCmds[c.Kind] {
+			ed.EndMemory()
+		}
+	} else {
+		if InsertCmds[c.Kind] {
+			ed.CancelMemory()
+		} else if EditCmds[c.Kind] {
+			ed.CancelMemory()
+		}
+	}
 }
 
 // u : Undo.
 func (ed *Editor) MiscUndo(n int, replay bool) {
 	ed.EnsureCommand()
-	ed.Unimplemented("MiscUndo")
+	b := ed.Buffer()
+	if b.Snapshot == nil {
+		return
+	}
+	b.Lines = b.Snapshot
+	b.Snapshot = nil
+	b.Confine()
 }
 
 // U : Restore current line to previous state.

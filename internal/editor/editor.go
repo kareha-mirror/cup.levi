@@ -383,6 +383,8 @@ func (ed *Editor) EnsureCommand() {
 			ed.Run(cmd, true)
 		}
 
+		ed.EndMemory()
+
 		ed.parser.ClearAll()
 		return
 	case ModeSearch:

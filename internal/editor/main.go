@@ -46,11 +46,25 @@ func (ed *Editor) Main() {
 
 					c, ok := ed.Parse()
 					if ok {
+						if InsertCmds[c.Kind] {
+							ed.BeginMemory()
+						} else if EditCmds[c.Kind] {
+							ed.BeginMemory()
+						}
 						if ed.Run(c, false) {
-							if RepeatableCmds[c.Kind] {
+							if InsertCmds[c.Kind] {
+								ed.lastCmd = c
+							} else if EditCmds[c.Kind] {
+								ed.EndMemory()
 								ed.lastCmd = c
 							}
 							ed.parser.Clear()
+						} else {
+							if InsertCmds[c.Kind] {
+								ed.CancelMemory()
+							} else if EditCmds[c.Kind] {
+								ed.CancelMemory()
+							}
 						}
 					}
 				case termi.KeyUp:

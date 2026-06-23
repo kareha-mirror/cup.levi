@@ -141,7 +141,7 @@ const (
 	CmdMiscSuspend
 )
 
-var RepeatableCmds = map[CmdKind]bool{
+var InsertCmds = map[CmdKind]bool{
 	CmdInsertBefore:         true,
 	CmdInsertAfter:          true,
 	CmdInsertBeforeNonBlank: true,
@@ -151,13 +151,18 @@ var RepeatableCmds = map[CmdKind]bool{
 	CmdInsertOpenBelow: true,
 	CmdInsertOpenAbove: true,
 
-	CmdOpCopyLine:        true,
-	CmdOpCopyRegion:      true,
-	CmdOpCopyLineRegion:  true,
-	CmdOpCopyWord:        true,
-	CmdOpCopyToEnd:       true,
-	CmdOpCopyLineIntoReg: true,
+	CmdOpChangeLine:       true,
+	CmdOpChangeRegion:     true,
+	CmdOpChangeLineRegion: true,
+	CmdOpChangeWord:       true,
+	CmdOpChangeToEnd:      true,
+	CmdOpSubst:            true,
+	CmdOpSubstLine:        true,
 
+	//CmdEditReplace:       true,
+}
+
+var EditCmds = map[CmdKind]bool{
 	CmdOpPaste:        true,
 	CmdOpPasteBefore:  true,
 	CmdOpPasteFromReg: true,
@@ -170,22 +175,11 @@ var RepeatableCmds = map[CmdKind]bool{
 	CmdOpDeleteWord:       true,
 	CmdOpDeleteToEnd:      true,
 
-	CmdOpChangeLine:       true,
-	CmdOpChangeRegion:     true,
-	CmdOpChangeLineRegion: true,
-	CmdOpChangeWord:       true,
-	CmdOpChangeToEnd:      true,
-	CmdOpSubst:            true,
-	CmdOpSubstLine:        true,
-
-	CmdEditReplace:       true,
 	CmdEditJoin:          true,
 	CmdEditIndent:        true,
 	CmdEditOutdent:       true,
 	CmdEditIndentRegion:  true,
 	CmdEditOutdentRegion: true,
-
-	CmdMiscUndo: true,
 }
 
 var MultiInsertCmds = map[CmdKind]bool{
