@@ -36,13 +36,12 @@ const (
 
 type KillBuf struct {
 	mode  KillMode
-	runes []rune
 	lines []string
 }
 
-func (k *KillBuf) SetRunes(runes []rune) {
+func (k *KillBuf) SetRunes(lines []string) {
 	k.mode = KillRunes
-	k.runes = append([]rune{}, runes...)
+	k.lines = append([]string{}, lines...)
 }
 
 func (k *KillBuf) SetLines(lines []string) {
