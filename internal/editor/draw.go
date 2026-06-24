@@ -7,7 +7,7 @@ import (
 
 	"tea.kareha.org/cup/termi"
 
-	"tea.kareha.org/cup/levi/internal/buffer"
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
 func runeAt(s string, i int) rune {
@@ -21,7 +21,7 @@ func runeAt(s string, i int) rune {
 }
 
 func (ed *Editor) UpdateCursor() {
-	b := ed.Buffer()
+	b := ed.Buf()
 	if b.Loc.Row-b.ViewLoc.Row >= ed.h-1 {
 		b.ViewLoc.Row = b.Loc.Row - (ed.h - 2)
 		b.ViewLoc.Col = 0
@@ -123,9 +123,9 @@ func (ed *Editor) UpdateCursor() {
 }
 
 func (ed *Editor) renderBuffer(
-	viewLoc buffer.Loc, real bool,
+	viewLoc buf.Loc, real bool,
 ) ([]string, []ViewMeta) {
-	b := ed.Buffer()
+	b := ed.Buf()
 	view := []string{}
 	vMeta := []ViewMeta{}
 	numLines := max(b.NumLines(), 1)
@@ -166,7 +166,7 @@ func (ed *Editor) renderBuffer(
 				view = append(view, sb.String())
 				sb.Reset()
 			}
-			loc := buffer.Loc{col, i}
+			loc := buf.Loc{col, i}
 			vMeta = append(vMeta, ViewMeta{loc})
 			col += rc
 
@@ -200,17 +200,17 @@ func (ed *Editor) renderBuffer(
 	return view, vMeta
 }
 
-func (ed *Editor) RenderBuffer(viewLoc buffer.Loc) ([]string, []ViewMeta) {
+func (ed *Editor) RenderBuffer(viewLoc buf.Loc) ([]string, []ViewMeta) {
 	return ed.renderBuffer(viewLoc, true)
 }
 
-func (ed *Editor) RenderMeta(loc buffer.Loc) []ViewMeta {
+func (ed *Editor) RenderMeta(loc buf.Loc) []ViewMeta {
 	_, vMeta := ed.renderBuffer(loc, false)
 	return vMeta
 }
 
 func (ed *Editor) DrawBuffer() {
-	b := ed.Buffer()
+	b := ed.Buf()
 	view, vMeta := ed.RenderBuffer(b.ViewLoc)
 	for i, line := range view {
 		if i < len(ed.view) && line == ed.view[i] {
@@ -280,7 +280,7 @@ func (ed *Editor) PlaceCursor() {
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
 	} else {
-		b := ed.Buffer()
+		b := ed.Buf()
 		fmt.Print(termi.MoveCursor(b.Pos.X, b.Pos.Y))
 	}
 }

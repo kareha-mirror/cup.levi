@@ -19,11 +19,12 @@ func (ed *Editor) PromptMoveByLine(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	b := ed.Buffer()
-	if !b.AdjustRow(n) {
+	b := ed.Buf()
+	if !b.CheckRow(b.Loc.Row + n) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
+	b.Loc.Row += n
 	ed.toNonBlankCol()
 }
 
@@ -34,14 +35,15 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	if b.Loc.Row-n == -1 {
 		n++
 	}
-	if !b.AdjustRow(-n) {
+	if !b.CheckRow(b.Loc.Row - n) {
 		ed.Ring("Reference to a line number less than 0.")
 		return
 	}
+	b.Loc.Row -= n
 	ed.toNonBlankCol()
 }
 
@@ -52,21 +54,22 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 		return
 	}
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	if n == 0 {
 		n = 1
 	}
-	if !b.MoveRow(n - 1) {
+	if !b.CheckRow(n - 1) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
+	b.Loc.Row = n - 1
 	ed.toNonBlankCol()
 }
 
 // :wq Enter : Save current file and quit.
 func (ed *Editor) PromptSaveAndQuit() {
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	if b.Modified && b.Path == "" {
 		ed.Ring("File is a temporary; exit will discard modifications.")
 		return
@@ -103,7 +106,7 @@ func (ed *Editor) PromptForceSave(name string) {
 // :q Enter : Quit editor.
 func (ed *Editor) PromptQuit() {
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	if b.Modified {
 		if b.Path == "" {
 			ed.Ring("File is a temporary; exit will discard modifications.")
@@ -144,7 +147,7 @@ func (ed *Editor) PromptRead() {
 // :n Enter : Switch to next buffer (tab).
 func (ed *Editor) PromptNext() {
 	ed.EnsureCommand()
-	if ed.bIndex+1 >= len(ed.buffers) {
+	if ed.bIndex+1 >= len(ed.bufs) {
 		ed.Ring("No more files to edit.")
 		return
 	}
@@ -219,7 +222,7 @@ func (ed *Editor) PromptColors(name string) {
 	ed.EnsureCommand()
 
 	if name == "." {
-		colors, err := colors.Parse(ed.Buffer().Text())
+		colors, err := colors.Parse(ed.Buf().Text())
 		if err != nil {
 			ed.Error("%v", err)
 			return

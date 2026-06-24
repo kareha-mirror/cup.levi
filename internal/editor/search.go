@@ -3,11 +3,11 @@ package editor
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/cup/levi/internal/buffer"
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
-func (ed *Editor) Locate(loc buffer.Loc) {
-	b := ed.Buffer()
+func (ed *Editor) Locate(loc buf.Loc) {
+	b := ed.Buf()
 	b.Loc = loc
 	if len(ed.vMeta) < 1 {
 		return
@@ -30,13 +30,13 @@ func (ed *Editor) Locate(loc buffer.Loc) {
 /////////////////////
 
 // /<pattern> Enter : Search <pattern> forward.
-func (ed *Editor) SearchForward() {
+func (ed *Editor) MoveSearchForward() (buf.Dest, bool) {
 	ed.EnsureCommand()
 	if ed.regexp == nil {
 		ed.Ring("No previous search pattern")
-		return
+		return buf.Dest{}, false
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	for row := b.Loc.Row; row < b.NumLines(); row++ {
 		line := b.Line(row)
 		if row == b.Loc.Row {
@@ -55,8 +55,8 @@ func (ed *Editor) SearchForward() {
 		if row == b.Loc.Row {
 			col += b.Loc.Col + 1
 		}
-		ed.Locate(buffer.Loc{col, row})
-		return
+		ed.Locate(buf.Loc{col, row})
+		return buf.Dest{}, false // TODO
 	}
 	ed.Ring("Search wrapped")
 	for row := 0; row <= b.Loc.Row; row++ {
@@ -66,20 +66,21 @@ func (ed *Editor) SearchForward() {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:loc[0]])
-		ed.Locate(buffer.Loc{col, row})
-		return
+		ed.Locate(buf.Loc{col, row})
+		return buf.Dest{}, false // TODO
 	}
 	ed.Ring("Pattern not found")
+	return buf.Dest{}, false
 }
 
 // ?<pattern> Enter : Search <pattern> backward.
-func (ed *Editor) SearchBackward() {
+func (ed *Editor) MoveSearchBackward() (buf.Dest, bool) {
 	ed.EnsureCommand()
 	if ed.regexp == nil {
 		ed.Ring("No previous search pattern")
-		return
+		return buf.Dest{}, false
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	rs := []rune(b.CurrentLine())
 	end := len(string(rs[:b.Loc.Col]))
 	for row := b.Loc.Row; row >= 0; row-- {
@@ -107,8 +108,8 @@ func (ed *Editor) SearchBackward() {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		ed.Locate(buffer.Loc{col, row})
-		return
+		ed.Locate(buf.Loc{col, row})
+		return buf.Dest{}, false // TODO
 	}
 	ed.Ring("Search wrapped")
 	for row := b.NumLines() - 1; row >= b.Loc.Row; row-- {
@@ -132,36 +133,37 @@ func (ed *Editor) SearchBackward() {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		ed.Locate(buffer.Loc{col, row})
-		return
+		ed.Locate(buf.Loc{col, row})
+		return buf.Dest{}, false // TODO
 	}
 	ed.Ring("Pattern not found")
+	return buf.Dest{}, false
 }
 
 // n : Search next match.
-func (ed *Editor) SearchNextMatch() {
+func (ed *Editor) MoveSearchNextMatch() (buf.Dest, bool) {
 	if ed.backward {
-		ed.SearchRepeatBackward()
+		return ed.MoveSearchRepeatBackward()
 	} else {
-		ed.SearchRepeatForward()
+		return ed.MoveSearchRepeatForward()
 	}
 }
 
 // N : Search previous match.
-func (ed *Editor) SearchPrevMatch() {
+func (ed *Editor) MoveSearchPrevMatch() (buf.Dest, bool) {
 	if ed.backward {
-		ed.SearchRepeatForward()
+		return ed.MoveSearchRepeatForward()
 	} else {
-		ed.SearchRepeatBackward()
+		return ed.MoveSearchRepeatBackward()
 	}
 }
 
 // / Enter : Repeat last search forward.
-func (ed *Editor) SearchRepeatForward() {
-	ed.SearchForward()
+func (ed *Editor) MoveSearchRepeatForward() (buf.Dest, bool) {
+	return ed.MoveSearchForward()
 }
 
 // ? Enter : Repeat last search backward.
-func (ed *Editor) SearchRepeatBackward() {
-	ed.SearchBackward()
+func (ed *Editor) MoveSearchRepeatBackward() (buf.Dest, bool) {
+	return ed.MoveSearchBackward()
 }

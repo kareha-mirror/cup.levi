@@ -1,4 +1,4 @@
-package buffer
+package buf
 
 import (
 	"unicode/utf8"
@@ -6,7 +6,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/runekind"
 )
 
-func (b *Buffer) SkipBlankLines() bool {
+func (b *Buf) SkipBlankLines() bool {
 	for b.Loc.Row < b.NumLines() {
 		line := b.CurrentLine()
 		col := 0
@@ -25,7 +25,7 @@ func (b *Buffer) SkipBlankLines() bool {
 	return false
 }
 
-func (b *Buffer) SkipBackwardBlankLines() bool {
+func (b *Buf) SkipBackwardBlankLines() bool {
 	for b.Loc.Row >= 0 {
 		line := b.CurrentLine()
 		if line != "" {
@@ -48,7 +48,7 @@ func (b *Buffer) SkipBackwardBlankLines() bool {
 	return false
 }
 
-func (b *Buffer) MoveByWord() bool {
+func (b *Buf) MoveByWord() bool {
 	line := b.CurrentLine()
 	if len(line) < 1 {
 		return false
@@ -85,7 +85,30 @@ func (b *Buffer) MoveByWord() bool {
 	return false
 }
 
-func (b *Buffer) MoveBackwardByWord() bool {
+func (b *Buf) MoveByWordEx() bool {
+	line := b.CurrentLine()
+	if len(line) < 1 {
+		return false
+	}
+	rs := []rune(line)
+	col := b.Loc.Col
+	kind := runekind.Kind(rs[col])
+	col++
+	k := kind
+	for ; col < len(rs); col++ {
+		k = runekind.Kind(rs[col])
+		if k != kind {
+			break
+		}
+	}
+	if col >= len(rs) {
+		return false
+	}
+	b.Loc.Col = col
+	return true
+}
+
+func (b *Buf) MoveBackwardByWord() bool {
 	line := b.CurrentLine()
 	if len(line) < 1 {
 		return false

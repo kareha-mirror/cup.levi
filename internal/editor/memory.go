@@ -1,7 +1,7 @@
 package editor
 
 func (ed *Editor) BeginMemory() {
-	b := ed.Buffer()
+	b := ed.Buf()
 	b.Snapshot = append([]string{}, b.Lines...)
 }
 

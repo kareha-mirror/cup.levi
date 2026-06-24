@@ -3,7 +3,7 @@ package editor
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/cup/levi/internal/buffer"
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
 //////////////////////
@@ -32,7 +32,7 @@ func (ed *Editor) EditJoin(n int) {
 		return
 	}
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	if b.Loc.Row+1 >= b.NumLines() {
 		ed.Ring("No following lines to join")
 		return
@@ -68,7 +68,7 @@ func (ed *Editor) EditJoin(n int) {
 	b.Lines = lines
 
 	b.Loc.Col = col
-	b.ConfineCol()
+	b.Loc.Col = b.ConfineCol(b.Loc)
 }
 
 // >> : Indent current line.
@@ -84,13 +84,13 @@ func (ed *Editor) EditOutdent(n int) {
 }
 
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
-func (ed *Editor) EditIndentRegion(start buffer.Loc, end buffer.Loc) {
+func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
 	ed.EnsureCommand()
 	ed.Unimplemented("EditIndentRegion")
 }
 
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
-func (ed *Editor) EditOutdentRegion(start buffer.Loc, end buffer.Loc) {
+func (ed *Editor) EditOutdentRegion(start buf.Loc, end buf.Loc) {
 	ed.EnsureCommand()
 	ed.Unimplemented("EditOutdentRegion")
 }

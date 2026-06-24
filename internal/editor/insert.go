@@ -24,7 +24,7 @@ func getIndent(s string) string {
 //
 
 func (ed *Editor) replayInsert(line string) {
-	b := ed.Buffer()
+	b := ed.Buf()
 	inserted := append([]string{}, ed.inserted...)
 	rs := []rune(line)
 	head := string(rs[:b.Loc.Col])
@@ -68,7 +68,7 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 			ed.replayInsert(ed.CurrentLine())
 		}
 	} else {
-		b := ed.Buffer()
+		b := ed.Buf()
 		ed.inp.Init(ed.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
 		ed.inpRow = b.Loc.Row
 		ed.mode = ModeInsert
@@ -81,7 +81,7 @@ func (ed *Editor) InsertAfter(n int, replay bool) {
 	if !replay {
 		n = 1
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	for i := 0; i < n; i++ {
 		rc := ed.RuneCount()
 		if b.Loc.Col >= rc-1 {
@@ -131,7 +131,7 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 	if !replay {
 		n = 1
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	for i := 0; i < n; i++ {
 		if b.NumLines() < 1 {
 			ed.InsertAfter(n, replay)
@@ -162,7 +162,7 @@ func (ed *Editor) InsertOpenAbove(n int, replay bool) {
 	if !replay {
 		n = 1
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	for i := 0; i < n; i++ {
 		indent := ""
 		if ed.cfg.AutoIndent {

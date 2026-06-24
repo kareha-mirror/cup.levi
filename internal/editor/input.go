@@ -136,7 +136,7 @@ func (ed *Editor) InsertRune(r rune) {
 		panic("invalid state")
 	}
 	ed.inp.WriteRune(r)
-	b := ed.Buffer()
+	b := ed.Buf()
 	b.Loc.Col = ed.inp.Column()
 }
 
@@ -144,7 +144,7 @@ func (ed *Editor) Backspace() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	if !ed.inp.Backspace() {
 		b.Loc.Row--
 	}
@@ -156,7 +156,7 @@ func (ed *Editor) InsertNewline() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	ed.inp.Newline(ed.cfg.AutoIndent)
 	b.Loc.Row++
 	b.Loc.Col = ed.inp.Column()

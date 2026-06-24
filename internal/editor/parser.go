@@ -75,10 +75,10 @@ func (ed *Editor) ParseMoveLetterLines(num int, op string, letter rune) (Cmd, bo
 			return Cmd{}, false
 		}
 		if letter == '\'' {
-			return Cmd{Kind: CmdMarkBackToLine}, true
+			return Cmd{Kind: CmdMoveBackToMarkLine}, true
 		} else {
 			return Cmd{
-				Kind:   CmdMarkMoveToLine,
+				Kind:   CmdMoveToMarkLine,
 				Letter: letter,
 			}, true
 		}
@@ -94,7 +94,7 @@ func (ed *Editor) ParseMoveLetterRunes(num int, op string, letter rune) (Cmd, bo
 			return Cmd{}, false
 		}
 		return Cmd{
-			Kind:   CmdFindForward,
+			Kind:   CmdMoveFindForward,
 			Num:    num,
 			Letter: letter,
 		}, true
@@ -103,7 +103,7 @@ func (ed *Editor) ParseMoveLetterRunes(num int, op string, letter rune) (Cmd, bo
 			return Cmd{}, false
 		}
 		return Cmd{
-			Kind:   CmdFindBackward,
+			Kind:   CmdMoveFindBackward,
 			Num:    num,
 			Letter: letter,
 		}, true
@@ -112,7 +112,7 @@ func (ed *Editor) ParseMoveLetterRunes(num int, op string, letter rune) (Cmd, bo
 			return Cmd{}, false
 		}
 		return Cmd{
-			Kind:   CmdFindBeforeForward,
+			Kind:   CmdMoveFindBeforeForward,
 			Num:    num,
 			Letter: letter,
 		}, true
@@ -121,18 +121,18 @@ func (ed *Editor) ParseMoveLetterRunes(num int, op string, letter rune) (Cmd, bo
 			return Cmd{}, false
 		}
 		return Cmd{
-			Kind:   CmdFindBeforeBackward,
+			Kind:   CmdMoveFindBeforeBackward,
 			Num:    num,
 			Letter: letter,
 		}, true
 	case ";":
 		return Cmd{
-			Kind: CmdFindNextMatch,
+			Kind: CmdMoveFindNextMatch,
 			Num:  num,
 		}, true
 	case ",":
 		return Cmd{
-			Kind: CmdFindPrevMatch,
+			Kind: CmdMoveFindPrevMatch,
 			Num:  num,
 		}, true
 	}
@@ -143,10 +143,10 @@ func (ed *Editor) ParseMoveLetterRunes(num int, op string, letter rune) (Cmd, bo
 			return Cmd{}, false
 		}
 		if letter == '`' {
-			return Cmd{Kind: CmdMarkBack}, true
+			return Cmd{Kind: CmdMoveBackToMark}, true
 		} else {
 			return Cmd{
-				Kind:   CmdMarkMoveTo,
+				Kind:   CmdMoveToMark,
 				Letter: letter,
 			}, true
 		}
@@ -301,7 +301,11 @@ func (ed *Editor) ParseMoveRunes(noNum bool, num int, mv string, letter rune) (C
 		}, true
 	}
 
-	return ed.ParseMoveLetterRunes(num, mv, letter)
+	cmd, ok := ed.ParseMoveLetterRunes(num, mv, letter)
+	if ok {
+		return cmd, true
+	}
+	return ed.ParseSearch(mv, "") // TODO pat
 }
 
 func (ed *Editor) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
@@ -380,26 +384,26 @@ func (ed *Editor) ParseSearch(op string, pat string) (Cmd, bool) {
 	switch op {
 	case "/":
 		if pat == "" {
-			return Cmd{Kind: CmdSearchRepeatForward}, true
+			return Cmd{Kind: CmdMoveSearchRepeatForward}, true
 		} else {
 			return Cmd{
-				Kind: CmdSearchForward,
+				Kind: CmdMoveSearchForward,
 				Pat:  pat,
 			}, true
 		}
 	case "?":
 		if pat == "" {
-			return Cmd{Kind: CmdSearchRepeatBackward}, true
+			return Cmd{Kind: CmdMoveSearchRepeatBackward}, true
 		} else {
 			return Cmd{
-				Kind: CmdSearchBackward,
+				Kind: CmdMoveSearchBackward,
 				Pat:  pat,
 			}, true
 		}
 	case "n":
-		return Cmd{Kind: CmdSearchNextMatch}, true
+		return Cmd{Kind: CmdMoveSearchNextMatch}, true
 	case "N":
-		return Cmd{Kind: CmdSearchPrevMatch}, true
+		return Cmd{Kind: CmdMoveSearchPrevMatch}, true
 	}
 
 	return Cmd{}, false
@@ -477,15 +481,15 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 	if mv != "" {
 		switch op {
 		case "y":
-			b := ed.Buffer()
+			b := ed.Buf()
 			start := b.Loc
 			cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
 			if ok {
-				if !ed.Run(cmd, false) { // XXX replay?
+				dest, ok := ed.RunMove(cmd)
+				if !ok {
 					return Cmd{}, false
 				}
-				end := b.Loc
-				b.Loc = start
+				end := dest.Loc // TODO
 				return Cmd{
 					Kind:     CmdOpCopyLineRegion,
 					StartRow: start.Row,
@@ -494,11 +498,11 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
 			if ok {
-				if !ed.Run(cmd, false) { // XXX replay?
+				dest, ok := ed.RunMove(cmd)
+				if !ok {
 					return Cmd{}, false
 				}
-				end := b.Loc
-				b.Loc = start
+				end := dest.Loc // TODO
 				return Cmd{
 					Kind:  CmdOpCopyRegion,
 					Start: start,
@@ -507,15 +511,15 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			return Cmd{}, false
 		case "d":
-			b := ed.Buffer()
+			b := ed.Buf()
 			start := b.Loc
 			cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
 			if ok {
-				if !ed.Run(cmd, false) { // XXX replay?
+				dest, ok := ed.RunMove(cmd)
+				if !ok {
 					return Cmd{}, false
 				}
-				end := b.Loc
-				b.Loc = start
+				end := dest.Loc // TODO
 				return Cmd{
 					Kind:     CmdOpDeleteLineRegion,
 					StartRow: start.Row,
@@ -524,11 +528,11 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
 			if ok {
-				if !ed.Run(cmd, false) { // XXX replay?
+				dest, ok := ed.RunMove(cmd)
+				if !ok {
 					return Cmd{}, false
 				}
-				end := b.Loc
-				b.Loc = start
+				end := dest.Loc // TODO
 				return Cmd{
 					Kind:  CmdOpDeleteRegion,
 					Start: start,
@@ -537,15 +541,15 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			return Cmd{}, false
 		case "c":
-			b := ed.Buffer()
+			b := ed.Buf()
 			start := b.Loc
 			cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
 			if ok {
-				if !ed.Run(cmd, false) { // XXX replay?
+				dest, ok := ed.RunMove(cmd)
+				if !ok {
 					return Cmd{}, false
 				}
-				end := b.Loc
-				b.Loc = start
+				end := dest.Loc // TODO
 				return Cmd{
 					Kind:     CmdOpChangeLineRegion,
 					StartRow: start.Row,
@@ -554,11 +558,11 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
 			if ok {
-				if !ed.Run(cmd, false) { // XXX replay?
+				dest, ok := ed.RunMove(cmd)
+				if !ok {
 					return Cmd{}, false
 				}
-				end := b.Loc
-				b.Loc = start
+				end := dest.Loc // TODO
 				return Cmd{
 					Kind:  CmdOpChangeRegion,
 					Start: start,
@@ -843,18 +847,13 @@ func (ed *Editor) Parse() (Cmd, bool) {
 	if ok {
 		return cmd, true
 	}
+	if mv == "/" || mv == "?" {
+		// TODO input pat
+	}
 	op := mv
 	opFirst := p.buf[iPrev]
 
 	cmd, ok = ed.ParseView(num, op)
-	if ok {
-		return cmd, true
-	}
-	pat := ""
-	if op == "/" || op == "?" {
-		// TODO input pat
-	}
-	cmd, ok = ed.ParseSearch(op, pat)
 	if ok {
 		return cmd, true
 	}

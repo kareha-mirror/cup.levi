@@ -9,7 +9,7 @@ import (
 
 	"tea.kareha.org/cup/termi"
 
-	"tea.kareha.org/cup/levi/internal/buffer"
+	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/colors"
 )
 
@@ -50,14 +50,14 @@ func (k *KillBuf) SetLines(lines []string) {
 }
 
 type ViewMeta struct {
-	Loc buffer.Loc
+	Loc buf.Loc
 }
 
 type Editor struct {
 	dir      string
 	cfg      *Config
 	w, h     int
-	buffers  []*buffer.Buffer
+	bufs     []*buf.Buf
 	bIndex   int
 	inp      *Input
 	inpRow   int // 0-based
@@ -82,46 +82,46 @@ type Editor struct {
 }
 
 func (ed *Editor) Clear() {
-	if ed.bIndex < len(ed.buffers) {
-		ed.buffers[ed.bIndex] = new(buffer.Buffer)
+	if ed.bIndex < len(ed.bufs) {
+		ed.bufs[ed.bIndex] = new(buf.Buf)
 	} else {
-		ed.buffers = append(ed.buffers, new(buffer.Buffer))
+		ed.bufs = append(ed.bufs, new(buf.Buf))
 	}
 	ed.mode = ModeCommand
 	ed.redraw = true
 }
 
-func (ed *Editor) Buffer() *buffer.Buffer {
-	return ed.buffers[ed.bIndex]
+func (ed *Editor) Buf() *buf.Buf {
+	return ed.bufs[ed.bIndex]
 }
 
 func (ed *Editor) Close(force bool) {
-	b := ed.Buffer()
+	b := ed.Buf()
 	if !force && b.Modified {
 		ed.Ring("File modified since last complete write; write or use ! to override.")
 		return
 	}
-	buffers := []*buffer.Buffer{}
+	bufs := []*buf.Buf{}
 	if ed.bIndex-1 > 0 {
-		buffers = append(buffers, ed.buffers[:ed.bIndex-1]...)
+		bufs = append(bufs, ed.bufs[:ed.bIndex-1]...)
 	}
-	if ed.bIndex+1 <= len(ed.buffers)-1 {
-		buffers = append(buffers, ed.buffers[ed.bIndex+1:]...)
+	if ed.bIndex+1 <= len(ed.bufs)-1 {
+		bufs = append(bufs, ed.bufs[ed.bIndex+1:]...)
 	}
-	ed.buffers = buffers
-	if len(ed.buffers) < 1 {
+	ed.bufs = bufs
+	if len(ed.bufs) < 1 {
 		ed.alive = false
 	}
 }
 
 func (ed *Editor) Load(path string, force bool) error {
-	b := ed.Buffer()
+	b := ed.Buf()
 	if !force && b.Modified {
 		ed.Ring("File modified since last complete write; write or use ! to override.")
 		return fmt.Errorf("file modified")
 	}
 	ed.Clear()
-	b = ed.Buffer()
+	b = ed.Buf()
 	b.Path = path
 	if path == "" {
 		ed.Message("(memory): new file: line 1")
@@ -132,7 +132,7 @@ func (ed *Editor) Load(path string, force bool) error {
 		ed.Message("%s: new file: line 1", path)
 		return nil
 	}
-	stamp := buffer.Stamp{
+	stamp := buf.Stamp{
 		Time: info.ModTime(),
 		Size: info.Size(),
 	}
@@ -148,7 +148,7 @@ func (ed *Editor) Load(path string, force bool) error {
 }
 
 func (ed *Editor) InitialInfo() {
-	b := ed.Buffer()
+	b := ed.Buf()
 	path := b.Path
 	if path == "" {
 		path = "(memory)"
@@ -185,7 +185,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		cfg:      cfg,
 		w:        w,
 		h:        h,
-		buffers:  []*buffer.Buffer{},
+		bufs:     []*buf.Buf{},
 		bIndex:   0,
 		inp:      NewInput(),
 		inpRow:   0,
@@ -250,16 +250,16 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	}
 	info, err := os.Stat(path)
 	newFile := ""
-	stamp := buffer.Stamp{}
+	stamp := buf.Stamp{}
 	if err != nil {
 		newFile = " new file:"
 	} else {
-		stamp = buffer.Stamp{
+		stamp = buf.Stamp{
 			Time: info.ModTime(),
 			Size: info.Size(),
 		}
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	if !force && path == b.Path && stamp != b.Stamp {
 		ed.Ring(
 			"%s: file modified more recently than this copy; use ! to override.",
@@ -277,7 +277,7 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	if err != nil {
 		return err
 	}
-	stamp = buffer.Stamp{
+	stamp = buf.Stamp{
 		Time: info.ModTime(),
 		Size: info.Size(),
 	}
@@ -298,7 +298,7 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 }
 
 func (ed *Editor) Save(force bool) error {
-	b := ed.Buffer()
+	b := ed.Buf()
 	return ed.SaveAs(b.Path, force)
 }
 
@@ -317,7 +317,7 @@ func (ed *Editor) Finish() error {
 }
 
 func (ed *Editor) Line(row int) string {
-	b := ed.Buffer()
+	b := ed.Buf()
 
 	if ed.mode == ModeInsert {
 		if row < ed.inpRow {
@@ -333,7 +333,7 @@ func (ed *Editor) Line(row int) string {
 }
 
 func (ed *Editor) CurrentLine() string {
-	b := ed.Buffer()
+	b := ed.Buf()
 	return ed.Line(b.Loc.Row)
 }
 
@@ -355,7 +355,7 @@ func (ed *Editor) EnsureCommand() {
 	case ModeCommand:
 		return
 	case ModeInsert:
-		b := ed.Buffer()
+		b := ed.Buf()
 		lines := append([]string{}, b.Lines[:ed.inpRow]...)
 		inputLines := ed.inp.Lines()
 		if ed.cfg.AutoIndent {
@@ -373,7 +373,10 @@ func (ed *Editor) EnsureCommand() {
 		ed.inserted = ed.inp.Inserted()
 		ed.inp.Reset()
 		ed.mode = ModeCommand
-		ed.MoveLeft(1)
+		dest, ok := ed.MoveLeft(1)
+		if ok {
+			b.Loc = dest.Loc
+		}
 		b.Modified = true
 
 		if MultiInsertCmds[ed.lastCmd.Kind] && ed.lastCmd.Num > 1 {

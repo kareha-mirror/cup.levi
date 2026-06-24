@@ -13,7 +13,7 @@ import (
 // Ctrl-G : Show info such as current cursor position.
 func (ed *Editor) MiscShowInfo() {
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	path := b.Path
 	if path == "" {
 		path = "(memory)"
@@ -62,13 +62,13 @@ func (ed *Editor) MiscRepeat(n int) {
 // u : Undo.
 func (ed *Editor) MiscUndo(n int, replay bool) {
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	if b.Snapshot == nil {
 		return
 	}
 	b.Lines = b.Snapshot
 	b.Snapshot = nil
-	b.Confine()
+	b.Loc = b.Confine(b.Loc)
 }
 
 // U : Restore current line to previous state.
@@ -80,7 +80,7 @@ func (ed *Editor) MiscRestore() {
 // ZZ : Save and quit.
 func (ed *Editor) MiscSaveAndQuit() {
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	if b.Modified && b.Path == "" {
 		ed.Ring("File is a temporary; exit will discard modifications")
 		return

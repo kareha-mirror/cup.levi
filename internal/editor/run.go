@@ -1,5 +1,9 @@
 package editor
 
+import (
+	"unicode/utf8"
+)
+
 func (ed *Editor) Run(c Cmd, replay bool) bool {
 	switch c.Kind {
 	case CmdInvalid:
@@ -8,98 +12,27 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		return true
 	}
 
-	switch c.Kind {
-	case CmdMoveLeft:
-		ed.MoveLeft(c.Num)
-		return true
-	case CmdMoveDown:
-		ed.MoveDown(c.Num)
-		return true
-	case CmdMoveUp:
-		ed.MoveUp(c.Num)
-		return true
-	case CmdMoveRight:
-		ed.MoveRight(c.Num)
-		return true
-
-	case CmdMoveToStart:
-		ed.MoveToStart()
-		return true
-	case CmdMoveToEnd:
-		ed.MoveToEnd()
-		return true
-	case CmdMoveToNonBlank:
-		ed.MoveToNonBlank()
-		return true
-	case CmdMoveToColumn:
-		ed.MoveToColumn(c.Num)
-		return true
-
-	case CmdMoveByWord:
-		ed.MoveByWord(c.Num)
-		return true
-	case CmdMoveBackwardByWord:
-		ed.MoveBackwardByWord(c.Num)
-		return true
-	case CmdMoveToEndOfWord:
-		ed.MoveToEndOfWord(c.Num)
-		return true
-	case CmdMoveByLooseWord:
-		ed.MoveByLooseWord(c.Num)
-		return true
-	case CmdMoveBackwardByLooseWord:
-		ed.MoveBackwardByLooseWord(c.Num)
-		return true
-	case CmdMoveToEndOfLooseWord:
-		ed.MoveToEndOfLooseWord(c.Num)
-		return true
-
-	case CmdMoveByLine:
-		ed.MoveByLine(c.Num)
-		return true
-	case CmdMoveBackwardByLine:
-		ed.MoveBackwardByLine(c.Num)
-		return true
-	case CmdMoveToLastLine:
-		ed.MoveToLastLine()
-		return true
-	case CmdMoveToLine:
-		ed.MoveToLine(c.Num)
-		return true
-
-	case CmdMoveBySentence:
-		ed.MoveBySentence(c.Num)
-		return true
-	case CmdMoveBackwardBySentence:
-		ed.MoveBackwardBySentence(c.Num)
-		return true
-	case CmdMoveByParagraph:
-		ed.MoveByParagraph(c.Num)
-		return true
-	case CmdMoveBackwardByParagraph:
-		ed.MoveBackwardByParagraph(c.Num)
-		return true
-	case CmdMoveBySection:
-		ed.MoveBySection(c.Num)
-		return true
-	case CmdMoveBackwardBySection:
-		ed.MoveBackwardBySection(c.Num)
-		return true
-
-	case CmdMoveToTopOfView:
-		ed.MoveToTopOfView()
-		return true
-	case CmdMoveToMiddleOfView:
-		ed.MoveToMiddleOfView()
-		return true
-	case CmdMoveToBottomOfView:
-		ed.MoveToBottomOfView()
-		return true
-	case CmdMoveToBelowTopOfView:
-		ed.MoveToBelowTopOfView(c.Num)
-		return true
-	case CmdMoveToAboveBottomOfView:
-		ed.MoveToAboveBottomOfView(c.Num)
+	if _, ok := MoveCmds[c.Kind]; ok {
+		if dest, ok := ed.RunMove(c); ok {
+			b := ed.Buf()
+			if dest.Linewise {
+				if dest.FreeCol {
+					line := b.Line(dest.Loc.Row)
+					rc := utf8.RuneCountInString(line)
+					if b.VirtCol < rc {
+						dest.Loc.Col = b.VirtCol
+					} else {
+						dest.Loc.Col = max(rc-1, 0)
+					}
+				}
+			} else {
+				b.VirtCol = dest.Loc.Col
+			}
+			b.Loc = dest.Loc
+			if b.Loc.Col < b.ViewLoc.Col {
+				b.ViewLoc.Col = 0
+			}
+		}
 		return true
 	}
 
@@ -107,22 +40,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 	case CmdMarkSet:
 		ed.MarkSet(c.Letter)
 		return true
-	case CmdMarkMoveTo:
-		ed.MarkMoveTo(c.Letter)
-		return true
-	case CmdMarkMoveToLine:
-		ed.MarkMoveToLine(c.Letter)
-		return true
 
-	case CmdMarkBack:
-		ed.MarkBack()
-		return true
-	case CmdMarkBackToLine:
-		ed.MarkBackToLine()
-		return true
-	}
-
-	switch c.Kind {
 	case CmdViewDown:
 		ed.ViewDown(c.Num)
 		return true
@@ -155,51 +73,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 	case CmdViewRedraw:
 		ed.ViewRedraw()
 		return true
-	}
 
-	switch c.Kind {
-	case CmdSearchForward:
-		ed.SearchForward()
-		return true
-	case CmdSearchBackward:
-		ed.SearchBackward()
-		return true
-	case CmdSearchNextMatch:
-		ed.SearchNextMatch()
-		return true
-	case CmdSearchPrevMatch:
-		ed.SearchPrevMatch()
-		return true
-	case CmdSearchRepeatForward:
-		ed.SearchRepeatForward()
-		return true
-	case CmdSearchRepeatBackward:
-		ed.SearchRepeatBackward()
-		return true
-	}
-
-	switch c.Kind {
-	case CmdFindForward:
-		ed.FindForward(c.Letter, c.Num)
-		return true
-	case CmdFindBackward:
-		ed.FindBackward(c.Letter, c.Num)
-		return true
-	case CmdFindBeforeForward:
-		ed.FindBeforeForward(c.Letter, c.Num)
-		return true
-	case CmdFindBeforeBackward:
-		ed.FindBeforeBackward(c.Letter, c.Num)
-		return true
-	case CmdFindNextMatch:
-		ed.FindNextMatch(c.Num)
-		return true
-	case CmdFindPrevMatch:
-		ed.FindPrevMatch(c.Num)
-		return true
-	}
-
-	switch c.Kind {
 	case CmdInsertBefore:
 		ed.InsertBefore(c.Num, replay)
 		return true
@@ -295,9 +169,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 	case CmdOpSubstLine:
 		ed.OpSubstLine(c.Num, replay)
 		return true
-	}
 
-	switch c.Kind {
 	case CmdEditReplace:
 		ed.EditReplace(c.Letter, c.Num, replay)
 		return true
@@ -316,9 +188,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 	case CmdEditOutdentRegion:
 		ed.EditOutdentRegion(c.Start, c.End)
 		return true
-	}
 
-	switch c.Kind {
 	case CmdMiscShowInfo:
 		ed.MiscShowInfo()
 		return true

@@ -1,7 +1,7 @@
 package editor
 
 import (
-	"tea.kareha.org/cup/levi/internal/buffer"
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
 ///////////////////
@@ -19,7 +19,7 @@ func (ed *Editor) ViewDown(n int) {
 	if i < 0 {
 		return
 	}
-	b := ed.Buffer()
+	b := ed.Buf()
 	b.Loc = ed.vMeta[i].Loc
 	b.ViewLoc = b.Loc
 	if b.Loc.Col < 1 {
@@ -30,12 +30,12 @@ func (ed *Editor) ViewDown(n int) {
 // Ctrl-B : Scroll up by view height.
 func (ed *Editor) ViewUp(n int) {
 	ed.EnsureCommand()
-	b := ed.Buffer()
+	b := ed.Buf()
 	viewRow := b.ViewLoc.Row - (ed.h - 3)
 	if viewRow < 0 {
 		viewRow = 0
 	}
-	viewMeta := ed.RenderMeta(buffer.Loc{0, viewRow})
+	viewMeta := ed.RenderMeta(buf.Loc{0, viewRow})
 	if len(viewMeta) < 1 {
 		return
 	}

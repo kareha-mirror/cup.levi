@@ -1,7 +1,7 @@
 package editor
 
 import (
-	"tea.kareha.org/cup/levi/internal/buffer"
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
 type CmdKind int
@@ -12,8 +12,8 @@ type Cmd struct {
 	Letter   rune
 	Pat      string
 	Reg      rune
-	Start    buffer.Loc
-	End      buffer.Loc
+	Start    buf.Loc
+	End      buf.Loc
 	StartRow int
 	EndRow   int
 }
@@ -57,11 +57,11 @@ const (
 	CmdMoveToAboveBottomOfView
 
 	CmdMarkSet
-	CmdMarkMoveTo
-	CmdMarkMoveToLine
+	CmdMoveToMark
+	CmdMoveToMarkLine
 
-	CmdMarkBack
-	CmdMarkBackToLine
+	CmdMoveBackToMark
+	CmdMoveBackToMarkLine
 
 	CmdViewDown
 	CmdViewUp
@@ -76,19 +76,19 @@ const (
 
 	CmdViewRedraw
 
-	CmdSearchForward
-	CmdSearchBackward
-	CmdSearchNextMatch
-	CmdSearchPrevMatch
-	CmdSearchRepeatForward
-	CmdSearchRepeatBackward
+	CmdMoveSearchForward
+	CmdMoveSearchBackward
+	CmdMoveSearchNextMatch
+	CmdMoveSearchPrevMatch
+	CmdMoveSearchRepeatForward
+	CmdMoveSearchRepeatBackward
 
-	CmdFindForward
-	CmdFindBackward
-	CmdFindBeforeForward
-	CmdFindBeforeBackward
-	CmdFindNextMatch
-	CmdFindPrevMatch
+	CmdMoveFindForward
+	CmdMoveFindBackward
+	CmdMoveFindBeforeForward
+	CmdMoveFindBeforeBackward
+	CmdMoveFindNextMatch
+	CmdMoveFindPrevMatch
 
 	CmdInsertBefore
 	CmdInsertAfter
@@ -140,6 +140,63 @@ const (
 	CmdMiscSaveAndQuit
 	CmdMiscSuspend
 )
+
+var MoveCmds = map[CmdKind]struct{}{
+	CmdMoveLeft:  {},
+	CmdMoveDown:  {},
+	CmdMoveUp:    {},
+	CmdMoveRight: {},
+
+	CmdMoveToStart:    {},
+	CmdMoveToEnd:      {},
+	CmdMoveToNonBlank: {},
+	CmdMoveToColumn:   {},
+
+	CmdMoveByWord:              {},
+	CmdMoveBackwardByWord:      {},
+	CmdMoveToEndOfWord:         {},
+	CmdMoveByLooseWord:         {},
+	CmdMoveBackwardByLooseWord: {},
+	CmdMoveToEndOfLooseWord:    {},
+
+	CmdMoveByLine:         {},
+	CmdMoveBackwardByLine: {},
+	CmdMoveToLastLine:     {},
+	CmdMoveToLine:         {},
+
+	CmdMoveBySentence:          {},
+	CmdMoveBackwardBySentence:  {},
+	CmdMoveByParagraph:         {},
+	CmdMoveBackwardByParagraph: {},
+	CmdMoveBySection:           {},
+	CmdMoveBackwardBySection:   {},
+
+	CmdMoveToTopOfView:         {},
+	CmdMoveToMiddleOfView:      {},
+	CmdMoveToBottomOfView:      {},
+	CmdMoveToBelowTopOfView:    {},
+	CmdMoveToAboveBottomOfView: {},
+
+	CmdMoveToMark:     {},
+	CmdMoveToMarkLine: {},
+
+	CmdMoveBackToMark:     {},
+	CmdMoveBackToMarkLine: {},
+
+	CmdMoveSearchForward:        {},
+	CmdMoveSearchBackward:       {},
+	CmdMoveSearchNextMatch:      {},
+	CmdMoveSearchPrevMatch:      {},
+	CmdMoveSearchRepeatForward:  {},
+	CmdMoveSearchRepeatBackward: {},
+
+	CmdMoveFindForward:        {},
+	CmdMoveFindBackward:       {},
+	CmdMoveFindBeforeForward:  {},
+	CmdMoveFindBeforeBackward: {},
+	CmdMoveFindNextMatch:      {},
+	CmdMoveFindPrevMatch:      {},
+}
 
 var InsertCmds = map[CmdKind]bool{
 	CmdInsertBefore:         true,
