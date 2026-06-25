@@ -63,7 +63,6 @@ func (ed *Editor) ViewUp(n int) {
 	if b.Loc.Col < 1 {
 		ed.toNonBlankCol()
 	}
-	// TODO buggy
 }
 
 // Ctrl-D : Scroll down by half view height.

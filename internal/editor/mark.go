@@ -26,9 +26,13 @@ func (ed *Editor) MoveToMark(letter rune) (buf.Dest, bool) {
 	if !ok {
 		return buf.Dest{}, false
 	}
-	b.Loc = loc
-	b.Loc = b.Confine(b.Loc)
-	return buf.Dest{}, false // TODO
+	loc = b.Confine(loc)
+	return buf.Dest{
+		Loc:       loc,
+		Linewise:  false,
+		FreeCol:   false,
+		Inclusive: false,
+	}, true
 }
 
 // '<letter> : Move cursor to marked line labelled by <letter>.
@@ -39,10 +43,15 @@ func (ed *Editor) MoveToMarkLine(letter rune) (buf.Dest, bool) {
 	if !ok {
 		return buf.Dest{}, false
 	}
-	b.Loc = loc
-	b.Loc = b.Confine(b.Loc)
-	ed.toNonBlankCol()
-	return buf.Dest{}, false // TODO
+	loc = b.Confine(loc)
+	line := b.Line(loc.Row)
+	loc.Col = nonBlankCol(line)
+	return buf.Dest{
+		Loc:       loc,
+		Linewise:  true,
+		FreeCol:   false,
+		Inclusive: true,
+	}, true
 }
 
 //
@@ -53,12 +62,12 @@ func (ed *Editor) MoveToMarkLine(letter rune) (buf.Dest, bool) {
 func (ed *Editor) MoveBackToMark() (buf.Dest, bool) {
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveBackToMark")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // ” : Move cursor to previous line in context.
 func (ed *Editor) MoveBackToMarkLine() (buf.Dest, bool) {
 	ed.EnsureCommand()
 	ed.Unimplemented("MarkBackToLine")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }

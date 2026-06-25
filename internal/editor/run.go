@@ -32,6 +32,9 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 			if b.Loc.Col < b.ViewLoc.Col {
 				b.ViewLoc.Col = 0
 			}
+			if dest.Locate {
+				ed.Locate()
+			}
 		}
 		return true
 	}
@@ -101,7 +104,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		ed.OpCopyLine(c.Num)
 		return true
 	case CmdOpCopyRegion:
-		ed.OpCopyRegion(c.Start, c.End)
+		ed.OpCopyRegion(c.Start, c.End, c.Inclusive)
 		return true
 	case CmdOpCopyLineRegion:
 		ed.OpCopyLineRegion(c.StartRow, c.EndRow)
@@ -136,7 +139,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		ed.OpDeleteLine(c.Num)
 		return true
 	case CmdOpDeleteRegion:
-		ed.OpDeleteRegion(c.Start, c.End)
+		ed.OpDeleteRegion(c.Start, c.End, c.Inclusive)
 		return true
 	case CmdOpDeleteLineRegion:
 		ed.OpDeleteLineRegion(c.StartRow, c.EndRow)
@@ -152,7 +155,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		ed.OpChangeLine(c.Num, replay)
 		return true
 	case CmdOpChangeRegion:
-		ed.OpChangeRegion(c.Start, c.End, replay)
+		ed.OpChangeRegion(c.Start, c.End, c.Inclusive, replay)
 		return true
 	case CmdOpChangeLineRegion:
 		ed.OpChangeLineRegion(c.StartRow, c.EndRow, replay)

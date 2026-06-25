@@ -305,7 +305,7 @@ func (ed *Editor) ParseMoveRunes(noNum bool, num int, mv string, letter rune) (C
 	if ok {
 		return cmd, true
 	}
-	return ed.ParseSearch(mv, "") // TODO pat
+	return ed.ParseSearch(mv, "") // XXX pat
 }
 
 func (ed *Editor) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
@@ -489,7 +489,7 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc // TODO
+				end := dest.Loc
 				return Cmd{
 					Kind:     CmdOpCopyLineRegion,
 					StartRow: start.Row,
@@ -502,11 +502,12 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc // TODO
+				end := dest.Loc
 				return Cmd{
-					Kind:  CmdOpCopyRegion,
-					Start: start,
-					End:   end,
+					Kind:      CmdOpCopyRegion,
+					Start:     start,
+					End:       end,
+					Inclusive: dest.Inclusive,
 				}, true
 			}
 			return Cmd{}, false
@@ -519,7 +520,7 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc // TODO
+				end := dest.Loc
 				return Cmd{
 					Kind:     CmdOpDeleteLineRegion,
 					StartRow: start.Row,
@@ -532,11 +533,12 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc // TODO
+				end := dest.Loc
 				return Cmd{
-					Kind:  CmdOpDeleteRegion,
-					Start: start,
-					End:   end,
+					Kind:      CmdOpDeleteRegion,
+					Start:     start,
+					End:       end,
+					Inclusive: dest.Inclusive,
 				}, true
 			}
 			return Cmd{}, false
@@ -549,7 +551,7 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc // TODO
+				end := dest.Loc
 				return Cmd{
 					Kind:     CmdOpChangeLineRegion,
 					StartRow: start.Row,
@@ -562,11 +564,12 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc // TODO
+				end := dest.Loc
 				return Cmd{
-					Kind:  CmdOpChangeRegion,
-					Start: start,
-					End:   end,
+					Kind:      CmdOpChangeRegion,
+					Start:     start,
+					End:       end,
+					Inclusive: dest.Inclusive,
 				}, true
 			}
 			return Cmd{}, false
@@ -694,16 +697,16 @@ func (ed *Editor) ParseEdit(num int, op string, noSubnum bool, subnum int, mv st
 		/*
 			return Cmd{
 				Kind: CmdEditIndentRegion,
-				Start: Loc{}, // TODO
-				End: Loc{}, // TODO
+				Start: Loc{},
+				End: Loc{},
 			}, true
 		*/
 	case "<":
 		/*
 			return Cmd{
 				Kind: CmdEditOutdentRegion,
-				Start: Loc{}, // TODO
-				End: Loc{}, // TODO
+				Start: Loc{},
+				End: Loc{},
 			}, true
 		*/
 	}
@@ -728,6 +731,9 @@ var compoundSet = map[string]struct{}{
 	">>": {},
 	"<<": {},
 	"ZZ": {},
+
+	"dw": {},
+	"cw": {},
 }
 
 var compoundHeadSet = map[rune]struct{}{
@@ -848,7 +854,7 @@ func (ed *Editor) Parse() (Cmd, bool) {
 		return cmd, true
 	}
 	if mv == "/" || mv == "?" {
-		// TODO input pat
+		// XXX input pat
 	}
 	op := mv
 	opFirst := p.buf[iPrev]

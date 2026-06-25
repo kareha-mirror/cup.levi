@@ -46,7 +46,7 @@ func (ed *Editor) MoveLeft(n int) (buf.Dest, bool) {
 		Loc:       loc,
 		Linewise:  false,
 		FreeCol:   false,
-		Inclusive: true,
+		Inclusive: false,
 	}, true
 }
 
@@ -107,7 +107,7 @@ func (ed *Editor) MoveRight(n int) (buf.Dest, bool) {
 		Loc:       loc,
 		Linewise:  false,
 		FreeCol:   false,
-		Inclusive: true,
+		Inclusive: false,
 	}, true
 }
 
@@ -270,7 +270,7 @@ func (ed *Editor) MoveToEndOfWord(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveToEndOfWord")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // W : Move cursor forward by loose word.
@@ -281,7 +281,7 @@ func (ed *Editor) MoveByLooseWord(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveByLooseWord")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // B : Move cursor backward by loose word.
@@ -292,7 +292,7 @@ func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveBackwardByLooseWord")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // E : Move cursor to end of loose word.
@@ -303,7 +303,7 @@ func (ed *Editor) MoveToEndOfLooseWord(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveToEndOfLooseWord")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 //
@@ -407,7 +407,7 @@ func (ed *Editor) MoveBySentence(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveBySentence")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // ( : Move cursor backward by sentence.
@@ -418,7 +418,7 @@ func (ed *Editor) MoveBackwardBySentence(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveBackwardBySentence")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // } : Move cursor forward by paragraph.
@@ -429,7 +429,7 @@ func (ed *Editor) MoveByParagraph(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveByParagraph")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // { : Move cursor backward by paragraph.
@@ -440,7 +440,7 @@ func (ed *Editor) MoveBackwardByParagraph(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveBackwardByParagraph")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // ]] : Move cursor forward by section.
@@ -451,7 +451,7 @@ func (ed *Editor) MoveBySection(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveBySection")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 // [[ : Move cursor backward by section.
@@ -462,7 +462,7 @@ func (ed *Editor) MoveBackwardBySection(n int) (buf.Dest, bool) {
 	}
 	ed.EnsureCommand()
 	ed.Unimplemented("MoveBackwardBySection")
-	return buf.Dest{}, false // TODO
+	return buf.Dest{}, false
 }
 
 //

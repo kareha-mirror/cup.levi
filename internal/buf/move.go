@@ -9,6 +9,7 @@ type Dest struct {
 	Linewise  bool
 	FreeCol   bool
 	Inclusive bool
+	Locate    bool
 }
 
 func (b *Buf) CheckRow(row int) bool {

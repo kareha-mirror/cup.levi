@@ -7,15 +7,16 @@ import (
 type CmdKind int
 
 type Cmd struct {
-	Kind     CmdKind
-	Num      int
-	Letter   rune
-	Pat      string
-	Reg      rune
-	Start    buf.Loc
-	End      buf.Loc
-	StartRow int
-	EndRow   int
+	Kind      CmdKind
+	Num       int
+	Letter    rune
+	Pat       string
+	Reg       rune
+	Start     buf.Loc
+	End       buf.Loc
+	StartRow  int
+	EndRow    int
+	Inclusive bool
 }
 
 const (

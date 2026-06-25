@@ -42,14 +42,23 @@ func (ed *Editor) confineLoc(loc buf.Loc) buf.Loc {
 }
 
 func (ed *Editor) confineRegion(
-	start, end buf.Loc,
+	start, end buf.Loc, inclusive bool,
 ) (buf.Loc, buf.Loc) {
 	start, end = orderRegion(start, end)
-	return ed.confineLoc(start), ed.confineLoc(end)
+	start = ed.confineLoc(start)
+	end = ed.confineLoc(end)
+	if !inclusive {
+		return start, end
+	}
+	b := ed.Buf()
+	line := b.Line(end.Row)
+	if line != "" {
+		end.Col++
+	}
+	return start, end
 }
 
 func (ed *Editor) getRegion(start, end buf.Loc) []string {
-	start, end = ed.confineRegion(start, end)
 	b := ed.Buf()
 	if start.Row == end.Row {
 		line := b.Line(start.Row)
@@ -57,7 +66,7 @@ func (ed *Editor) getRegion(start, end buf.Loc) []string {
 			return []string{""}
 		}
 		rs := []rune(line)
-		return []string{string(rs[start.Col : end.Col+1])}
+		return []string{string(rs[start.Col:end.Col])}
 	}
 	lines := []string{}
 	line := b.Line(start.Row)
@@ -75,7 +84,7 @@ func (ed *Editor) getRegion(start, end buf.Loc) []string {
 		lines = append(lines, "")
 	} else {
 		rs := []rune(line)
-		lines = append(lines, string(rs[:end.Col+1]))
+		lines = append(lines, string(rs[:end.Col]))
 	}
 	return lines
 }
@@ -109,8 +118,9 @@ func (ed *Editor) OpCopyLine(n int) {
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpCopyRegion(start buf.Loc, end buf.Loc) {
+func (ed *Editor) OpCopyRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 	ed.EnsureCommand()
+	start, end = ed.confineRegion(start, end, inclusive)
 	lines := ed.getRegion(start, end)
 	ed.killed.SetRunes(lines)
 }
@@ -376,9 +386,9 @@ func (ed *Editor) OpDeleteLine(n int) {
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc) {
+func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 	ed.EnsureCommand()
-	start, end = ed.confineRegion(start, end)
+	start, end = ed.confineRegion(start, end, inclusive)
 	lines := ed.getRegion(start, end)
 	ed.killed.SetRunes(lines)
 
@@ -422,6 +432,8 @@ func (ed *Editor) OpDeleteLineRegion(start int, end int) {
 		lines = append(lines, b.Lines[end+1:]...)
 	}
 	b.Lines = lines
+	b.Loc.Row = start
+	b.Loc.Col = 0
 	b.Loc = b.Confine(b.Loc)
 	b.Modified = true
 }
@@ -435,9 +447,12 @@ func (ed *Editor) OpDeleteWord(n int) {
 	ed.EnsureCommand()
 	b := ed.Buf()
 	start := b.Loc
-	ed.MoveByWordEx(n)
-	end := b.Loc
-	ed.OpDeleteRegion(start, end)
+	dest, ok := ed.MoveByWordEx(n)
+	if !ok {
+		return
+	}
+	end := dest.Loc
+	ed.OpDeleteRegion(start, end, false)
 	// TODO n
 }
 
@@ -475,10 +490,10 @@ func (ed *Editor) OpChangeLine(n int, replay bool) {
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
 func (ed *Editor) OpChangeRegion(
-	start buf.Loc, end buf.Loc, replay bool,
+	start buf.Loc, end buf.Loc, inclusive bool, replay bool,
 ) {
 	ed.EnsureCommand()
-	ed.OpDeleteRegion(start, end)
+	ed.OpDeleteRegion(start, end, inclusive)
 	// XXX replay?
 	b := ed.Buf()
 	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
@@ -501,10 +516,12 @@ func (ed *Editor) OpChangeWord(n int, replay bool) {
 	ed.EnsureCommand()
 	b := ed.Buf()
 	start := b.Loc
-	ed.MoveByWordEx(n)
-	end := b.Loc
-	b.Loc = start
-	ed.OpChangeRegion(start, end, replay)
+	dest, ok := ed.MoveByWordEx(n)
+	if !ok {
+		return
+	}
+	end := dest.Loc
+	ed.OpChangeRegion(start, end, false, replay)
 	// TODO n
 }
 

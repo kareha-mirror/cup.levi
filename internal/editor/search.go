@@ -6,19 +6,18 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
-func (ed *Editor) Locate(loc buf.Loc) {
+func (ed *Editor) Locate() {
 	b := ed.Buf()
-	b.Loc = loc
 	if len(ed.vMeta) < 1 {
 		return
 	}
 	minRow := ed.vMeta[0].Loc.Row
 	maxRow := ed.vMeta[len(ed.vMeta)-1].Loc.Row
-	if loc.Row >= minRow && loc.Row <= maxRow {
+	if b.Loc.Row >= minRow && b.Loc.Row <= maxRow {
 		// XXX col is not checked
 		return
 	}
-	viewRow := loc.Row - (ed.h-1)/2 + 1
+	viewRow := b.Loc.Row - (ed.h-1)/2 + 1
 	if viewRow < 0 {
 		viewRow = 0
 	}
@@ -55,8 +54,13 @@ func (ed *Editor) MoveSearchForward() (buf.Dest, bool) {
 		if row == b.Loc.Row {
 			col += b.Loc.Col + 1
 		}
-		ed.Locate(buf.Loc{col, row})
-		return buf.Dest{}, false // TODO
+		return buf.Dest{
+			Loc:       buf.Loc{col, row},
+			Linewise:  false,
+			FreeCol:   false,
+			Inclusive: false,
+			Locate:    true,
+		}, true
 	}
 	ed.Ring("Search wrapped")
 	for row := 0; row <= b.Loc.Row; row++ {
@@ -66,8 +70,13 @@ func (ed *Editor) MoveSearchForward() (buf.Dest, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:loc[0]])
-		ed.Locate(buf.Loc{col, row})
-		return buf.Dest{}, false // TODO
+		return buf.Dest{
+			Loc:       buf.Loc{col, row},
+			Linewise:  false,
+			FreeCol:   false,
+			Inclusive: false,
+			Locate:    true,
+		}, true
 	}
 	ed.Ring("Pattern not found")
 	return buf.Dest{}, false
@@ -108,8 +117,13 @@ func (ed *Editor) MoveSearchBackward() (buf.Dest, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		ed.Locate(buf.Loc{col, row})
-		return buf.Dest{}, false // TODO
+		return buf.Dest{
+			Loc:       buf.Loc{col, row},
+			Linewise:  false,
+			FreeCol:   false,
+			Inclusive: false,
+			Locate:    true,
+		}, true
 	}
 	ed.Ring("Search wrapped")
 	for row := b.NumLines() - 1; row >= b.Loc.Row; row-- {
@@ -133,8 +147,13 @@ func (ed *Editor) MoveSearchBackward() (buf.Dest, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		ed.Locate(buf.Loc{col, row})
-		return buf.Dest{}, false // TODO
+		return buf.Dest{
+			Loc:       buf.Loc{col, row},
+			Linewise:  false,
+			FreeCol:   false,
+			Inclusive: false,
+			Locate:    true,
+		}, true
 	}
 	ed.Ring("Pattern not found")
 	return buf.Dest{}, false

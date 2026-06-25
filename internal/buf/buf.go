@@ -73,7 +73,7 @@ func (b *Buf) SetText(text string) {
 	if len(text) < 1 {
 		b.Lines = []string{}
 	} else {
-		// TODO should also support CRLF or not?
+		// should also support CRLF or not?
 		if text[len(text)-1] == '\n' {
 			text = text[:len(text)-1]
 		}

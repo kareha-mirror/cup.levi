@@ -142,9 +142,13 @@ func (ed *Editor) Main() {
 					case termi.RuneEnter, termi.RuneNewline:
 						if ed.pattern.Len() < 1 {
 							if ed.backward {
-								ed.MoveSearchRepeatBackward()
+								ed.Run(Cmd{
+									Kind: CmdMoveSearchRepeatBackward,
+								}, false)
 							} else {
-								ed.MoveSearchRepeatForward()
+								ed.Run(Cmd{
+									Kind: CmdMoveSearchRepeatForward,
+								}, false)
 							}
 							continue
 						}
@@ -156,9 +160,13 @@ func (ed *Editor) Main() {
 						ed.regexp = re
 						ed.pattern.Reset()
 						if ed.backward {
-							ed.MoveSearchBackward()
+							ed.Run(
+								Cmd{Kind: CmdMoveSearchBackward}, false,
+							)
 						} else {
-							ed.MoveSearchForward()
+							ed.Run(
+								Cmd{Kind: CmdMoveSearchForward}, false,
+							)
 						}
 					case termi.RuneBackspace, termi.RuneDelete:
 						if !ed.pattern.RemoveTail() {
