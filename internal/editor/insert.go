@@ -2,12 +2,14 @@ package editor
 
 import (
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 func getIndent(s string) string {
 	runes := []rune{}
 	for _, r := range s {
-		if !isBlankRune(r) {
+		if !rkind.IsBlank(r) {
 			break
 		}
 		runes = append(runes, r)
@@ -36,7 +38,7 @@ func (ed *Editor) replayInsert(line string) {
 	inserted[len(inserted)-1] = inserted[len(inserted)-1] + tail
 	if ed.cfg.AutoIndent {
 		for i := 0; i < len(inserted); i++ {
-			if isBlankLine(inserted[i]) {
+			if rkind.IsBlankLine(inserted[i]) {
 				inserted[i] = ""
 			}
 		}
@@ -98,8 +100,9 @@ func (ed *Editor) InsertBeforeNonBlank(n int, replay bool) {
 	if !replay {
 		n = 1
 	}
+	b := ed.Buf()
 	for i := 0; i < n; i++ {
-		ed.toNonBlankCol()
+		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 		ed.InsertBefore(1, replay)
 	}
 }
@@ -151,7 +154,7 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 		}
 		b.Lines = lines
 		b.Loc.Row++
-		ed.toNonBlankCol()
+		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 		ed.InsertAfter(1, replay)
 	}
 }
@@ -177,7 +180,7 @@ func (ed *Editor) InsertOpenAbove(n int, replay bool) {
 			lines = append(lines, b.Lines[b.Loc.Row:]...)
 		}
 		b.Lines = lines
-		ed.toNonBlankCol()
+		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 		ed.InsertAfter(1, replay)
 	}
 }

@@ -29,11 +29,11 @@ func (ed *Editor) Locate() {
 /////////////////////
 
 // /<pattern> Enter : Search <pattern> forward.
-func (ed *Editor) MoveSearchForward() (buf.Dest, bool) {
+func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 	ed.EnsureCommand()
 	if ed.regexp == nil {
 		ed.Ring("No previous search pattern")
-		return buf.Dest{}, false
+		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	for row := b.Loc.Row; row < b.NumLines(); row++ {
@@ -54,13 +54,7 @@ func (ed *Editor) MoveSearchForward() (buf.Dest, bool) {
 		if row == b.Loc.Row {
 			col += b.Loc.Col + 1
 		}
-		return buf.Dest{
-			Loc:       buf.Loc{col, row},
-			Linewise:  false,
-			FreeCol:   false,
-			Inclusive: false,
-			Locate:    true,
-		}, true
+		return buf.Loc{col, row}, true
 	}
 	ed.Ring("Search wrapped")
 	for row := 0; row <= b.Loc.Row; row++ {
@@ -70,24 +64,18 @@ func (ed *Editor) MoveSearchForward() (buf.Dest, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:loc[0]])
-		return buf.Dest{
-			Loc:       buf.Loc{col, row},
-			Linewise:  false,
-			FreeCol:   false,
-			Inclusive: false,
-			Locate:    true,
-		}, true
+		return buf.Loc{col, row}, true
 	}
 	ed.Ring("Pattern not found")
-	return buf.Dest{}, false
+	return buf.Loc{}, false
 }
 
 // ?<pattern> Enter : Search <pattern> backward.
-func (ed *Editor) MoveSearchBackward() (buf.Dest, bool) {
+func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
 	ed.EnsureCommand()
 	if ed.regexp == nil {
 		ed.Ring("No previous search pattern")
-		return buf.Dest{}, false
+		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	rs := []rune(b.CurrentLine())
@@ -117,13 +105,7 @@ func (ed *Editor) MoveSearchBackward() (buf.Dest, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		return buf.Dest{
-			Loc:       buf.Loc{col, row},
-			Linewise:  false,
-			FreeCol:   false,
-			Inclusive: false,
-			Locate:    true,
-		}, true
+		return buf.Loc{col, row}, true
 	}
 	ed.Ring("Search wrapped")
 	for row := b.NumLines() - 1; row >= b.Loc.Row; row-- {
@@ -147,20 +129,14 @@ func (ed *Editor) MoveSearchBackward() (buf.Dest, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		return buf.Dest{
-			Loc:       buf.Loc{col, row},
-			Linewise:  false,
-			FreeCol:   false,
-			Inclusive: false,
-			Locate:    true,
-		}, true
+		return buf.Loc{col, row}, true
 	}
 	ed.Ring("Pattern not found")
-	return buf.Dest{}, false
+	return buf.Loc{}, false
 }
 
 // n : Search next match.
-func (ed *Editor) MoveSearchNextMatch() (buf.Dest, bool) {
+func (ed *Editor) MoveSearchNextMatch() (buf.Loc, bool) {
 	if ed.backward {
 		return ed.MoveSearchRepeatBackward()
 	} else {
@@ -169,7 +145,7 @@ func (ed *Editor) MoveSearchNextMatch() (buf.Dest, bool) {
 }
 
 // N : Search previous match.
-func (ed *Editor) MoveSearchPrevMatch() (buf.Dest, bool) {
+func (ed *Editor) MoveSearchPrevMatch() (buf.Loc, bool) {
 	if ed.backward {
 		return ed.MoveSearchRepeatForward()
 	} else {
@@ -178,11 +154,11 @@ func (ed *Editor) MoveSearchPrevMatch() (buf.Dest, bool) {
 }
 
 // / Enter : Repeat last search forward.
-func (ed *Editor) MoveSearchRepeatForward() (buf.Dest, bool) {
+func (ed *Editor) MoveSearchRepeatForward() (buf.Loc, bool) {
 	return ed.MoveSearchForward()
 }
 
 // ? Enter : Repeat last search backward.
-func (ed *Editor) MoveSearchRepeatBackward() (buf.Dest, bool) {
+func (ed *Editor) MoveSearchRepeatBackward() (buf.Loc, bool) {
 	return ed.MoveSearchBackward()
 }

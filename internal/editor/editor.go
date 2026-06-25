@@ -11,6 +11,7 @@ import (
 
 	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/colors"
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 func getConfigPath(dir string) string {
@@ -341,15 +342,6 @@ func (ed *Editor) RuneCount() int {
 	return utf8.RuneCountInString(ed.CurrentLine())
 }
 
-func isBlankLine(s string) bool {
-	for _, r := range s {
-		if !isBlankRune(r) {
-			return false
-		}
-	}
-	return true
-}
-
 func (ed *Editor) EnsureCommand() {
 	switch ed.mode {
 	case ModeCommand:
@@ -360,7 +352,7 @@ func (ed *Editor) EnsureCommand() {
 		inputLines := ed.inp.Lines()
 		if ed.cfg.AutoIndent {
 			for i := 0; i < len(inputLines); i++ {
-				if isBlankLine(inputLines[i]) {
+				if rkind.IsBlankLine(inputLines[i]) {
 					inputLines[i] = ""
 				}
 			}
@@ -373,9 +365,9 @@ func (ed *Editor) EnsureCommand() {
 		ed.inserted = ed.inp.Inserted()
 		ed.inp.Reset()
 		ed.mode = ModeCommand
-		dest, ok := ed.MoveLeft(1)
+		loc, ok := ed.MoveLeft(1)
 		if ok {
-			b.Loc = dest.Loc
+			b.Loc = loc
 		}
 		b.Modified = true
 

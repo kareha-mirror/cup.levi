@@ -4,6 +4,8 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
+
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 type Input struct {
@@ -34,7 +36,7 @@ func (inp *Input) Init(line string, col int, ai bool) {
 	} else {
 		inp.tail = ""
 	}
-	if ai && isBlankLine(inp.head) {
+	if ai && rkind.IsBlankLine(inp.head) {
 		inp.bodies[0].WriteString(inp.head)
 		inp.head = ""
 	}

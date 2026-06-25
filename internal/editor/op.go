@@ -13,6 +13,7 @@ func orderRegion(start, end buf.Loc) (buf.Loc, buf.Loc) {
 	if end.Row < start.Row {
 		return end, start
 	}
+	// start.Row == end.Row
 	if start.Col < end.Col {
 		return start, end
 	}
@@ -24,19 +25,16 @@ func (ed *Editor) confineLoc(loc buf.Loc) buf.Loc {
 	if loc.Row < 0 {
 		return buf.Loc{0, 0}
 	}
-	if loc.Row >= b.NumLines() {
-		row := max(b.NumLines()-1, 0)
-		line := b.Line(row)
-		col := max(utf8.RuneCountInString(line)-1, 0)
-		return buf.Loc{col, row}
+	if loc.Row > b.NumLines() {
+		return buf.Loc{0, b.NumLines()}
 	}
 	if loc.Col < 0 {
 		return buf.Loc{0, loc.Row}
 	}
 	line := b.Line(loc.Row)
-	maxCol := max(utf8.RuneCountInString(line)-1, 0)
-	if loc.Col > maxCol {
-		return buf.Loc{maxCol, loc.Row}
+	rc := utf8.RuneCountInString(line)
+	if loc.Col > rc {
+		return buf.Loc{rc, loc.Row}
 	}
 	return loc
 }
@@ -45,17 +43,7 @@ func (ed *Editor) confineRegion(
 	start, end buf.Loc, inclusive bool,
 ) (buf.Loc, buf.Loc) {
 	start, end = orderRegion(start, end)
-	start = ed.confineLoc(start)
-	end = ed.confineLoc(end)
-	if !inclusive {
-		return start, end
-	}
-	b := ed.Buf()
-	line := b.Line(end.Row)
-	if line != "" {
-		end.Col++
-	}
-	return start, end
+	return ed.confineLoc(start), ed.confineLoc(end)
 }
 
 func (ed *Editor) getRegion(start, end buf.Loc) []string {
@@ -87,12 +75,6 @@ func (ed *Editor) getRegion(start, end buf.Loc) []string {
 		lines = append(lines, string(rs[:end.Col]))
 	}
 	return lines
-}
-
-func (ed *Editor) toNonBlankCol() {
-	b := ed.Buf()
-	line := b.CurrentLine()
-	b.Loc.Col = nonBlankCol(line)
 }
 
 ///////////////////////////////////////////////
@@ -307,7 +289,7 @@ func (ed *Editor) OpPasteBefore(n int) {
 		}
 		lines = append(lines, b.Lines[b.Loc.Row:]...)
 		b.Lines = lines
-		ed.toNonBlankCol()
+		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 	}
 	b.Modified = true
 }
@@ -347,7 +329,7 @@ func (ed *Editor) OpDelete(n int) {
 		tail := string(rs[b.Loc.Col+n:])
 		b.SetCurrentLine(head + tail)
 	}
-	b.Loc = b.Confine(b.Loc)
+	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 }
 
@@ -381,7 +363,7 @@ func (ed *Editor) OpDeleteLine(n int) {
 		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
 	}
 	b.Lines = lines
-	b.Loc = b.Confine(b.Loc)
+	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 }
 
@@ -409,7 +391,7 @@ func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 	}
 	b.Lines = lines
 	b.Loc = start
-	b.Loc = b.Confine(b.Loc)
+	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 }
 
@@ -434,7 +416,7 @@ func (ed *Editor) OpDeleteLineRegion(start int, end int) {
 	b.Lines = lines
 	b.Loc.Row = start
 	b.Loc.Col = 0
-	b.Loc = b.Confine(b.Loc)
+	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 }
 
@@ -447,11 +429,10 @@ func (ed *Editor) OpDeleteWord(n int) {
 	ed.EnsureCommand()
 	b := ed.Buf()
 	start := b.Loc
-	dest, ok := ed.MoveByWordEx(n)
+	end, ok := ed.MoveByWordEx(n)
 	if !ok {
 		return
 	}
-	end := dest.Loc
 	ed.OpDeleteRegion(start, end, false)
 	// TODO n
 }
@@ -469,7 +450,7 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 		ed.killed.SetRunes([]string{string(rs[b.Loc.Col:])})
 	}
 	b.SetCurrentLine(string(rs[:b.Loc.Col]))
-	b.Loc = b.Confine(b.Loc)
+	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 	// TODO n
 }
@@ -516,11 +497,10 @@ func (ed *Editor) OpChangeWord(n int, replay bool) {
 	ed.EnsureCommand()
 	b := ed.Buf()
 	start := b.Loc
-	dest, ok := ed.MoveByWordEx(n)
+	end, ok := ed.MoveByWordEx(n)
 	if !ok {
 		return
 	}
-	end := dest.Loc
 	ed.OpChangeRegion(start, end, false, replay)
 	// TODO n
 }

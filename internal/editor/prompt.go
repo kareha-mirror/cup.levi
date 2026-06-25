@@ -20,12 +20,12 @@ func (ed *Editor) PromptMoveByLine(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buf()
-	if !b.CheckRow(b.Loc.Row + n) {
+	if !b.CheckRowInclusive(b.Loc.Row + n) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
 	b.Loc.Row += n
-	ed.toNonBlankCol()
+	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
 // :-<num> Enter : Move cursor to first non-blank character of previous line.
@@ -39,12 +39,12 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 	if b.Loc.Row-n == -1 {
 		n++
 	}
-	if !b.CheckRow(b.Loc.Row - n) {
+	if !b.CheckRowInclusive(b.Loc.Row - n) {
 		ed.Ring("Reference to a line number less than 0.")
 		return
 	}
 	b.Loc.Row -= n
-	ed.toNonBlankCol()
+	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
 // :<num> Enter : Move cursor to first non-blank character of line specifined by <num>.
@@ -58,12 +58,12 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 	if n == 0 {
 		n = 1
 	}
-	if !b.CheckRow(n - 1) {
+	if !b.CheckRowInclusive(n - 1) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
 	b.Loc.Row = n - 1
-	ed.toNonBlankCol()
+	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
 // :wq Enter : Save current file and quit.

@@ -1,4 +1,4 @@
-package runekind
+package rkind
 
 func IsBlank(r rune) bool {
 	return r == ' ' || r == '\t'

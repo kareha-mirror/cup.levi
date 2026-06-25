@@ -23,7 +23,7 @@ func (ed *Editor) ViewDown(n int) {
 	b.Loc = ed.vMeta[i].Loc
 	b.ViewLoc = b.Loc
 	if b.Loc.Col < 1 {
-		ed.toNonBlankCol()
+		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 	}
 }
 
@@ -61,7 +61,7 @@ func (ed *Editor) ViewUp(n int) {
 	b.ViewLoc = newViewLoc
 	b.Loc = viewMeta[len(viewMeta)-2].Loc
 	if b.Loc.Col < 1 {
-		ed.toNonBlankCol()
+		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 	}
 }
 

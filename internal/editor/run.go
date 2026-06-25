@@ -12,27 +12,28 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		return true
 	}
 
-	if _, ok := MoveCmds[c.Kind]; ok {
-		if dest, ok := ed.RunMove(c); ok {
+	if meta, ok := MoveMetas[c.Kind]; ok {
+		if loc, ok := ed.RunMove(c); ok {
 			b := ed.Buf()
-			if dest.Linewise {
-				if dest.FreeCol {
-					line := b.Line(dest.Loc.Row)
+			if meta.Linewise {
+				if meta.FreeCol {
+					line := b.Line(loc.Row)
 					rc := utf8.RuneCountInString(line)
 					if b.VirtCol < rc {
-						dest.Loc.Col = b.VirtCol
+						loc.Col = b.VirtCol
 					} else {
-						dest.Loc.Col = max(rc-1, 0)
+						loc.Col = max(rc-1, 0)
 					}
 				}
 			} else {
-				b.VirtCol = dest.Loc.Col
+				loc = b.ConfineInclusive(loc)
+				b.VirtCol = loc.Col
 			}
-			b.Loc = dest.Loc
+			b.Loc = loc
 			if b.Loc.Col < b.ViewLoc.Col {
 				b.ViewLoc.Col = 0
 			}
-			if dest.Locate {
+			if meta.Locate {
 				ed.Locate()
 			}
 		}

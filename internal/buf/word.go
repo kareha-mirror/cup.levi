@@ -3,128 +3,129 @@ package buf
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/cup/levi/internal/runekind"
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
-func (b *Buf) SkipBlankLines() bool {
-	for b.Loc.Row < b.NumLines() {
-		line := b.CurrentLine()
+func (b *Buf) SkipBlankLines(loc Loc) (Loc, bool) {
+	for loc.Row < b.NumLines() {
+		line := b.Line(loc.Row)
 		col := 0
 		for _, r := range line {
-			if col >= b.Loc.Col && !runekind.IsBlank(r) {
-				b.Loc.Col = col
-				return true
+			if col >= loc.Col && !rkind.IsBlank(r) {
+				loc.Col = col
+				return loc, true
 			}
 			col++
 		}
-		b.Loc.Row++
-		b.Loc.Col = 0
+		loc.Row++
+		loc.Col = 0
 	}
-	b.Loc.Row = max(b.NumLines()-1, 0)
-	b.Loc.Col = max(utf8.RuneCountInString(b.CurrentLine())-1, 0)
-	return false
+	loc.Row = max(b.NumLines()-1, 0)
+	loc.Col = max(utf8.RuneCountInString(b.Line(loc.Row))-1, 0)
+	return loc, false
 }
 
-func (b *Buf) SkipBackwardBlankLines() bool {
-	for b.Loc.Row >= 0 {
-		line := b.CurrentLine()
+func (b *Buf) SkipBackwardBlankLines(loc Loc) (Loc, bool) {
+	for loc.Row >= 0 {
+		line := b.Line(loc.Row)
 		if line != "" {
 			rs := []rune(line)
-			col := b.Loc.Col
+			col := loc.Col
 			for ; col >= 0; col-- {
 				r := rs[col]
-				if !runekind.IsBlank(r) {
-					b.Loc.Col = col
-					return true
+				if !rkind.IsBlank(r) {
+					loc.Col = col
+					return loc, true
 				}
 			}
 		}
-		b.Loc.Row--
-		line = b.CurrentLine()
-		b.Loc.Col = max(utf8.RuneCountInString(line)-1, 0)
+		loc.Row--
+		line = b.Line(loc.Row)
+		loc.Col = max(utf8.RuneCountInString(line)-1, 0)
 	}
-	b.Loc.Row = 0
-	b.Loc.Col = 0
-	return false
+	loc.Row = 0
+	loc.Col = 0
+	return loc, false
 }
 
-func (b *Buf) MoveByWord() bool {
-	line := b.CurrentLine()
+func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
+	line := b.Line(loc.Row)
 	if len(line) < 1 {
-		return false
+		return loc, false
 	}
 	rs := []rune(line)
-	col := b.Loc.Col
-	kind := runekind.Kind(rs[col])
+	col := loc.Col
+	kind := rkind.Kind(rs[col])
 	col++
 	k := kind
 	for ; col < len(rs); col++ {
-		k = runekind.Kind(rs[col])
+		k = rkind.Kind(rs[col])
 		if k != kind {
 			break
 		}
 	}
 	if col >= len(rs) {
-		return false
+		return loc, false
 	}
-	if kind == runekind.Blank || k != runekind.Blank {
-		b.Loc.Col = col
-		return true
+	if kind == rkind.Blank || k != rkind.Blank {
+		loc.Col = col
+		return loc, true
 	}
 	col++
 	for ; col < len(rs); col++ {
-		k = runekind.Kind(rs[col])
-		if k != runekind.Blank {
+		k = rkind.Kind(rs[col])
+		if k != rkind.Blank {
 			break
 		}
 	}
 	if col < len(rs) {
-		b.Loc.Col = col
-		return true
+		loc.Col = col
+		return loc, true
 	}
-	return false
+	return loc, false
 }
 
-func (b *Buf) MoveByWordEx() bool {
-	line := b.CurrentLine()
+func (b *Buf) MoveByWordEx(loc Loc) (Loc, bool) {
+	line := b.Line(loc.Row)
 	if len(line) < 1 {
-		return false
+		return loc, false
 	}
 	rs := []rune(line)
-	col := b.Loc.Col
-	kind := runekind.Kind(rs[col])
+	col := loc.Col
+	kind := rkind.Kind(rs[col])
 	col++
 	k := kind
 	for ; col < len(rs); col++ {
-		k = runekind.Kind(rs[col])
+		k = rkind.Kind(rs[col])
 		if k != kind {
 			break
 		}
 	}
 	if col >= len(rs) {
-		return false
+		loc.Col = len(rs)
+		return loc, false
 	}
-	b.Loc.Col = col
-	return true
+	loc.Col = col
+	return loc, true
 }
 
-func (b *Buf) MoveBackwardByWord() bool {
-	line := b.CurrentLine()
+func (b *Buf) MoveBackwardByWord(loc Loc) (Loc, bool) {
+	line := b.Line(loc.Row)
 	if len(line) < 1 {
-		return false
+		return loc, false
 	}
 	rs := []rune(line)
-	kind := runekind.Kind(rs[b.Loc.Col])
-	if kind == runekind.Blank {
-		return false
+	kind := rkind.Kind(rs[loc.Col])
+	if kind == rkind.Blank {
+		return loc, false
 	}
-	col := b.Loc.Col
+	col := loc.Col
 	for ; col >= 0; col-- {
-		k := runekind.Kind(rs[col])
+		k := rkind.Kind(rs[col])
 		if k != kind {
 			break
 		}
 	}
-	b.Loc.Col = col + 1
-	return true
+	loc.Col = col + 1
+	return loc, true
 }

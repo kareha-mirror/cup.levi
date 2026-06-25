@@ -4,7 +4,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
-func (ed *Editor) RunMove(c Cmd) (buf.Dest, bool) {
+func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 	switch c.Kind {
 
 	case CmdMoveLeft:
@@ -109,5 +109,5 @@ func (ed *Editor) RunMove(c Cmd) (buf.Dest, bool) {
 
 	}
 
-	return buf.Dest{}, false
+	return buf.Loc{}, false
 }

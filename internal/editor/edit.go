@@ -4,6 +4,7 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 //////////////////////
@@ -18,7 +19,7 @@ func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
 
 func trimLeftBlanks(s string) string {
 	for i, r := range s {
-		if !isBlankRune(r) {
+		if !rkind.IsBlank(r) {
 			return s[i:]
 		}
 	}
@@ -52,7 +53,7 @@ func (ed *Editor) EditJoin(n int) {
 		link := ""
 		if len(next) > 0 {
 			r, _ := utf8.DecodeLastRuneInString(current)
-			if r != utf8.RuneError && !isBlankRune(r) {
+			if r != utf8.RuneError && !rkind.IsBlank(r) {
 				link = " "
 			}
 		}

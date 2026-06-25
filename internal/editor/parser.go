@@ -485,11 +485,10 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			start := b.Loc
 			cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
 			if ok {
-				dest, ok := ed.RunMove(cmd)
+				end, ok := ed.RunMove(cmd)
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc
 				return Cmd{
 					Kind:     CmdOpCopyLineRegion,
 					StartRow: start.Row,
@@ -498,16 +497,19 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
 			if ok {
-				dest, ok := ed.RunMove(cmd)
+				meta, ok := MoveMetas[cmd.Kind]
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc
+				end, ok := ed.RunMove(cmd)
+				if !ok {
+					return Cmd{}, false
+				}
 				return Cmd{
 					Kind:      CmdOpCopyRegion,
 					Start:     start,
 					End:       end,
-					Inclusive: dest.Inclusive,
+					Inclusive: meta.Inclusive,
 				}, true
 			}
 			return Cmd{}, false
@@ -516,11 +518,10 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			start := b.Loc
 			cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
 			if ok {
-				dest, ok := ed.RunMove(cmd)
+				end, ok := ed.RunMove(cmd)
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc
 				return Cmd{
 					Kind:     CmdOpDeleteLineRegion,
 					StartRow: start.Row,
@@ -529,16 +530,19 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
 			if ok {
-				dest, ok := ed.RunMove(cmd)
+				meta, ok := MoveMetas[cmd.Kind]
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc
+				end, ok := ed.RunMove(cmd)
+				if !ok {
+					return Cmd{}, false
+				}
 				return Cmd{
 					Kind:      CmdOpDeleteRegion,
 					Start:     start,
 					End:       end,
-					Inclusive: dest.Inclusive,
+					Inclusive: meta.Inclusive,
 				}, true
 			}
 			return Cmd{}, false
@@ -547,11 +551,10 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			start := b.Loc
 			cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
 			if ok {
-				dest, ok := ed.RunMove(cmd)
+				end, ok := ed.RunMove(cmd)
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc
 				return Cmd{
 					Kind:     CmdOpChangeLineRegion,
 					StartRow: start.Row,
@@ -560,16 +563,19 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
 			if ok {
-				dest, ok := ed.RunMove(cmd)
+				meta, ok := MoveMetas[cmd.Kind]
 				if !ok {
 					return Cmd{}, false
 				}
-				end := dest.Loc
+				end, ok := ed.RunMove(cmd)
+				if !ok {
+					return Cmd{}, false
+				}
 				return Cmd{
 					Kind:      CmdOpChangeRegion,
 					Start:     start,
 					End:       end,
-					Inclusive: dest.Inclusive,
+					Inclusive: meta.Inclusive,
 				}, true
 			}
 			return Cmd{}, false

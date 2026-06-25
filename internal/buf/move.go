@@ -2,17 +2,11 @@ package buf
 
 import (
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
-type Dest struct {
-	Loc       Loc
-	Linewise  bool
-	FreeCol   bool
-	Inclusive bool
-	Locate    bool
-}
-
-func (b *Buf) CheckRow(row int) bool {
+func (b *Buf) CheckRowInclusive(row int) bool {
 	if row < 0 {
 		return false
 	}
@@ -31,8 +25,8 @@ func (b *Buf) ConfineRow(row int) int {
 		return 0
 	}
 	n := len(b.Lines)
-	if row >= n {
-		return max(n-1, 0)
+	if row > n {
+		return n
 	}
 	return row
 }
@@ -42,8 +36,8 @@ func (b *Buf) ConfineCol(loc Loc) int {
 		return 0
 	}
 	rc := utf8.RuneCountInString(b.Line(loc.Row))
-	if loc.Col >= rc {
-		return max(rc-1, 0)
+	if loc.Col > rc {
+		return rc
 	}
 	return loc.Col
 }
@@ -52,4 +46,32 @@ func (b *Buf) Confine(loc Loc) Loc {
 	loc.Row = b.ConfineRow(loc.Row)
 	loc.Col = b.ConfineCol(loc)
 	return loc
+}
+
+func (b *Buf) ConfineInclusive(loc Loc) Loc {
+	if loc.Row >= b.NumLines() {
+		loc.Row = max(b.NumLines()-1, 0)
+		line := b.Line(loc.Row)
+		rc := utf8.RuneCountInString(line)
+		loc.Col = max(rc-1, 0)
+		return loc
+	}
+	line := b.Line(loc.Row)
+	rc := utf8.RuneCountInString(line)
+	if loc.Col >= rc {
+		loc.Col = max(rc-1, 0)
+	}
+	return loc
+}
+
+func (b *Buf) NonBlankColOfLine(row int) int {
+	line := b.Line(row)
+	i := 0
+	for _, r := range line {
+		if !rkind.IsBlank(r) {
+			break
+		}
+		i++
+	}
+	return i
 }
