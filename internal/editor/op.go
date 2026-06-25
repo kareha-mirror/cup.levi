@@ -96,7 +96,7 @@ func (ed *Editor) OpCopyLine(n int) {
 	if b.Loc.Row+n > b.NumLines() {
 		return
 	}
-	ed.killed.SetLines(b.Lines[b.Loc.Row : b.Loc.Row+n])
+	ed.regs.SetLines("", b.Lines[b.Loc.Row:b.Loc.Row+n])
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
@@ -104,7 +104,7 @@ func (ed *Editor) OpCopyRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 	ed.EnsureCommand()
 	start, end = ed.confineRegion(start, end, inclusive)
 	lines := ed.getRegion(start, end)
-	ed.killed.SetRunes(lines)
+	ed.regs.SetRunes("", lines)
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
@@ -117,7 +117,7 @@ func (ed *Editor) OpCopyLineRegion(start int, end int) {
 	if end+1 > b.NumLines() {
 		return
 	}
-	ed.killed.SetLines(b.Lines[start : end+1])
+	ed.regs.SetLines("", b.Lines[start:end+1])
 }
 
 // yw : Copy word.
@@ -162,20 +162,21 @@ func (ed *Editor) OpPaste(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buf()
-	if ed.killed.mode == KillNone {
+	if ed.regs.Mode("") == KillNone {
 		ed.Ring("The default buffer is empty")
 		return
 	}
-	switch ed.killed.mode {
+	killed := ed.regs.Killed("")
+	switch ed.regs.Mode("") {
 	case KillRunes:
-		if len(ed.killed.lines) < 2 {
+		if len(killed) < 2 {
 			runes := []rune(b.CurrentLine())
 			rs := []rune{}
 			if b.Loc.Col+1 <= len(runes) {
 				rs = append(rs, runes[:b.Loc.Col+1]...)
 			}
 			for i := 0; i < n; i++ {
-				rs = append(rs, []rune(ed.killed.lines[0])...)
+				rs = append(rs, []rune(killed[0])...)
 			}
 			if b.Loc.Col+1 < len(runes) {
 				rs = append(rs, runes[b.Loc.Col+1:]...)
@@ -193,16 +194,16 @@ func (ed *Editor) OpPaste(n int) {
 			if b.Loc.Col+1 <= len(runes) {
 				rs = append(rs, runes[:b.Loc.Col+1]...)
 			}
-			rs = append(rs, []rune(ed.killed.lines[0])...)
+			rs = append(rs, []rune(killed[0])...)
 			lines = append(lines, string(rs))
 
-			if len(ed.killed.lines) > 2 {
+			if len(killed) > 2 {
 				lines = append(
-					lines, ed.killed.lines[1:len(ed.killed.lines)-2]...,
+					lines, killed[1:len(killed)-2]...,
 				)
 			}
 
-			rs = []rune(ed.killed.lines[len(ed.killed.lines)-1])
+			rs = []rune(killed[len(killed)-1])
 			if b.Loc.Col+1 < len(runes) {
 				rs = append(rs, runes[b.Loc.Col+1:]...)
 			}
@@ -220,7 +221,7 @@ func (ed *Editor) OpPaste(n int) {
 			lines = append(lines, b.Lines[:b.Loc.Row+1]...)
 		}
 		for i := 0; i < n; i++ {
-			lines = append(lines, ed.killed.lines...)
+			lines = append(lines, killed...)
 		}
 		if b.Loc.Row+1 <= b.NumLines()-1 {
 			lines = append(lines, b.Lines[b.Loc.Row+1:]...)
@@ -242,17 +243,18 @@ func (ed *Editor) OpPasteBefore(n int) {
 	}
 	ed.EnsureCommand()
 	b := ed.Buf()
-	if ed.killed.mode == KillNone {
+	if ed.regs.Mode("") == KillNone {
 		ed.Ring("The default buffer is empty")
 		return
 	}
-	switch ed.killed.mode {
+	killed := ed.regs.Killed("")
+	switch ed.regs.Mode("") {
 	case KillRunes:
-		if len(ed.killed.lines) < 2 {
+		if len(killed) < 2 {
 			runes := []rune(b.CurrentLine())
 			rs := append([]rune{}, runes[:b.Loc.Col]...)
 			for i := 0; i < n; i++ {
-				rs = append(rs, []rune(ed.killed.lines[0])...)
+				rs = append(rs, []rune(killed[0])...)
 			}
 			rs = append(rs, runes[b.Loc.Col:]...)
 			b.SetCurrentLine(string(rs))
@@ -263,16 +265,16 @@ func (ed *Editor) OpPasteBefore(n int) {
 			runes := []rune(b.CurrentLine())
 			rs := []rune{}
 			rs = append(rs, runes[:b.Loc.Col]...)
-			rs = append(rs, []rune(ed.killed.lines[0])...)
+			rs = append(rs, []rune(killed[0])...)
 			lines = append(lines, string(rs))
 
-			if len(ed.killed.lines) > 2 {
+			if len(killed) > 2 {
 				lines = append(
-					lines, ed.killed.lines[1:len(ed.killed.lines)-2]...,
+					lines, killed[1:len(killed)-2]...,
 				)
 			}
 
-			rs = []rune(ed.killed.lines[len(ed.killed.lines)-1])
+			rs = []rune(killed[len(killed)-1])
 			rs = append(rs, runes[b.Loc.Col:]...)
 			lines = append(lines, string(rs))
 
@@ -285,7 +287,7 @@ func (ed *Editor) OpPasteBefore(n int) {
 	case KillLines:
 		lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 		for i := 0; i < n; i++ {
-			lines = append(lines, ed.killed.lines...)
+			lines = append(lines, killed...)
 		}
 		lines = append(lines, b.Lines[b.Loc.Row:]...)
 		b.Lines = lines
@@ -321,7 +323,7 @@ func (ed *Editor) OpDelete(n int) {
 	}
 	rs := []rune(ed.CurrentLine())
 	n = min(n, len(rs)-b.Loc.Col)
-	ed.killed.SetRunes([]string{string(rs[b.Loc.Col : b.Loc.Col+n])})
+	ed.regs.SetRunes("", []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
 	if b.Loc.Col < 1 {
 		b.SetCurrentLine(string(rs[n:]))
 	} else {
@@ -358,7 +360,7 @@ func (ed *Editor) OpDeleteLine(n int) {
 	if b.Loc.Row > 0 {
 		lines = append(lines, b.Lines[:b.Loc.Row]...)
 	}
-	ed.killed.SetLines(b.Lines[b.Loc.Row : b.Loc.Row+n])
+	ed.regs.SetLines("", b.Lines[b.Loc.Row:b.Loc.Row+n])
 	if b.Loc.Row+n <= b.NumLines()-1 {
 		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
 	}
@@ -372,7 +374,7 @@ func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 	ed.EnsureCommand()
 	start, end = ed.confineRegion(start, end, inclusive)
 	lines := ed.getRegion(start, end)
-	ed.killed.SetRunes(lines)
+	ed.regs.SetRunes("", lines)
 
 	b := ed.Buf()
 	lines = []string{}
@@ -409,7 +411,7 @@ func (ed *Editor) OpDeleteLineRegion(start int, end int) {
 	if start > 0 {
 		lines = append(lines, b.Lines[:start]...)
 	}
-	ed.killed.SetLines(b.Lines[start : end+1])
+	ed.regs.SetLines("", b.Lines[start:end+1])
 	if end+1 <= b.NumLines()-1 {
 		lines = append(lines, b.Lines[end+1:]...)
 	}
@@ -447,7 +449,7 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 	b := ed.Buf()
 	rs := []rune(ed.CurrentLine())
 	if b.Loc.Col < len(rs) {
-		ed.killed.SetRunes([]string{string(rs[b.Loc.Col:])})
+		ed.regs.SetRunes("", []string{string(rs[b.Loc.Col:])})
 	}
 	b.SetCurrentLine(string(rs[:b.Loc.Col]))
 	b.Loc = b.ConfineInclusive(b.Loc)
@@ -527,7 +529,7 @@ func (ed *Editor) OpChangeToEnd(n int, replay bool) {
 	b := ed.Buf()
 	rs := []rune(ed.CurrentLine())
 	if b.Loc.Col < len(rs) {
-		ed.killed.SetRunes([]string{string(rs[b.Loc.Col:])})
+		ed.regs.SetRunes("", []string{string(rs[b.Loc.Col:])})
 	}
 	line := string(rs[:b.Loc.Col])
 	b.SetCurrentLine(line)

@@ -27,29 +27,6 @@ const (
 	ModePrompt
 )
 
-type KillMode int
-
-const (
-	KillNone = iota
-	KillRunes
-	KillLines
-)
-
-type KillBuf struct {
-	mode  KillMode
-	lines []string
-}
-
-func (k *KillBuf) SetRunes(lines []string) {
-	k.mode = KillRunes
-	k.lines = append([]string{}, lines...)
-}
-
-func (k *KillBuf) SetLines(lines []string) {
-	k.mode = KillLines
-	k.lines = append([]string{}, lines...)
-}
-
 type ViewMeta struct {
 	Loc buf.Loc
 }
@@ -69,7 +46,7 @@ type Editor struct {
 	ring     string
 	parser   *Parser
 	prompt   termi.RuneBuf
-	killed   KillBuf
+	regs     Regs
 	backward bool
 	pattern  termi.RuneBuf
 	regexp   *regexp.Regexp
@@ -197,7 +174,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		ring:     "",
 		parser:   NewParser(),
 		prompt:   termi.RuneBuf{},
-		killed:   KillBuf{},
+		regs:     Regs{},
 		backward: false,
 		pattern:  termi.RuneBuf{},
 		regexp:   nil,
@@ -208,6 +185,8 @@ func Init(dir string, args []string) (*Editor, error) {
 		esc:      false,
 		colors:   colors,
 	}
+
+	ed.regs.LoadConfig(ed.cfg)
 
 	termi.TabWidth = ed.cfg.TabStop
 	termi.Raw()

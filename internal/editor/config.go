@@ -13,6 +13,7 @@ type Config struct {
 	TabStop    int    `yaml:"tab-stop"`
 	Colors     string `yaml:"colors"`
 	Silent     bool   `yaml:"silent"`
+	Shared     string `yaml:"shared"`
 }
 
 func DefaultConfig() *Config {
@@ -21,6 +22,7 @@ func DefaultConfig() *Config {
 		TabStop:    4,
 		Colors:     "standard",
 		Silent:     false,
+		Shared:     "xyz",
 	}
 }
 
