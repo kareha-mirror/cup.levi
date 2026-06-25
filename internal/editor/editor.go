@@ -79,15 +79,16 @@ func (ed *Editor) Close(force bool) {
 		ed.Ring("File modified since last complete write; write or use ! to override.")
 		return
 	}
-	bufs := []*buf.Buf{}
-	if ed.bIndex-1 > 0 {
-		bufs = append(bufs, ed.bufs[:ed.bIndex-1]...)
-	}
-	if ed.bIndex+1 <= len(ed.bufs)-1 {
+	bufs := append([]*buf.Buf{}, ed.bufs[:ed.bIndex]...)
+	if ed.bIndex+1 < len(ed.bufs) {
 		bufs = append(bufs, ed.bufs[ed.bIndex+1:]...)
 	}
 	ed.bufs = bufs
-	if len(ed.bufs) < 1 {
+	n := len(ed.bufs)
+	if ed.bIndex >= n {
+		ed.bIndex = max(n-1, 0)
+	}
+	if n < 1 {
 		ed.alive = false
 	}
 }
