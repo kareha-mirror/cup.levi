@@ -11,6 +11,7 @@ import (
 type Input struct {
 	head, tail string
 	bodies     []termi.RuneBuf
+	offset     int
 }
 
 func NewInput() *Input {
@@ -18,6 +19,7 @@ func NewInput() *Input {
 		head:   "",
 		tail:   "",
 		bodies: []termi.RuneBuf{termi.RuneBuf{}},
+		offset: 0,
 	}
 }
 
@@ -25,6 +27,7 @@ func (inp *Input) Reset() {
 	inp.head = ""
 	inp.tail = ""
 	inp.bodies = []termi.RuneBuf{termi.RuneBuf{}}
+	inp.offset = 0
 }
 
 func (inp *Input) Init(line string, col int, ai bool) {
@@ -38,6 +41,7 @@ func (inp *Input) Init(line string, col int, ai bool) {
 	}
 	if ai && rkind.IsBlankLine(inp.head) {
 		inp.bodies[0].WriteString(inp.head)
+		inp.offset = len(inp.head)
 		inp.head = ""
 	}
 }
@@ -85,9 +89,9 @@ func (inp *Input) Lines() []string {
 }
 
 func (inp *Input) Inserted() []string {
-	lines := []string{}
-	for _, body := range inp.bodies {
-		lines = append(lines, body.String())
+	lines := append([]string{}, inp.bodies[0].String()[inp.offset:])
+	for i := 1; i < len(inp.bodies); i++ {
+		lines = append(lines, inp.bodies[i].String())
 	}
 	return lines
 }

@@ -36,15 +36,13 @@ func (ed *Editor) MiscShowInfo() {
 // . : Repeat last edit.
 func (ed *Editor) MiscRepeat(n int) {
 	ed.EnsureCommand()
-	ed.Run(ed.lastCmd, true)
-
 	c := ed.lastCmd
 	if InsertCmds[c.Kind] {
 		ed.BeginMemory()
 	} else if EditCmds[c.Kind] {
 		ed.BeginMemory()
 	}
-	if ed.Run(c, false) {
+	if ed.Run(c, true) {
 		if InsertCmds[c.Kind] {
 			ed.EndMemory()
 		} else if EditCmds[c.Kind] {
