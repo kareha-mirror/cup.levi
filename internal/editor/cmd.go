@@ -11,7 +11,7 @@ type Cmd struct {
 	Num       int
 	Letter    rune
 	Pat       string
-	Reg       rune
+	Reg       string
 	Start     buf.Loc
 	End       buf.Loc
 	StartRow  int

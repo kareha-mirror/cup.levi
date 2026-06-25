@@ -482,7 +482,7 @@ func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum int, mv string, letter rune) (Cmd, bool) {
+func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum int, mv string, letter rune) (Cmd, bool) {
 	if mv != "" {
 		switch op {
 		case "y":
@@ -589,7 +589,7 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 
 	switch op {
 	case "yy", "Y":
-		if reg == 0 {
+		if reg == "" {
 			return Cmd{
 				Kind: CmdOpCopyLine,
 				Num:  num,
@@ -613,7 +613,7 @@ func (ed *Editor) ParseOp(reg rune, num int, op string, noSubnum bool, subnum in
 		}, true
 
 	case "p":
-		if reg == 0 {
+		if reg == "" {
 			return Cmd{
 				Kind: CmdOpPaste,
 				Num:  num,
@@ -776,11 +776,12 @@ func (ed *Editor) Parse() (Cmd, bool) {
 	}
 
 	i := 0
-	var reg rune = 0
+	reg := ""
 	if p.buf[0] == '"' {
-		if len(p.buf) > 1 {
-			reg = p.buf[1]
-			i += 2
+		i++
+		if len(p.buf) > i {
+			reg = string(p.buf[i])
+			i++
 		}
 	}
 

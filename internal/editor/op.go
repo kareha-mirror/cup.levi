@@ -91,12 +91,7 @@ func (ed *Editor) OpCopyLine(n int) {
 		ed.Error("OpCopyLine: n < 1")
 		return
 	}
-	ed.EnsureCommand()
-	b := ed.Buf()
-	if b.Loc.Row+n > b.NumLines() {
-		return
-	}
-	ed.regs.SetLines("", b.Lines[b.Loc.Row:b.Loc.Row+n])
+	ed.OpCopyLineIntoReg("", n)
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
@@ -141,13 +136,17 @@ func (ed *Editor) OpCopyToEnd(n int) {
 }
 
 // "<reg>yy : Copy current line into register <reg>.
-func (ed *Editor) OpCopyLineIntoReg(reg rune, n int) {
+func (ed *Editor) OpCopyLineIntoReg(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpCopyLineIntoReg: n < 1")
 		return
 	}
 	ed.EnsureCommand()
-	ed.Unimplemented("OpCopyLineIntoReg")
+	b := ed.Buf()
+	if b.Loc.Row+n > b.NumLines() {
+		return
+	}
+	ed.regs.SetLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
 }
 
 //
@@ -160,14 +159,32 @@ func (ed *Editor) OpPaste(n int) {
 		ed.Error("OpPaste: n < 1")
 		return
 	}
+	ed.OpPasteFromReg("", n)
+}
+
+// P : Paste before cursor.
+func (ed *Editor) OpPasteBefore(n int) {
+	if n < 1 {
+		ed.Error("OpPasteBefore: n < 1")
+		return
+	}
+	ed.OpPasteBeforeFromReg("", n)
+}
+
+// "<reg>p : Paste from register <reg>.
+func (ed *Editor) OpPasteFromReg(reg string, n int) {
+	if n < 1 {
+		ed.Error("OpPasteFromReg: n < 1")
+		return
+	}
 	ed.EnsureCommand()
 	b := ed.Buf()
-	if ed.regs.Mode("") == KillNone {
+	if ed.regs.Mode(reg) == KillNone {
 		ed.Ring("The default buffer is empty")
 		return
 	}
-	killed := ed.regs.Killed("")
-	switch ed.regs.Mode("") {
+	killed := ed.regs.Killed(reg)
+	switch ed.regs.Mode(reg) {
 	case KillRunes:
 		if len(killed) < 2 {
 			runes := []rune(b.CurrentLine())
@@ -235,20 +252,20 @@ func (ed *Editor) OpPaste(n int) {
 	b.Modified = true
 }
 
-// P : Paste before cursor.
-func (ed *Editor) OpPasteBefore(n int) {
+// "<reg>p : Paste before cursor from register <reg>.
+func (ed *Editor) OpPasteBeforeFromReg(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpPasteBefore: n < 1")
+		ed.Error("OpPasteBeforeFromReg: n < 1")
 		return
 	}
 	ed.EnsureCommand()
 	b := ed.Buf()
-	if ed.regs.Mode("") == KillNone {
+	if ed.regs.Mode(reg) == KillNone {
 		ed.Ring("The default buffer is empty")
 		return
 	}
-	killed := ed.regs.Killed("")
-	switch ed.regs.Mode("") {
+	killed := ed.regs.Killed(reg)
+	switch ed.regs.Mode(reg) {
 	case KillRunes:
 		if len(killed) < 2 {
 			runes := []rune(b.CurrentLine())
@@ -294,16 +311,6 @@ func (ed *Editor) OpPasteBefore(n int) {
 		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 	}
 	b.Modified = true
-}
-
-// "<reg>p : Paste from register <reg>.
-func (ed *Editor) OpPasteFromReg(reg rune, n int) {
-	if n < 1 {
-		ed.Error("OpPasteFromReg: n < 1")
-		return
-	}
-	ed.EnsureCommand()
-	ed.Unimplemented("OpPasteFromReg")
 }
 
 //

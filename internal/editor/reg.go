@@ -15,7 +15,9 @@ type Reg struct {
 }
 
 type Regs struct {
-	Map map[string]*Reg
+	DefMode   KillMode
+	DefKilled []string
+	Map       map[string]*Reg
 }
 
 func (regs *Regs) SetReg(name string, reg *Reg) {
@@ -26,6 +28,9 @@ func (regs *Regs) SetReg(name string, reg *Reg) {
 }
 
 func (regs *Regs) Mode(name string) KillMode {
+	if name == "" {
+		return regs.DefMode
+	}
 	reg, ok := regs.Map[name]
 	if !ok {
 		return KillNone
@@ -34,6 +39,9 @@ func (regs *Regs) Mode(name string) KillMode {
 }
 
 func (regs *Regs) Killed(name string) []string {
+	if name == "" {
+		return regs.DefKilled
+	}
 	reg, ok := regs.Map[name]
 	if !ok {
 		return nil
@@ -42,6 +50,9 @@ func (regs *Regs) Killed(name string) []string {
 }
 
 func (regs *Regs) Shared(name string) bool {
+	if name == "" {
+		return false
+	}
 	reg, ok := regs.Map[name]
 	if !ok {
 		return false
@@ -50,6 +61,9 @@ func (regs *Regs) Shared(name string) bool {
 }
 
 func (regs *Regs) SetShared(name string, shared bool) {
+	if name == "" {
+		return
+	}
 	reg, ok := regs.Map[name]
 	if !ok {
 		reg = &Reg{
@@ -63,37 +77,90 @@ func (regs *Regs) SetShared(name string, shared bool) {
 	reg.Shared = shared
 }
 
+func IsValidRegName(name string) bool {
+	if len(name) != 1 {
+		return false
+	}
+	rs := []rune(name)
+	r := rs[0]
+	return r >= 'a' && r <= 'z'
+}
+
+func ToDestRegName(name string) string {
+	if len(name) != 1 {
+		return ""
+	}
+	rs := []rune(name)
+	r := rs[0]
+	if r < 'A' || r > 'Z' {
+		return ""
+	}
+	return string(r + 'a' - 'A')
+}
+
 func (regs *Regs) SetLines(name string, killed []string) {
+	addName := ToDestRegName(name)
+	if addName != "" {
+		regs.AddLines(name, killed)
+		return
+	}
+
+	lines := append([]string{}, killed...)
+	regs.DefMode = KillLines
+	regs.DefKilled = lines
+
+	if !IsValidRegName(name) {
+		return
+	}
+
 	reg, ok := regs.Map[name]
 	if !ok {
 		reg = &Reg{
 			Mode:   KillLines,
-			Killed: append([]string{}, killed...),
+			Killed: lines,
 			Shared: false,
 		}
 		regs.SetReg(name, reg)
 		return
 	}
 	reg.Mode = KillLines
-	reg.Killed = append([]string{}, killed...)
+	reg.Killed = lines
 }
 
 func (regs *Regs) SetRunes(name string, killed []string) {
+	addName := ToDestRegName(name)
+	if addName != "" {
+		regs.AddRunes(name, killed)
+		return
+	}
+
+	lines := append([]string{}, killed...)
+	regs.DefMode = KillRunes
+	regs.DefKilled = lines
+
+	if !IsValidRegName(name) {
+		return
+	}
+
 	reg, ok := regs.Map[name]
 	if !ok {
 		reg = &Reg{
 			Mode:   KillRunes,
-			Killed: append([]string{}, killed...),
+			Killed: lines,
 			Shared: false,
 		}
 		regs.SetReg(name, reg)
 		return
 	}
 	reg.Mode = KillRunes
-	reg.Killed = append([]string{}, killed...)
+	reg.Killed = lines
 }
 
 func (regs *Regs) AddLines(name string, killed []string) {
+	name = ToDestRegName(name)
+	if name == "" {
+		return
+	}
 	reg, ok := regs.Map[name]
 	if !ok {
 		reg = &Reg{
@@ -113,6 +180,10 @@ func (regs *Regs) AddLines(name string, killed []string) {
 }
 
 func (regs *Regs) AddRunes(name string, killed []string) {
+	name = ToDestRegName(name)
+	if name == "" {
+		return
+	}
 	reg, ok := regs.Map[name]
 	if !ok {
 		reg = &Reg{
@@ -142,6 +213,10 @@ func (regs *Regs) LoadConfig(cfg *Config) {
 		reg.Shared = false
 	}
 	for _, r := range cfg.Shared {
-		regs.SetShared(string([]rune{r}), true)
+		name := string(r)
+		if !IsValidRegName(name) {
+			continue
+		}
+		regs.SetShared(name, true)
 	}
 }
