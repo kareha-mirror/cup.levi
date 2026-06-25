@@ -19,6 +19,7 @@ var MoveMetas = map[CmdKind]MoveMeta{
 	CmdMoveToColumn:   {},
 
 	CmdMoveByWord:              {},
+	CmdMoveByWordEx:            {}, // XXX debug
 	CmdMoveBackwardByWord:      {},
 	CmdMoveToEndOfWord:         {},
 	CmdMoveByLooseWord:         {},

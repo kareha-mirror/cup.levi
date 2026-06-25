@@ -474,9 +474,21 @@ func (ed *Editor) OpChangeRegion(
 	start buf.Loc, end buf.Loc, inclusive bool, replay bool,
 ) {
 	ed.EnsureCommand()
-	ed.OpDeleteRegion(start, end, inclusive)
-	// XXX replay?
+	start, end = ed.confineRegion(start, end, inclusive)
+	after := false
 	b := ed.Buf()
+	if end.Row < b.NumLines() {
+		line := b.Line(end.Row)
+		rc := utf8.RuneCountInString(line)
+		if end.Col >= rc {
+			after = true
+		}
+	}
+	ed.OpDeleteRegion(start, end, inclusive)
+	if after {
+		b.Loc.Col++
+	}
+	// XXX replay?
 	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
 	ed.inpRow = b.Loc.Row
 	ed.mode = ModeInsert

@@ -274,6 +274,11 @@ func (ed *Editor) ParseMoveRunes(noNum bool, num int, mv string, letter rune) (C
 			Kind: CmdMoveByWord,
 			Num:  num,
 		}, true
+	case "g": // XXX debug
+		return Cmd{
+			Kind: CmdMoveByWordEx,
+			Num:  num,
+		}, true
 	case "b":
 		return Cmd{
 			Kind: CmdMoveBackwardByWord,

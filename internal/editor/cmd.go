@@ -33,6 +33,7 @@ const (
 	CmdMoveToColumn
 
 	CmdMoveByWord
+	CmdMoveByWordEx // XXX debug
 	CmdMoveBackwardByWord
 	CmdMoveToEndOfWord
 	CmdMoveByLooseWord

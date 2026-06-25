@@ -27,6 +27,8 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 
 	case CmdMoveByWord:
 		return ed.MoveByWord(c.Num)
+	case CmdMoveByWordEx: // XXX debug
+		return ed.MoveByWordEx(c.Num)
 	case CmdMoveBackwardByWord:
 		return ed.MoveBackwardByWord(c.Num)
 	case CmdMoveToEndOfWord:
