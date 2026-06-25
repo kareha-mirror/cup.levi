@@ -497,10 +497,18 @@ func (ed *Editor) OpChangeRegion(
 	if after {
 		b.Loc.Col++
 	}
-	// XXX replay?
-	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
-	ed.inpRow = b.Loc.Row
-	ed.mode = ModeInsert
+	if replay {
+		if len(ed.inserted) < 0 {
+			return
+		}
+		ed.replayInsert(b.CurrentLine())
+		b.Loc = b.ConfineInclusive(b.Loc)
+		b.Modified = true
+	} else {
+		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
+		ed.inpRow = b.Loc.Row
+		ed.mode = ModeInsert
+	}
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
