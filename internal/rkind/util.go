@@ -1,7 +1,7 @@
 package rkind
 
-func IsBlankLine(s string) bool {
-	for _, r := range s {
+func IsBlankLine(line string) bool {
+	for _, r := range line {
 		if !IsBlank(r) {
 			return false
 		}

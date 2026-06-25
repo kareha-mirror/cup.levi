@@ -11,13 +11,13 @@ func (b *Buf) CheckRowInclusive(row int) bool {
 		return false
 	}
 	numLines := len(b.Lines)
+	if row < numLines {
+		return true
+	}
 	if numLines == 0 && row == 0 {
 		return true
 	}
-	if row >= numLines {
-		return false
-	}
-	return true
+	return false
 }
 
 func (b *Buf) ConfineRow(row int) int {
@@ -66,12 +66,12 @@ func (b *Buf) ConfineInclusive(loc Loc) Loc {
 
 func (b *Buf) NonBlankColOfLine(row int) int {
 	line := b.Line(row)
-	i := 0
+	col := 0
 	for _, r := range line {
 		if !rkind.IsBlank(r) {
 			break
 		}
-		i++
+		col++
 	}
-	return i
+	return col
 }

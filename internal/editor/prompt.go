@@ -232,10 +232,14 @@ func (ed *Editor) PromptColors(name string) {
 		return
 	}
 
-	list := colors.LoadList(ed.dir)
+	list, err := colors.LoadList(ed.dir)
+	if err != nil {
+		ed.Error("%v", err)
+		return
+	}
 
 	if name == "" {
-		ed.Message(strings.Join(list.Total, " "))
+		ed.Message(strings.Join(list.Names, " "))
 		return
 	}
 

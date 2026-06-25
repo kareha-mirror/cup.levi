@@ -14,10 +14,10 @@ import (
 )
 
 //go:embed custom.yaml
-var customConfig string
+var CustomConfig string
 
 //go:embed colors/*.yaml
-var embedFS embed.FS
+var BuiltinsFS embed.FS
 
 type Colors struct {
 	Buffer  termi.ColorPair
@@ -26,14 +26,14 @@ type Colors struct {
 	Border  termi.ColorPair
 }
 
-type config struct {
+type Config struct {
 	Buffer  string `yaml:"buffer"`
 	Status  string `yaml:"status"`
 	Current string `yaml:"current"`
 	Border  string `yaml:"border"`
 }
 
-func (cfg *config) Colors() (*Colors, error) {
+func (cfg *Config) Colors() (*Colors, error) {
 	buffer, err := termi.ParseColorPair(cfg.Buffer)
 	if err != nil {
 		return nil, err
@@ -60,71 +60,15 @@ func (cfg *config) Colors() (*Colors, error) {
 }
 
 type List struct {
-	dir string
+	Dir string
 
-	customs  map[string]bool
-	builtins map[string]bool
+	Customs  map[string]struct{}
+	Builtins map[string]struct{}
 
-	Total []string
+	Names []string
 }
 
-func LoadList(dir string) *List {
-	customDir := filepath.Join(dir, "colors")
-	os.Mkdir(customDir, 0777)
-	customPath := filepath.Join(customDir, "custom.yaml")
-	_, err := os.Stat(customPath)
-	if err != nil {
-		os.WriteFile(customPath, []byte(customConfig), 0666)
-	}
-
-	cList, _ := listCustom(dir)
-	bList, _ := listBuiltin()
-	customs := map[string]bool{}
-	for _, name := range cList {
-		customs[name] = true
-	}
-	builtins := map[string]bool{}
-	for _, name := range bList {
-		builtins[name] = true
-	}
-
-	tMap := map[string]bool{}
-	for name := range customs {
-		tMap[name] = true
-	}
-	for name := range builtins {
-		tMap[name] = true
-	}
-	total := []string{}
-	for name := range tMap {
-		total = append(total, name)
-	}
-	sort.Strings(total)
-
-	return &List{dir, customs, builtins, total}
-}
-
-func (list *List) Load(name string) (*Colors, error) {
-	if list.customs[name] {
-		path := filepath.Join(list.dir, "colors", name+".yaml")
-		cfg, err := loadCustom(path)
-		if err != nil {
-			return nil, err
-		}
-		return cfg.Colors()
-	}
-	if list.builtins[name] {
-		path := filepath.Join("colors", name+".yaml")
-		cfg, err := loadBuiltin(path)
-		if err != nil {
-			return nil, err
-		}
-		return cfg.Colors()
-	}
-	return nil, fmt.Errorf("not found")
-}
-
-func listCustom(dir string) ([]string, error) {
+func ListCustoms(dir string) ([]string, error) {
 	colorsDir := filepath.Join(dir, "colors")
 	entries, err := os.ReadDir(colorsDir)
 	if err != nil {
@@ -145,8 +89,8 @@ func listCustom(dir string) ([]string, error) {
 	return names, nil
 }
 
-func listBuiltin() ([]string, error) {
-	entries, err := fs.ReadDir(embedFS, "colors")
+func ListBuiltins() ([]string, error) {
+	entries, err := fs.ReadDir(BuiltinsFS, "colors")
 	if err != nil {
 		return nil, err
 	}
@@ -165,32 +109,95 @@ func listBuiltin() ([]string, error) {
 	return names, nil
 }
 
-func parseConfig(b []byte) (*config, error) {
-	var cfg config
+func LoadList(dir string) (*List, error) {
+	customDir := filepath.Join(dir, "colors")
+	os.Mkdir(customDir, 0777)
+	customPath := filepath.Join(customDir, "custom.yaml")
+	_, err := os.Stat(customPath)
+	if err != nil {
+		os.WriteFile(customPath, []byte(CustomConfig), 0666)
+	}
+
+	cList, err := ListCustoms(dir)
+	if err != nil {
+		return nil, err
+	}
+	bList, err := ListBuiltins()
+	if err != nil {
+		return nil, err
+	}
+
+	customs := map[string]struct{}{}
+	for _, name := range cList {
+		customs[name] = struct{}{}
+	}
+	builtins := map[string]struct{}{}
+	for _, name := range bList {
+		builtins[name] = struct{}{}
+	}
+
+	tMap := map[string]struct{}{}
+	for name := range customs {
+		tMap[name] = struct{}{}
+	}
+	for name := range builtins {
+		tMap[name] = struct{}{}
+	}
+	total := []string{}
+	for name := range tMap {
+		total = append(total, name)
+	}
+	sort.Strings(total)
+
+	return &List{dir, customs, builtins, total}, nil
+}
+
+func ParseConfig(b []byte) (*Config, error) {
+	var cfg Config
 	if err := yaml.Unmarshal(b, &cfg); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
 }
 
-func loadCustom(path string) (*config, error) {
+func LoadCustom(dir string, name string) (*Config, error) {
+	path := filepath.Join(dir, "colors", name+".yaml")
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return parseConfig(b)
+	return ParseConfig(b)
 }
 
-func loadBuiltin(path string) (*config, error) {
-	b, err := fs.ReadFile(embedFS, path)
+func LoadBuiltin(name string) (*Config, error) {
+	path := filepath.Join("colors", name+".yaml")
+	b, err := fs.ReadFile(BuiltinsFS, path)
 	if err != nil {
 		return nil, err
 	}
-	return parseConfig(b)
+	return ParseConfig(b)
+}
+
+func (list *List) Load(name string) (*Colors, error) {
+	if _, ok := list.Customs[name]; ok {
+		cfg, err := LoadCustom(list.Dir, name)
+		if err != nil {
+			return nil, err
+		}
+		return cfg.Colors()
+	}
+	if _, ok := list.Builtins[name]; ok {
+		cfg, err := LoadBuiltin(name)
+		if err != nil {
+			return nil, err
+		}
+		return cfg.Colors()
+	}
+	return nil, fmt.Errorf("not found")
 }
 
 func Parse(s string) (*Colors, error) {
-	cfg, err := parseConfig([]byte(s))
+	cfg, err := ParseConfig([]byte(s))
 	if err != nil {
 		return nil, err
 	}

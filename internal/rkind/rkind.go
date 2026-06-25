@@ -17,11 +17,7 @@ func IsSymbol(r rune) bool {
 
 func IsExtraSymbol(r rune) bool {
 	switch r {
-	case '。', '、':
-		return true
-	case '？', '！':
-		return true
-	case '「', '」':
+	case '。', '、', '？', '！', '「', '」':
 		return true
 	default:
 		return false
@@ -43,6 +39,7 @@ const (
 )
 
 func Kind(r rune) RuneKind {
+	// not optimized
 	switch {
 	case IsBlank(r):
 		return Blank

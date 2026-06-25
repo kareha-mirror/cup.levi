@@ -155,8 +155,14 @@ func Init(dir string, args []string) (*Editor, error) {
 		cfg = LoadConfig(cfgPath)
 	}
 
-	list := colors.LoadList(dir)
-	colors, _ := list.Load(cfg.Colors)
+	list, err := colors.LoadList(dir)
+	if err != nil {
+		return nil, err
+	}
+	colors, err := list.Load(cfg.Colors)
+	if err != nil {
+		return nil, err
+	}
 
 	w, h := termi.Size()
 	ed := &Editor{
