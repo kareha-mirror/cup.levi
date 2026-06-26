@@ -12,7 +12,6 @@ import (
 
 // Ctrl-G : Show info such as current cursor position.
 func (ed *Editor) MiscShowInfo() {
-	ed.Commit()
 	b := ed.Buf()
 	path := b.Path
 	if path == "" {
@@ -35,7 +34,6 @@ func (ed *Editor) MiscShowInfo() {
 
 // . : Repeat last edit.
 func (ed *Editor) MiscRepeat(n int) {
-	ed.Commit()
 	c := ed.lastCmd
 	if _, ok := InsertCmds[c.Kind]; ok {
 		ed.BeginMemory()
@@ -59,7 +57,6 @@ func (ed *Editor) MiscRepeat(n int) {
 
 // u : Undo.
 func (ed *Editor) MiscUndo(n int, replay bool) {
-	ed.Commit()
 	b := ed.Buf()
 	if b.Snapshot == nil {
 		return
@@ -71,13 +68,11 @@ func (ed *Editor) MiscUndo(n int, replay bool) {
 
 // U : Restore current line to previous state.
 func (ed *Editor) MiscRestore() {
-	ed.Commit()
 	ed.Unimplemented("MiscRestore")
 }
 
 // ZZ : Save and quit.
 func (ed *Editor) MiscSaveAndQuit() {
-	ed.Commit()
 	b := ed.Buf()
 	if b.Modified {
 		if b.Path == "" {
@@ -96,6 +91,5 @@ func (ed *Editor) MiscSaveAndQuit() {
 
 // Ctrl-Z : Suspend.
 func (ed *Editor) MiscSuspend() {
-	ed.Commit()
 	termi.Suspend()
 }

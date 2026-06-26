@@ -48,7 +48,6 @@ func (ed *Editor) replayInsert() {
 
 // i : Switch to insert mode before cursor.
 func (ed *Editor) InsertBefore(n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("InsertBefore: n < 1")
 		return
@@ -75,7 +74,6 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 
 // a : Switch to insert mode after cursor.
 func (ed *Editor) InsertAfter(n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("InsertAfter: n < 1")
 		return
@@ -114,7 +112,6 @@ func (ed *Editor) InsertAfter(n int, replay bool) {
 
 // I : Switch to insert mode before first non-blank character of current line.
 func (ed *Editor) InsertBeforeNonBlank(n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("InsertBeforeNonBlank: n < 1")
 		return
@@ -126,7 +123,6 @@ func (ed *Editor) InsertBeforeNonBlank(n int, replay bool) {
 
 // A : Switch to insert mode after end of current line.
 func (ed *Editor) InsertAfterEnd(n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("InsertAfterEnd: n < 1")
 		return
@@ -139,7 +135,6 @@ func (ed *Editor) InsertAfterEnd(n int, replay bool) {
 
 // R : Switch to replace (overwrite) mode.
 func (ed *Editor) InsertOverwrite(n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("InsertOverwrite: n < 1")
 		return
@@ -153,7 +148,6 @@ func (ed *Editor) InsertOverwrite(n int, replay bool) {
 
 // o : Open a new line below and switch to insert mode.
 func (ed *Editor) InsertOpenBelow(n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("InsertOpenBelow: n < 1")
 		return
@@ -183,7 +177,6 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 
 // O : Open a new line above and switch to insert mode.
 func (ed *Editor) InsertOpenAbove(n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("InsertOpenAbove: n < 1")
 		return

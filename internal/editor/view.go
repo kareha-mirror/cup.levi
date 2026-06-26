@@ -14,7 +14,6 @@ import (
 
 // Ctrl-F : Scroll down by view height.
 func (ed *Editor) ViewDown(n int) {
-	ed.Commit()
 	i := len(ed.viewMeta) - 2
 	if i < 0 {
 		return
@@ -29,7 +28,6 @@ func (ed *Editor) ViewDown(n int) {
 
 // Ctrl-B : Scroll up by view height.
 func (ed *Editor) ViewUp(n int) {
-	ed.Commit()
 	b := ed.Buf()
 	viewRow := b.ViewLoc.Row - (ed.h - 3)
 	if viewRow < 0 {
@@ -67,25 +65,21 @@ func (ed *Editor) ViewUp(n int) {
 
 // Ctrl-D : Scroll down by half view height.
 func (ed *Editor) ViewDownHalf(n int) {
-	ed.Commit()
 	ed.Unimplemented("ViewDownHalf")
 }
 
 // Ctrl-U : Scroll up by half view height.
 func (ed *Editor) ViewUpHalf(n int) {
-	ed.Commit()
 	ed.Unimplemented("ViewUpHalf")
 }
 
 // Ctrl-Y : Scroll down by line.
 func (ed *Editor) ViewDownLine(n int) {
-	ed.Commit()
 	ed.Unimplemented("ViewDownLine")
 }
 
 // Ctrl-E : Scroll up by line.
 func (ed *Editor) ViewUpLine(n int) {
-	ed.Commit()
 	ed.Unimplemented("ViewUpLine")
 }
 
@@ -95,19 +89,16 @@ func (ed *Editor) ViewUpLine(n int) {
 
 // z Enter : Reposition cursor line to top of view.
 func (ed *Editor) ViewToTop() {
-	ed.Commit()
 	ed.Unimplemented("ViewToTop")
 }
 
 // z. : Reposition cursor line middle of view.
 func (ed *Editor) ViewToMiddle() {
-	ed.Commit()
 	ed.Unimplemented("ViewToMiddle")
 }
 
 // z- : Reposition cursor line bottom of view.
 func (ed *Editor) ViewToBottom() {
-	ed.Commit()
 	ed.Unimplemented("ViewToBottom")
 }
 
@@ -117,6 +108,5 @@ func (ed *Editor) ViewToBottom() {
 
 // Ctrl-L : Redraw view.
 func (ed *Editor) ViewRedraw() {
-	ed.Commit()
 	ed.redraw = true
 }

@@ -14,13 +14,11 @@ import (
 
 // m<letter> : Mark current cursor position labelled by <letter>.
 func (ed *Editor) MarkSet(letter rune) {
-	ed.Commit()
 	ed.Buf().Mark(letter)
 }
 
 // `<letter> : Move cursor to marked position labelled by <letter>.
 func (ed *Editor) MoveToMark(letter rune) (buf.Loc, bool) {
-	ed.Commit()
 	b := ed.Buf()
 	loc, ok := b.Marks[letter]
 	if !ok {
@@ -32,7 +30,6 @@ func (ed *Editor) MoveToMark(letter rune) (buf.Loc, bool) {
 
 // '<letter> : Move cursor to marked line labelled by <letter>.
 func (ed *Editor) MoveToMarkLine(letter rune) (buf.Loc, bool) {
-	ed.Commit()
 	b := ed.Buf()
 	loc, ok := b.Marks[letter]
 	if !ok {
@@ -49,14 +46,12 @@ func (ed *Editor) MoveToMarkLine(letter rune) (buf.Loc, bool) {
 
 // “ : Move cursor to previous position in context.
 func (ed *Editor) MoveBackToMark() (buf.Loc, bool) {
-	ed.Commit()
 	ed.Unimplemented("MoveBackToMark")
 	return buf.Loc{}, false
 }
 
 // ” : Move cursor to previous line in context.
 func (ed *Editor) MoveBackToMarkLine() (buf.Loc, bool) {
-	ed.Commit()
 	ed.Unimplemented("MarkBackToLine")
 	return buf.Loc{}, false
 }

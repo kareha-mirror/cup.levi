@@ -39,7 +39,6 @@ func (ed *Editor) Locate() {
 
 // /<pattern> Enter : Search <pattern> forward.
 func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
-	ed.Commit()
 	if ed.search.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
@@ -81,7 +80,6 @@ func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 
 // ?<pattern> Enter : Search <pattern> backward.
 func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
-	ed.Commit()
 	if ed.search.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false

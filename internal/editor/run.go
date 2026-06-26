@@ -5,6 +5,8 @@ import (
 )
 
 func (ed *Editor) Run(c Cmd, replay bool) bool {
+	ed.Commit()
+
 	switch c.Kind {
 	case CmdInvalid:
 		ed.Ring("not (yet) a vi command [" + ed.parser.String() + "]")

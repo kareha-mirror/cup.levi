@@ -51,7 +51,6 @@ func (ed *Editor) internalMoveFindForward(
 
 // f<letter> : Find character <letter> forward in current line.
 func (ed *Editor) MoveFindForward(letter rune, n int) (buf.Loc, bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("MoveFindForward: n < 1")
 		return buf.Loc{}, false
@@ -84,7 +83,6 @@ func (ed *Editor) internalMoveFindBackward(
 
 // F<letter> : Find character <letter> backward in current line.
 func (ed *Editor) MoveFindBackward(letter rune, n int) (buf.Loc, bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("MoveFindBackward: n < 1")
 		return buf.Loc{}, false
@@ -118,7 +116,6 @@ func (ed *Editor) internalMoveFindBeforeForward(
 
 // t<letter> : Find before character <letter> forward in current line.
 func (ed *Editor) MoveFindBeforeForward(letter rune, n int) (buf.Loc, bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("MoveFindBeforeForward: n < 1")
 		return buf.Loc{}, false
@@ -152,7 +149,6 @@ func (ed *Editor) internalMoveFindBeforeBackward(
 
 // T<letter> : Find before character <letter> backward in current line.
 func (ed *Editor) MoveFindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("MoveFindBeforeBackward: n < 1")
 		return buf.Loc{}, false
@@ -175,7 +171,6 @@ func (ed *Editor) MoveFindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
 
 // ; : Find next match.
 func (ed *Editor) MoveFindNextMatch(n int) (buf.Loc, bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("MoveFindNextMatch: n < 1")
 		return buf.Loc{}, false
@@ -220,7 +215,6 @@ func (ed *Editor) MoveFindNextMatch(n int) (buf.Loc, bool) {
 
 // , : Find previous match.
 func (ed *Editor) MoveFindPrevMatch(n int) (buf.Loc, bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("MoveFindPrevMatch: n < 1")
 		return buf.Loc{}, false

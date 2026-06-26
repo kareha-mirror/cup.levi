@@ -1,6 +1,8 @@
 package editor
 
 func (ed *Editor) RunPrompt(c Pcmd) bool {
+	ed.Commit()
+
 	switch c.Kind {
 	case PcmdMoveToLine:
 		ed.PromptMoveToLine(c.Num)

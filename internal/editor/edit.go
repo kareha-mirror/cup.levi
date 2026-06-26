@@ -14,7 +14,6 @@ import (
 
 // r : Replace single character under cursor.
 func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("EditReplace: n < 1")
 		return
@@ -24,7 +23,6 @@ func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
 
 // J : Join current line with next line.
 func (ed *Editor) EditJoin(n int) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("EditJoin: n < 1")
 		return
@@ -68,7 +66,6 @@ func (ed *Editor) EditJoin(n int) {
 
 // >> : Indent current line.
 func (ed *Editor) EditIndent(n int) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("EditIndent: n < 1")
 		return
@@ -89,7 +86,6 @@ func (ed *Editor) EditIndent(n int) {
 
 // << : Outdent current line.
 func (ed *Editor) EditOutdent(n int) {
-	ed.Commit()
 	if n < 1 {
 		ed.Error("EditOutdent: n < 1")
 		return
@@ -118,7 +114,6 @@ func (ed *Editor) EditOutdent(n int) {
 
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
 func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
-	ed.Commit()
 	start, end = ed.confineRegion(start, end, true)
 	b := ed.Buf()
 	indented := false
@@ -138,7 +133,6 @@ func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
 
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
 func (ed *Editor) EditOutdentRegion(start buf.Loc, end buf.Loc) {
-	ed.Commit()
 	start, end = ed.confineRegion(start, end, true)
 	b := ed.Buf()
 	outdented := false

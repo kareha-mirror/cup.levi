@@ -22,7 +22,6 @@ func (ed *Editor) MoveLeft(n int) (buf.Loc, bool) {
 		ed.Error("MoveLeft: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col -= n
@@ -36,13 +35,12 @@ func (ed *Editor) MoveDown(n int) (buf.Loc, bool) {
 		ed.Error("MoveDown: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
-	if !b.CheckRowInclusive(loc.Row + n) {
+	loc.Row += n
+	if !b.CheckRowInclusive(loc.Row) {
 		return buf.Loc{}, false
 	}
-	loc.Row += n
 	return loc, true
 }
 
@@ -52,13 +50,12 @@ func (ed *Editor) MoveUp(n int) (buf.Loc, bool) {
 		ed.Error("MoveUp: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
-	if !b.CheckRowInclusive(loc.Row - n) {
+	loc.Row -= n
+	if !b.CheckRowInclusive(loc.Row) {
 		return buf.Loc{}, false
 	}
-	loc.Row -= n
 	return loc, true
 }
 
@@ -68,7 +65,6 @@ func (ed *Editor) MoveRight(n int) (buf.Loc, bool) {
 		ed.Error("MoveRight: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col += n
@@ -82,26 +78,21 @@ func (ed *Editor) MoveRight(n int) (buf.Loc, bool) {
 
 // 0 : Move cursor to start of current line.
 func (ed *Editor) MoveToStart() (buf.Loc, bool) {
-	ed.Commit()
-	b := ed.Buf()
-	loc := b.Loc
+	loc := ed.Buf().Loc
 	loc.Col = 0
 	return loc, true
 }
 
 // $ : Move cursor to end of current line.
 func (ed *Editor) MoveToEnd() (buf.Loc, bool) {
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
-	line := b.Line(loc.Row)
-	loc.Col = utf8.RuneCountInString(line)
+	loc.Col = utf8.RuneCountInString(b.Line(loc.Row))
 	return loc, true
 }
 
 // ^ : Move cursor to first non-blank character of current line.
 func (ed *Editor) MoveToNonBlank() (buf.Loc, bool) {
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col = b.NonBlankColOfLine(loc.Row)
@@ -115,7 +106,6 @@ func (ed *Editor) MoveToColumn(n int) (buf.Loc, bool) { // n: 1-based
 		ed.Error("MoveToColumn: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col = n - 1
@@ -133,7 +123,6 @@ func (ed *Editor) MoveByWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveByWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
@@ -156,7 +145,6 @@ func (ed *Editor) MoveByWordEx(n int) (buf.Loc, bool) {
 		ed.Error("MoveByWordEx: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
@@ -175,7 +163,6 @@ func (ed *Editor) MoveBackwardByWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardByWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
@@ -207,7 +194,6 @@ func (ed *Editor) MoveToEndOfWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveToEndOfWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveToEndOfWord")
 	return buf.Loc{}, false
 }
@@ -218,7 +204,6 @@ func (ed *Editor) MoveByLooseWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveByLooseWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveByLooseWord")
 	return buf.Loc{}, false
 }
@@ -229,7 +214,6 @@ func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardByLooseWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveBackwardByLooseWord")
 	return buf.Loc{}, false
 }
@@ -240,7 +224,6 @@ func (ed *Editor) MoveToEndOfLooseWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveToEndOfLooseWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveToEndOfLooseWord")
 	return buf.Loc{}, false
 }
@@ -255,13 +238,12 @@ func (ed *Editor) MoveByLine(n int) (buf.Loc, bool) {
 		ed.Error("MoveByLine: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
-	if !b.CheckRowInclusive(loc.Row + n) {
+	loc.Row += n
+	if !b.CheckRowInclusive(loc.Row) {
 		return buf.Loc{}, false
 	}
-	loc.Row += n
 	loc.Col = b.NonBlankColOfLine(loc.Row)
 	return loc, true
 }
@@ -272,22 +254,20 @@ func (ed *Editor) MoveBackwardByLine(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardByLine: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	b := ed.Buf()
 	loc := b.Loc
-	if !b.CheckRowInclusive(loc.Row - n) {
+	loc.Row -= n
+	if !b.CheckRowInclusive(loc.Row) {
 		return buf.Loc{}, false
 	}
-	loc.Row -= n
 	loc.Col = b.NonBlankColOfLine(loc.Row)
 	return loc, true
 }
 
 // G : Move cursor to first non-blank character of last line.
 func (ed *Editor) MoveToLastLine() (buf.Loc, bool) {
-	ed.Commit()
+	var loc buf.Loc
 	b := ed.Buf()
-	loc := b.Loc
 	loc.Row = b.ConfineRow(b.NumLines() - 1)
 	loc.Col = b.NonBlankColOfLine(loc.Row)
 	return loc, true
@@ -299,13 +279,12 @@ func (ed *Editor) MoveToLine(n int) (buf.Loc, bool) { // n: 1-based
 		ed.Error("MoveToLine: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
+	var loc buf.Loc
+	loc.Row = n - 1
 	b := ed.Buf()
-	loc := b.Loc
-	if !b.CheckRowInclusive(n - 1) {
+	if !b.CheckRowInclusive(loc.Row) {
 		return buf.Loc{}, false
 	}
-	loc.Row = n - 1
 	loc.Col = b.NonBlankColOfLine(loc.Row)
 	return loc, true
 }
@@ -320,7 +299,6 @@ func (ed *Editor) MoveBySentence(n int) (buf.Loc, bool) {
 		ed.Error("MoveBySentence: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveBySentence")
 	return buf.Loc{}, false
 }
@@ -331,7 +309,6 @@ func (ed *Editor) MoveBackwardBySentence(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardBySentence: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveBackwardBySentence")
 	return buf.Loc{}, false
 }
@@ -342,7 +319,6 @@ func (ed *Editor) MoveByParagraph(n int) (buf.Loc, bool) {
 		ed.Error("MoveByParagraph: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveByParagraph")
 	return buf.Loc{}, false
 }
@@ -353,7 +329,6 @@ func (ed *Editor) MoveBackwardByParagraph(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardByParagraph: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveBackwardByParagraph")
 	return buf.Loc{}, false
 }
@@ -364,7 +339,6 @@ func (ed *Editor) MoveBySection(n int) (buf.Loc, bool) {
 		ed.Error("MoveBySection: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveBySection")
 	return buf.Loc{}, false
 }
@@ -375,7 +349,6 @@ func (ed *Editor) MoveBackwardBySection(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardBySection: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	ed.Unimplemented("MoveBackwardBySection")
 	return buf.Loc{}, false
 }
@@ -386,45 +359,38 @@ func (ed *Editor) MoveBackwardBySection(n int) (buf.Loc, bool) {
 
 // H : Move cursor to top of view.
 func (ed *Editor) MoveToTopOfView() (buf.Loc, bool) {
-	ed.Commit()
 	if len(ed.viewMeta) < 1 {
 		return buf.Loc{}, false
 	}
-	i := 0
-	loc := ed.viewMeta[i].Loc
+	loc := ed.viewMeta[0].Loc
 	if loc.Col < 1 {
-		b := ed.Buf()
-		loc.Col = b.NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
 	}
 	return loc, true
 }
 
 // M : Move cursor to middle of view.
 func (ed *Editor) MoveToMiddleOfView() (buf.Loc, bool) {
-	ed.Commit()
 	if len(ed.viewMeta) < 1 {
 		return buf.Loc{}, false
 	}
 	i := len(ed.viewMeta)/2 - 1
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		b := ed.Buf()
-		loc.Col = b.NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
 	}
 	return loc, true
 }
 
 // L : Move cursor to bottom of view.
 func (ed *Editor) MoveToBottomOfView() (buf.Loc, bool) {
-	ed.Commit()
 	if len(ed.viewMeta) < 1 {
 		return buf.Loc{}, false
 	}
 	i := len(ed.viewMeta) - 1
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		b := ed.Buf()
-		loc.Col = b.NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
 	}
 	return loc, true
 }
@@ -435,15 +401,16 @@ func (ed *Editor) MoveToBelowTopOfView(n int) (buf.Loc, bool) {
 		ed.Error("MoveToBelowTopOfView: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	if len(ed.viewMeta) < 1 {
 		return buf.Loc{}, false
 	}
 	i := n - 1
+	if i >= len(ed.viewMeta) {
+		return buf.Loc{}, false
+	}
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		b := ed.Buf()
-		loc.Col = b.NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
 	}
 	return loc, true
 }
@@ -454,15 +421,13 @@ func (ed *Editor) MoveToAboveBottomOfView(n int) (buf.Loc, bool) {
 		ed.Error("MoveToAboveBottomOfView: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Commit()
 	i := len(ed.viewMeta) - n
 	if i < 0 {
 		return buf.Loc{}, false
 	}
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		b := ed.Buf()
-		loc.Col = b.NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
 	}
 	return loc, true
 }
