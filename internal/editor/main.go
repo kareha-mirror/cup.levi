@@ -42,7 +42,15 @@ func (ed *Editor) Main() {
 						ed.search.backward = true
 						continue
 					}
-					ed.parser.InsertRune(key.Rune)
+					if key.Rune == termi.RuneBackspace ||
+						key.Rune == termi.RuneDelete {
+						if !ed.parser.Backspace() {
+							ed.Ring("no tokens left")
+							continue
+						}
+					} else {
+						ed.parser.InsertRune(key.Rune)
+					}
 
 					c, t, ok := ed.Parse()
 					ed.tokens = t

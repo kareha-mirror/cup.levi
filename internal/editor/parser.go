@@ -50,6 +50,15 @@ func (p *Parser) InsertRune(r rune) {
 	p.cache = p.String()
 }
 
+func (p *Parser) Backspace() bool {
+	if len(p.buf) < 1 {
+		return false
+	}
+	p.buf = p.buf[:len(p.buf)-1]
+	p.cache = p.String()
+	return true
+}
+
 func (p *Parser) Clear() {
 	if len(p.buf) > maxParserLen {
 		p.buf = make([]rune, 0)
