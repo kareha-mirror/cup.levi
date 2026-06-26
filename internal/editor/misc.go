@@ -66,7 +66,7 @@ func (ed *Editor) MiscUndo(n int, replay bool) {
 	}
 	b.Lines = b.Snapshot
 	b.Snapshot = nil
-	b.Loc = b.Confine(b.Loc)
+	b.Loc = b.ConfineInclusive(b.Loc)
 }
 
 // U : Restore current line to previous state.
