@@ -252,9 +252,9 @@ func (ed *Editor) DrawStatus() {
 		mode := ""
 		switch ed.mode {
 		case ModeCommand:
-			mode = "command"
+			mode = "levi"
 		case ModeInsert:
-			mode = "insert"
+			mode = "ins:"
 		}
 		fmt.Printf("(%s)%s", mode, ed.parser.Cache())
 	}
