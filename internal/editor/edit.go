@@ -75,6 +75,7 @@ func (ed *Editor) EditIndent(n int) {
 	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
+		ed.Notice("Out of range")
 		return
 	}
 	for row := b.Loc.Row; row < b.Loc.Row+n; row++ {
@@ -95,6 +96,7 @@ func (ed *Editor) EditOutdent(n int) {
 	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
+		ed.Notice("Out of range")
 		return
 	}
 	outdented := false

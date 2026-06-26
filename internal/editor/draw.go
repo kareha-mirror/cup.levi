@@ -248,7 +248,7 @@ func (ed *Editor) DrawStatus() {
 			head = "?"
 		}
 		fmt.Printf("%s%s", head, ed.search.pattern.String())
-	} else {
+	} else if !ed.cfg.Silent {
 		mode := ""
 		switch ed.mode {
 		case ModeCommand:

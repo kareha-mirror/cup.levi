@@ -65,6 +65,7 @@ func (ed *Editor) MoveFindForward(letter rune, n int) (buf.Loc, bool) {
 		loc, ok = ed.internalMoveFindForward(loc, letter)
 		if !ok {
 			if i == 0 {
+				ed.Notice("Not found")
 				return buf.Loc{}, false
 			}
 			break
@@ -99,6 +100,7 @@ func (ed *Editor) MoveFindBackward(letter rune, n int) (buf.Loc, bool) {
 		loc, ok = ed.internalMoveFindBackward(loc, letter)
 		if !ok {
 			if i == 0 {
+				ed.Notice("Not found")
 				return buf.Loc{}, false
 			}
 			break
@@ -134,6 +136,7 @@ func (ed *Editor) MoveFindBeforeForward(letter rune, n int) (buf.Loc, bool) {
 		loc, ok = ed.internalMoveFindBeforeForward(loc, letter)
 		if !ok {
 			if i == 0 {
+				ed.Notice("Not found")
 				return buf.Loc{}, false
 			}
 			break
@@ -169,6 +172,7 @@ func (ed *Editor) MoveFindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
 		loc, ok = ed.internalMoveFindBeforeBackward(loc, letter)
 		if !ok {
 			if i == 0 {
+				ed.Notice("Not found")
 				return buf.Loc{}, false
 			}
 			break
@@ -214,6 +218,7 @@ func (ed *Editor) MoveFindNextMatch(n int) (buf.Loc, bool) {
 		}
 		if !ok {
 			if i == 0 {
+				ed.Notice("Not found")
 				return buf.Loc{}, false
 			}
 			break
@@ -259,6 +264,7 @@ func (ed *Editor) MoveFindPrevMatch(n int) (buf.Loc, bool) {
 		}
 		if !ok {
 			if i == 0 {
+				ed.Notice("Not found")
 				return buf.Loc{}, false
 			}
 			break

@@ -37,7 +37,7 @@ func (ed *Editor) Notice(format string, a ...any) {
 	if ed.cfg.Silent {
 		return
 	}
-	ed.Message("Notice: "+format, a...)
+	ed.Message("("+format+")", a...)
 }
 
 func (ed *Editor) Unimplemented(name string) {

@@ -3,6 +3,7 @@ package editor
 import (
 	"fmt"
 	"time"
+	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
 
@@ -214,6 +215,29 @@ func (ed *Editor) Commit() {
 
 		ed.EndMemory()
 		ed.Reset()
+
+		if !ed.cfg.Silent {
+			numLines := len(ed.inserted)
+			numBytes := numLines - 1
+			numRunes := numLines - 1
+			for _, line := range ed.inserted {
+				numBytes += len(line)
+				numRunes += utf8.RuneCountInString(line)
+			}
+			if numBytes > 0 {
+				if numLines < 2 {
+					ed.Notice(
+						"%d bytes, %d runes inserted",
+						numBytes, numRunes,
+					)
+				} else {
+					ed.Notice(
+						"%d lines, %d bytes, %d runes inserted",
+						numLines, numBytes, numRunes,
+					)
+				}
+			}
+		}
 		return
 	case ModeSearch:
 		ed.mode = ModeCommand
