@@ -1,0 +1,135 @@
+package editor
+
+import (
+	"fmt"
+	"os"
+	"unicode/utf8"
+
+	"tea.kareha.org/cup/levi/internal/buf"
+)
+
+func (ed *Editor) Clear() {
+	if ed.bufIdx < len(ed.bufs) {
+		ed.bufs[ed.bufIdx] = new(buf.Buf)
+	} else {
+		ed.bufs = append(ed.bufs, new(buf.Buf))
+	}
+	ed.mode = ModeCommand
+	ed.redraw = true
+}
+
+func (ed *Editor) Buf() *buf.Buf {
+	return ed.bufs[ed.bufIdx]
+}
+
+func (ed *Editor) Close(force bool) {
+	b := ed.Buf()
+	if !force && b.Modified {
+		ed.Ring("File modified since last complete write; write or use ! to override.")
+		return
+	}
+	bufs := append([]*buf.Buf{}, ed.bufs[:ed.bufIdx]...)
+	if ed.bufIdx+1 < len(ed.bufs) {
+		bufs = append(bufs, ed.bufs[ed.bufIdx+1:]...)
+	}
+	ed.bufs = bufs
+	n := len(ed.bufs)
+	if ed.bufIdx >= n {
+		ed.bufIdx = max(n-1, 0)
+	}
+	if n < 1 {
+		ed.alive = false
+	}
+}
+
+func (ed *Editor) Load(path string, force bool) error {
+	b := ed.Buf()
+	if !force && b.Modified {
+		ed.Ring("File modified since last complete write; write or use ! to override.")
+		return fmt.Errorf("file modified")
+	}
+	ed.Clear()
+	b = ed.Buf()
+	b.Path = path
+	if path == "" {
+		ed.Message("(memory): new file: line 1")
+		return nil
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		ed.Message("%s: new file: line 1", path)
+		return nil
+	}
+	stamp := buf.Stamp{
+		Time: info.ModTime(),
+		Size: info.Size(),
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	b.SetText(string(data))
+	b.Stamp = stamp
+	b.Modified = false
+	return nil
+}
+
+func (ed *Editor) SaveAs(path string, force bool) error {
+	if path == "" {
+		ed.Ring("No filename specified")
+		return fmt.Errorf("no filename specified")
+	}
+	info, err := os.Stat(path)
+	newFile := ""
+	stamp := buf.Stamp{}
+	if err != nil {
+		newFile = " new file:"
+	} else {
+		stamp = buf.Stamp{
+			Time: info.ModTime(),
+			Size: info.Size(),
+		}
+	}
+	b := ed.Buf()
+	if !force && path == b.Path && stamp != b.Stamp {
+		ed.Ring(
+			"%s: file modified more recently than this copy; use ! to override.",
+			path,
+		)
+		return fmt.Errorf("file modified more recently")
+	}
+
+	text := b.Text()
+	err = os.WriteFile(path, []byte(text), 0666)
+	if err != nil {
+		return err
+	}
+	info, err = os.Stat(path)
+	if err != nil {
+		return err
+	}
+	stamp = buf.Stamp{
+		Time: info.ModTime(),
+		Size: info.Size(),
+	}
+
+	ed.Message(
+		"%s:%s %d lines, %d bytes, %d runes.",
+		path, newFile, b.NumLines(), len(text), utf8.RuneCountInString(text),
+	)
+
+	if b.Path == "" {
+		b.Path = path
+	}
+	if path == b.Path {
+		b.Stamp = stamp
+	}
+	b.Modified = false
+	return nil
+}
+
+func (ed *Editor) Save(force bool) error {
+	b := ed.Buf()
+	return ed.SaveAs(b.Path, force)
+}

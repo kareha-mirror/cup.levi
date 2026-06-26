@@ -208,7 +208,7 @@ func (regs *Regs) AddRunes(name string, killed []string) {
 	reg.Killed = append([]string{}, killed...)
 }
 
-func (regs *Regs) LoadConfig(cfg *Config) {
+func (regs *Regs) SyncWithConfig(cfg *Config) {
 	for _, reg := range regs.Map {
 		reg.Shared = false
 	}

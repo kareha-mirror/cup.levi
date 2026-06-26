@@ -33,13 +33,13 @@ func (ed *Editor) Main() {
 					if ed.parser.String() == "" && key.Rune == '/' {
 						ed.parser.ClearAll()
 						ed.mode = ModeSearch
-						ed.backward = false
+						ed.search.backward = false
 						continue
 					}
 					if ed.parser.String() == "" && key.Rune == '?' {
 						ed.parser.ClearAll()
 						ed.mode = ModeSearch
-						ed.backward = true
+						ed.search.backward = true
 						continue
 					}
 					ed.parser.InsertRune(key.Rune)
@@ -83,7 +83,7 @@ func (ed *Editor) Main() {
 				case termi.KeyRune:
 					switch key.Rune {
 					case termi.RuneEscape:
-						ed.EnsureCommand()
+						ed.Commit()
 					case termi.RuneEnter, termi.RuneNewline:
 						ed.InsertNewline()
 					case termi.RuneBackspace:
@@ -137,11 +137,11 @@ func (ed *Editor) Main() {
 				case termi.KeyRune:
 					switch key.Rune {
 					case termi.RuneEscape:
-						ed.pattern.Reset()
+						ed.search.pattern.Reset()
 						ed.mode = ModeCommand
 					case termi.RuneEnter, termi.RuneNewline:
-						if ed.pattern.Len() < 1 {
-							if ed.backward {
+						if ed.search.pattern.Len() < 1 {
+							if ed.search.backward {
 								ed.Run(Cmd{
 									Kind: CmdMoveSearchRepeatBackward,
 								}, false)
@@ -152,14 +152,14 @@ func (ed *Editor) Main() {
 							}
 							continue
 						}
-						re, err := regexp.Compile(ed.pattern.String())
+						re, err := regexp.Compile(ed.search.pattern.String())
 						if err != nil {
 							ed.Ring("%v", err)
 							continue
 						}
-						ed.regexp = re
-						ed.pattern.Reset()
-						if ed.backward {
+						ed.search.regexp = re
+						ed.search.pattern.Reset()
+						if ed.search.backward {
 							ed.Run(
 								Cmd{Kind: CmdMoveSearchBackward}, false,
 							)
@@ -169,11 +169,11 @@ func (ed *Editor) Main() {
 							)
 						}
 					case termi.RuneBackspace, termi.RuneDelete:
-						if !ed.pattern.RemoveTail() {
+						if !ed.search.pattern.RemoveTail() {
 							ed.mode = ModeCommand
 						}
 					default:
-						ed.pattern.WriteRune(key.Rune)
+						ed.search.pattern.WriteRune(key.Rune)
 					}
 				default:
 					ed.Ring("unknown key")

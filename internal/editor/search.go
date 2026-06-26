@@ -1,18 +1,27 @@
 package editor
 
 import (
+	"regexp"
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
+type Search struct {
+	backward bool
+	pattern  termi.RuneBuf
+	regexp   *regexp.Regexp
+}
+
 func (ed *Editor) Locate() {
 	b := ed.Buf()
-	if len(ed.vMeta) < 1 {
+	if len(ed.viewMeta) < 1 {
 		return
 	}
-	minRow := ed.vMeta[0].Loc.Row
-	maxRow := ed.vMeta[len(ed.vMeta)-1].Loc.Row
+	minRow := ed.viewMeta[0].Loc.Row
+	maxRow := ed.viewMeta[len(ed.viewMeta)-1].Loc.Row
 	if b.Loc.Row >= minRow && b.Loc.Row <= maxRow {
 		// XXX col is not checked
 		return
@@ -30,8 +39,8 @@ func (ed *Editor) Locate() {
 
 // /<pattern> Enter : Search <pattern> forward.
 func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
-	ed.EnsureCommand()
-	if ed.regexp == nil {
+	ed.Commit()
+	if ed.search.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
 	}
@@ -46,7 +55,7 @@ func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 				line = ""
 			}
 		}
-		loc := ed.regexp.FindStringIndex(line)
+		loc := ed.search.regexp.FindStringIndex(line)
 		if loc == nil {
 			continue
 		}
@@ -59,7 +68,7 @@ func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 	ed.Ring("Search wrapped")
 	for row := 0; row <= b.Loc.Row; row++ {
 		line := b.Line(row)
-		loc := ed.regexp.FindStringIndex(line)
+		loc := ed.search.regexp.FindStringIndex(line)
 		if loc == nil {
 			continue
 		}
@@ -72,8 +81,8 @@ func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 
 // ?<pattern> Enter : Search <pattern> backward.
 func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
-	ed.EnsureCommand()
-	if ed.regexp == nil {
+	ed.Commit()
+	if ed.search.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
 	}
@@ -85,7 +94,7 @@ func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
 		subLine := line
 		var found []int
 		for {
-			loc := ed.regexp.FindStringIndex(subLine)
+			loc := ed.search.regexp.FindStringIndex(subLine)
 			if loc == nil {
 				break
 			}
@@ -113,7 +122,7 @@ func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
 		subLine := line
 		var found []int
 		for {
-			loc := ed.regexp.FindStringIndex(subLine)
+			loc := ed.search.regexp.FindStringIndex(subLine)
 			if loc == nil {
 				break
 			}
@@ -137,7 +146,7 @@ func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
 
 // n : Search next match.
 func (ed *Editor) MoveSearchNextMatch() (buf.Loc, bool) {
-	if ed.backward {
+	if ed.search.backward {
 		return ed.MoveSearchRepeatBackward()
 	} else {
 		return ed.MoveSearchRepeatForward()
@@ -146,7 +155,7 @@ func (ed *Editor) MoveSearchNextMatch() (buf.Loc, bool) {
 
 // N : Search previous match.
 func (ed *Editor) MoveSearchPrevMatch() (buf.Loc, bool) {
-	if ed.backward {
+	if ed.search.backward {
 		return ed.MoveSearchRepeatForward()
 	} else {
 		return ed.MoveSearchRepeatBackward()

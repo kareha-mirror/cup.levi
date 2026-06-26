@@ -10,20 +10,26 @@ import (
 const ConfigFilename = "editor.yaml"
 
 type Config struct {
-	AutoIndent bool   `yaml:"auto-indent"`
-	TabStop    int    `yaml:"tab-stop"`
-	Colors     string `yaml:"colors"`
-	Silent     bool   `yaml:"silent"`
-	Shared     string `yaml:"shared"`
+	AutoIndent bool `yaml:"auto-indent"`
+	TabStop    int  `yaml:"tab-stop"`
+
+	Colors string `yaml:"colors"`
+	Silent bool   `yaml:"silent"`
+	Shared string `yaml:"shared"`
+
+	EscTimeout int `yaml:"esc-timeout"`
 }
 
 func DefaultConfig() *Config {
 	return &Config{
 		AutoIndent: true,
 		TabStop:    4,
-		Colors:     "standard",
-		Silent:     false,
-		Shared:     "xyz",
+
+		Colors: "standard",
+		Silent: false,
+		Shared: "xyz",
+
+		EscTimeout: 100,
 	}
 }
 

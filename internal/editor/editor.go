@@ -2,9 +2,7 @@ package editor
 
 import (
 	"fmt"
-	"os"
-	"regexp"
-	"unicode/utf8"
+	"time"
 
 	"tea.kareha.org/cup/termi"
 
@@ -18,176 +16,91 @@ type Mode int
 const (
 	ModeCommand Mode = iota
 	ModeInsert
-	ModeSearch
 	ModePrompt
+	ModeSearch
 )
 
-type ViewMeta struct {
-	Loc buf.Loc
-}
-
 type Editor struct {
-	dir      string
-	cfg      *Config
-	w, h     int
-	bufs     []*buf.Buf
-	bIndex   int
+	dir    string
+	cfg    *Config
+	bufs   []*buf.Buf
+	bufIdx int
+	mode   Mode
+	alive  bool
+	msg    *Msg
+
+	parser   *Parser
 	inp      *Input
 	inpRow   int // 0-based
 	inserted []string
-	mode     Mode
-	alive    bool
-	message  string
-	ring     string
-	parser   *Parser
 	prompt   termi.RuneBuf
+	search   Search
 	regs     Regs
-	backward bool
-	pattern  termi.RuneBuf
-	regexp   *regexp.Regexp
 	lastCmd  Cmd
+
+	w, h     int
 	redraw   bool
 	view     []string
-	vMeta    []ViewMeta
+	viewMeta []ViewMeta
+	colors   *colors.Colors
+
 	listener termi.EscapeListener
 	esc      bool
-	colors   *colors.Colors
-}
-
-func (ed *Editor) Clear() {
-	if ed.bIndex < len(ed.bufs) {
-		ed.bufs[ed.bIndex] = new(buf.Buf)
-	} else {
-		ed.bufs = append(ed.bufs, new(buf.Buf))
-	}
-	ed.mode = ModeCommand
-	ed.redraw = true
-}
-
-func (ed *Editor) Buf() *buf.Buf {
-	return ed.bufs[ed.bIndex]
-}
-
-func (ed *Editor) Close(force bool) {
-	b := ed.Buf()
-	if !force && b.Modified {
-		ed.Ring("File modified since last complete write; write or use ! to override.")
-		return
-	}
-	bufs := append([]*buf.Buf{}, ed.bufs[:ed.bIndex]...)
-	if ed.bIndex+1 < len(ed.bufs) {
-		bufs = append(bufs, ed.bufs[ed.bIndex+1:]...)
-	}
-	ed.bufs = bufs
-	n := len(ed.bufs)
-	if ed.bIndex >= n {
-		ed.bIndex = max(n-1, 0)
-	}
-	if n < 1 {
-		ed.alive = false
-	}
-}
-
-func (ed *Editor) Load(path string, force bool) error {
-	b := ed.Buf()
-	if !force && b.Modified {
-		ed.Ring("File modified since last complete write; write or use ! to override.")
-		return fmt.Errorf("file modified")
-	}
-	ed.Clear()
-	b = ed.Buf()
-	b.Path = path
-	if path == "" {
-		ed.Message("(memory): new file: line 1")
-		return nil
-	}
-	info, err := os.Stat(path)
-	if err != nil {
-		ed.Message("%s: new file: line 1", path)
-		return nil
-	}
-	stamp := buf.Stamp{
-		Time: info.ModTime(),
-		Size: info.Size(),
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	b.SetText(string(data))
-	b.Stamp = stamp
-	b.Modified = false
-	return nil
-}
-
-func (ed *Editor) InitialInfo() {
-	b := ed.Buf()
-	path := b.Path
-	if path == "" {
-		path = "(memory)"
-	}
-	modified := "unmodified"
-	if b.Modified {
-		modified = "modified"
-	}
-	info := "empty file"
-	numLines := b.NumLines()
-	if numLines > 0 {
-		info = fmt.Sprintf("line %d", b.Loc.Row+1)
-	}
-	ed.Message("%s: %s: %s", path, modified, info)
 }
 
 func Init(dir string, args []string) (*Editor, error) {
+	msg := new(Msg)
+
 	cfg, err := PrepareConfig(dir)
 	if err != nil {
-		// TODO show error
+		msg.Error("%v", err)
 	}
 
 	var clrs *colors.Colors
 	list, err := colors.LoadList(dir)
 	if err != nil {
-		// TODO show error
+		msg.Error("%v", err)
 	} else {
 		clrs, err = list.Load(cfg.Colors)
 		if err != nil {
-			// TODO show error
+			msg.Error("%v", err)
 		}
 	}
 
-	w, h := termi.Size()
 	ed := &Editor{
-		dir:      dir,
-		cfg:      cfg,
-		w:        w,
-		h:        h,
-		bufs:     []*buf.Buf{},
-		bIndex:   0,
+		dir:    dir,
+		cfg:    cfg,
+		bufs:   []*buf.Buf{},
+		bufIdx: 0,
+		mode:   ModeCommand,
+		alive:  true,
+		msg:    msg,
+
+		parser:   NewParser(),
 		inp:      NewInput(),
 		inpRow:   0,
 		inserted: []string{},
-		mode:     ModeCommand,
-		alive:    true,
-		message:  "",
-		ring:     "",
-		parser:   NewParser(),
 		prompt:   termi.RuneBuf{},
+		search:   Search{},
 		regs:     Regs{},
-		backward: false,
-		pattern:  termi.RuneBuf{},
-		regexp:   nil,
 		lastCmd:  Cmd{Kind: CmdInvalid},
+
+		w:        80,
+		h:        24,
 		redraw:   true,
-		view:     []string{},
+		view:     nil,
+		viewMeta: nil,
+		colors:   clrs,
+
 		listener: nil,
 		esc:      false,
-		colors:   clrs,
 	}
 
-	ed.regs.LoadConfig(ed.cfg)
+	ed.regs.SyncWithConfig(ed.cfg)
 
+	termi.EscapeTimeout = time.Duration(ed.cfg.EscTimeout) * time.Millisecond
 	termi.TabWidth = ed.cfg.TabStop
+
 	termi.Raw()
 	fmt.Print(termi.SetAlternate)
 	err = termi.StartKey()
@@ -212,73 +125,14 @@ func Init(dir string, args []string) (*Editor, error) {
 		for _, path := range args {
 			ed.Clear()
 			ed.Load(path, true)
-			ed.bIndex++
+			ed.bufIdx++
 		}
-		ed.bIndex = 0
+		ed.bufIdx = 0
 	}
 	ed.InitialInfo()
 
 	termi.SetEscapeListener(ed.listener)
 	return ed, nil
-}
-
-func (ed *Editor) SaveAs(path string, force bool) error {
-	if path == "" {
-		ed.Ring("No filename specified")
-		return fmt.Errorf("no filename specified")
-	}
-	info, err := os.Stat(path)
-	newFile := ""
-	stamp := buf.Stamp{}
-	if err != nil {
-		newFile = " new file:"
-	} else {
-		stamp = buf.Stamp{
-			Time: info.ModTime(),
-			Size: info.Size(),
-		}
-	}
-	b := ed.Buf()
-	if !force && path == b.Path && stamp != b.Stamp {
-		ed.Ring(
-			"%s: file modified more recently than this copy; use ! to override.",
-			path,
-		)
-		return fmt.Errorf("file modified more recently")
-	}
-
-	text := b.Text()
-	err = os.WriteFile(path, []byte(text), 0666)
-	if err != nil {
-		return err
-	}
-	info, err = os.Stat(path)
-	if err != nil {
-		return err
-	}
-	stamp = buf.Stamp{
-		Time: info.ModTime(),
-		Size: info.Size(),
-	}
-
-	ed.Message(
-		"%s:%s %d lines, %d bytes, %d runes.",
-		path, newFile, b.NumLines(), len(text), utf8.RuneCountInString(text),
-	)
-
-	if b.Path == "" {
-		b.Path = path
-	}
-	if path == b.Path {
-		b.Stamp = stamp
-	}
-	b.Modified = false
-	return nil
-}
-
-func (ed *Editor) Save(force bool) error {
-	b := ed.Buf()
-	return ed.SaveAs(b.Path, force)
 }
 
 func (ed *Editor) Finish() error {
@@ -311,16 +165,7 @@ func (ed *Editor) Line(row int) string {
 	return b.Line(row)
 }
 
-func (ed *Editor) CurrentLine() string {
-	b := ed.Buf()
-	return ed.Line(b.Loc.Row)
-}
-
-func (ed *Editor) RuneCount() int {
-	return utf8.RuneCountInString(ed.CurrentLine())
-}
-
-func (ed *Editor) EnsureCommand() {
+func (ed *Editor) Commit() {
 	switch ed.mode {
 	case ModeCommand:
 		return
@@ -336,7 +181,7 @@ func (ed *Editor) EnsureCommand() {
 			}
 		}
 		lines = append(lines, inputLines...)
-		if ed.inpRow+1 <= b.NumLines()-1 {
+		if ed.inpRow+1 < b.NumLines() {
 			lines = append(lines, b.Lines[ed.inpRow+1:]...)
 		}
 		b.Lines = lines
@@ -352,13 +197,11 @@ func (ed *Editor) EnsureCommand() {
 		if _, ok := MultiInsertCmds[ed.lastCmd.Kind]; ok && ed.lastCmd.Num > 1 {
 			cmd := ed.lastCmd
 			cmd.Num--
-			ed.Run(cmd, true)
+			ed.Run(cmd, true) // replay
 		}
 
-		b.VirtCol = b.Loc.Col
-
 		ed.EndMemory()
-
+		b.VirtCol = b.Loc.Col
 		ed.parser.ClearAll()
 		return
 	case ModeSearch:
@@ -368,27 +211,4 @@ func (ed *Editor) EnsureCommand() {
 		ed.mode = ModeCommand
 		return
 	}
-}
-
-func (ed *Editor) Message(format string, a ...any) {
-	ed.message = fmt.Sprintf(format, a...)
-}
-
-func (ed *Editor) Ring(format string, a ...any) {
-	ed.ring = fmt.Sprintf(format, a...)
-}
-
-func (ed *Editor) Error(format string, a ...any) {
-	ed.Ring("Error: "+format, a...)
-}
-
-func (ed *Editor) Notice(format string, a ...any) {
-	if ed.cfg.Silent {
-		return
-	}
-	ed.Message("Notice: "+format, a...)
-}
-
-func (ed *Editor) Unimplemented(name string) {
-	ed.Ring("not implemented (" + name + ")")
 }

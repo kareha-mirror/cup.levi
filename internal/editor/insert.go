@@ -61,17 +61,17 @@ func (ed *Editor) replayInsert(line string) {
 
 // i : Switch to insert mode before cursor.
 func (ed *Editor) InsertBefore(n int, replay bool) {
-	ed.EnsureCommand()
+	ed.Commit()
+	b := ed.Buf()
 	if replay {
 		if len(ed.inserted) < 0 {
 			return
 		}
 		for i := 0; i < n; i++ {
-			ed.replayInsert(ed.CurrentLine())
+			ed.replayInsert(b.CurrentLine())
 		}
 	} else {
-		b := ed.Buf()
-		ed.inp.Init(ed.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
+		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
 		ed.inpRow = b.Loc.Row
 		ed.mode = ModeInsert
 	}
@@ -79,13 +79,13 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 
 // a : Switch to insert mode after cursor.
 func (ed *Editor) InsertAfter(n int, replay bool) {
-	ed.EnsureCommand()
+	ed.Commit()
 	if !replay {
 		n = 1
 	}
 	b := ed.Buf()
 	for i := 0; i < n; i++ {
-		rc := ed.RuneCount()
+		rc := utf8.RuneCountInString(b.CurrentLine())
 		if b.Loc.Col >= rc-1 {
 			b.Loc.Col = rc
 		} else {
@@ -125,7 +125,7 @@ func (ed *Editor) InsertAfterEnd(n int, replay bool) {
 
 // R : Switch to replace (overwrite) mode.
 func (ed *Editor) InsertOverwrite(n int, replay bool) {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("InsertOverwrite")
 }
 
@@ -135,7 +135,7 @@ func (ed *Editor) InsertOverwrite(n int, replay bool) {
 
 // o : Open a new line below and switch to insert mode.
 func (ed *Editor) InsertOpenBelow(n int, replay bool) {
-	ed.EnsureCommand()
+	ed.Commit()
 	if !replay {
 		n = 1
 	}
@@ -147,7 +147,7 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 		}
 		indent := ""
 		if ed.cfg.AutoIndent {
-			indent = getIndent(ed.CurrentLine())
+			indent = getIndent(b.CurrentLine())
 		}
 		lines := []string{}
 		if b.NumLines() > 0 {
@@ -166,7 +166,7 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 
 // O : Open a new line above and switch to insert mode.
 func (ed *Editor) InsertOpenAbove(n int, replay bool) {
-	ed.EnsureCommand()
+	ed.Commit()
 	if !replay {
 		n = 1
 	}
@@ -174,7 +174,7 @@ func (ed *Editor) InsertOpenAbove(n int, replay bool) {
 	for i := 0; i < n; i++ {
 		indent := ""
 		if ed.cfg.AutoIndent {
-			indent = getIndent(ed.CurrentLine())
+			indent = getIndent(b.CurrentLine())
 		}
 		lines := []string{}
 		if b.Loc.Row > 0 {

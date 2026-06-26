@@ -10,6 +10,10 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
+type ViewMeta struct {
+	Loc buf.Loc
+}
+
 func runeAt(s string, i int) rune {
 	for _, r := range s {
 		if i == 0 {
@@ -27,7 +31,7 @@ func (ed *Editor) UpdateCursor() {
 		b.ViewLoc.Col = 0
 	}
 
-	current := ed.CurrentLine()
+	current := ed.Line(b.Loc.Row)
 	col := b.Loc.Col
 	if ed.mode == ModeInsert && b.Loc.Col > 0 {
 		col--
@@ -127,7 +131,7 @@ func (ed *Editor) renderBuffer(
 ) ([]string, []ViewMeta) {
 	b := ed.Buf()
 	view := []string{}
-	vMeta := []ViewMeta{}
+	viewMeta := []ViewMeta{}
 	numLines := max(b.NumLines(), 1)
 	sb := strings.Builder{}
 
@@ -167,7 +171,7 @@ func (ed *Editor) renderBuffer(
 				sb.Reset()
 			}
 			loc := buf.Loc{col, i}
-			vMeta = append(vMeta, ViewMeta{loc})
+			viewMeta = append(viewMeta, ViewMeta{loc})
 			col += rc
 
 			y++
@@ -197,7 +201,7 @@ func (ed *Editor) renderBuffer(
 		}
 	}
 
-	return view, vMeta
+	return view, viewMeta
 }
 
 func (ed *Editor) RenderBuffer(viewLoc buf.Loc) ([]string, []ViewMeta) {
@@ -205,13 +209,13 @@ func (ed *Editor) RenderBuffer(viewLoc buf.Loc) ([]string, []ViewMeta) {
 }
 
 func (ed *Editor) RenderMeta(loc buf.Loc) []ViewMeta {
-	_, vMeta := ed.renderBuffer(loc, false)
-	return vMeta
+	_, viewMeta := ed.renderBuffer(loc, false)
+	return viewMeta
 }
 
 func (ed *Editor) DrawBuffer() {
 	b := ed.Buf()
-	view, vMeta := ed.RenderBuffer(b.ViewLoc)
+	view, viewMeta := ed.RenderBuffer(b.ViewLoc)
 	for i, line := range view {
 		if i < len(ed.view) && line == ed.view[i] {
 			continue
@@ -219,7 +223,7 @@ func (ed *Editor) DrawBuffer() {
 		fmt.Print(line)
 	}
 	ed.view = view
-	ed.vMeta = vMeta
+	ed.viewMeta = viewMeta
 }
 
 func (ed *Editor) DrawStatus() {
@@ -228,22 +232,22 @@ func (ed *Editor) DrawStatus() {
 		fmt.Print(ed.colors.Status.Seq())
 	}
 
-	if ed.ring != "" {
+	if ed.msg.ring != "" {
 		fmt.Print(termi.SetInvert)
-		fmt.Print(ed.ring)
+		fmt.Print(ed.msg.ring)
 		fmt.Print(termi.ResetInvert)
-		ed.ring = ""
-	} else if ed.message != "" {
-		fmt.Print(ed.message)
-		ed.message = ""
+		ed.msg.ring = ""
+	} else if ed.msg.message != "" {
+		fmt.Print(ed.msg.message)
+		ed.msg.message = ""
 	} else if ed.mode == ModePrompt {
 		fmt.Printf(":%s", ed.prompt.String())
 	} else if ed.mode == ModeSearch {
 		head := "/"
-		if ed.backward {
+		if ed.search.backward {
 			head = "?"
 		}
-		fmt.Printf("%s%s", head, ed.pattern.String())
+		fmt.Printf("%s%s", head, ed.search.pattern.String())
 	} else {
 		mode := ""
 		switch ed.mode {
@@ -276,7 +280,7 @@ func (ed *Editor) PlaceCursor() {
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
 	case ModeSearch:
-		line := "/" + ed.pattern.String() // "/" or "?"
+		line := "/" + ed.search.pattern.String() // "/" or "?"
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))

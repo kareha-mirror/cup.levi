@@ -14,13 +14,13 @@ import (
 
 // Ctrl-F : Scroll down by view height.
 func (ed *Editor) ViewDown(n int) {
-	ed.EnsureCommand()
-	i := len(ed.vMeta) - 2
+	ed.Commit()
+	i := len(ed.viewMeta) - 2
 	if i < 0 {
 		return
 	}
 	b := ed.Buf()
-	b.Loc = ed.vMeta[i].Loc
+	b.Loc = ed.viewMeta[i].Loc
 	b.ViewLoc = b.Loc
 	if b.Loc.Col < 1 {
 		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
@@ -29,7 +29,7 @@ func (ed *Editor) ViewDown(n int) {
 
 // Ctrl-B : Scroll up by view height.
 func (ed *Editor) ViewUp(n int) {
-	ed.EnsureCommand()
+	ed.Commit()
 	b := ed.Buf()
 	viewRow := b.ViewLoc.Row - (ed.h - 3)
 	if viewRow < 0 {
@@ -41,10 +41,10 @@ func (ed *Editor) ViewUp(n int) {
 	}
 	lastRow := viewMeta[len(viewMeta)-1].Loc.Row
 
-	if len(ed.vMeta) < 1 {
+	if len(ed.viewMeta) < 1 {
 		return
 	}
-	topRow := ed.vMeta[0].Loc.Row
+	topRow := ed.viewMeta[0].Loc.Row
 
 	deltaRow := topRow - lastRow - 1
 	if deltaRow < 0 {
@@ -67,25 +67,25 @@ func (ed *Editor) ViewUp(n int) {
 
 // Ctrl-D : Scroll down by half view height.
 func (ed *Editor) ViewDownHalf(n int) {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("ViewDownHalf")
 }
 
 // Ctrl-U : Scroll up by half view height.
 func (ed *Editor) ViewUpHalf(n int) {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("ViewUpHalf")
 }
 
 // Ctrl-Y : Scroll down by line.
 func (ed *Editor) ViewDownLine(n int) {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("ViewDownLine")
 }
 
 // Ctrl-E : Scroll up by line.
 func (ed *Editor) ViewUpLine(n int) {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("ViewUpLine")
 }
 
@@ -95,19 +95,19 @@ func (ed *Editor) ViewUpLine(n int) {
 
 // z Enter : Reposition cursor line to top of view.
 func (ed *Editor) ViewToTop() {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("ViewToTop")
 }
 
 // z. : Reposition cursor line middle of view.
 func (ed *Editor) ViewToMiddle() {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("ViewToMiddle")
 }
 
 // z- : Reposition cursor line bottom of view.
 func (ed *Editor) ViewToBottom() {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("ViewToBottom")
 }
 
@@ -117,6 +117,6 @@ func (ed *Editor) ViewToBottom() {
 
 // Ctrl-L : Redraw view.
 func (ed *Editor) ViewRedraw() {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.redraw = true
 }

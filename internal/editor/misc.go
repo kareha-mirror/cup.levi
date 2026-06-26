@@ -12,7 +12,7 @@ import (
 
 // Ctrl-G : Show info such as current cursor position.
 func (ed *Editor) MiscShowInfo() {
-	ed.EnsureCommand()
+	ed.Commit()
 	b := ed.Buf()
 	path := b.Path
 	if path == "" {
@@ -35,7 +35,7 @@ func (ed *Editor) MiscShowInfo() {
 
 // . : Repeat last edit.
 func (ed *Editor) MiscRepeat(n int) {
-	ed.EnsureCommand()
+	ed.Commit()
 	c := ed.lastCmd
 	if _, ok := InsertCmds[c.Kind]; ok {
 		ed.BeginMemory()
@@ -59,7 +59,7 @@ func (ed *Editor) MiscRepeat(n int) {
 
 // u : Undo.
 func (ed *Editor) MiscUndo(n int, replay bool) {
-	ed.EnsureCommand()
+	ed.Commit()
 	b := ed.Buf()
 	if b.Snapshot == nil {
 		return
@@ -71,13 +71,13 @@ func (ed *Editor) MiscUndo(n int, replay bool) {
 
 // U : Restore current line to previous state.
 func (ed *Editor) MiscRestore() {
-	ed.EnsureCommand()
+	ed.Commit()
 	ed.Unimplemented("MiscRestore")
 }
 
 // ZZ : Save and quit.
 func (ed *Editor) MiscSaveAndQuit() {
-	ed.EnsureCommand()
+	ed.Commit()
 	b := ed.Buf()
 	if b.Modified && b.Path == "" {
 		ed.Ring("File is a temporary; exit will discard modifications")
@@ -94,6 +94,6 @@ func (ed *Editor) MiscSaveAndQuit() {
 
 // Ctrl-Z : Suspend.
 func (ed *Editor) MiscSuspend() {
-	ed.EnsureCommand()
+	ed.Commit()
 	termi.Suspend()
 }
