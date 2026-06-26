@@ -35,6 +35,7 @@ type Editor struct {
 	inserted []string
 	prompt   termi.RuneBuf
 	search   Search
+	find     Find
 	regs     Regs
 	lastCmd  Cmd
 
@@ -82,6 +83,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		inserted: []string{},
 		prompt:   termi.RuneBuf{},
 		search:   Search{},
+		find:     Find{},
 		regs:     Regs{},
 		lastCmd:  Cmd{Kind: CmdInvalid},
 
