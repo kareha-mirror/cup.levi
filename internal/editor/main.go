@@ -85,13 +85,11 @@ func (ed *Editor) Main() {
 					case termi.RuneEscape:
 						ed.Commit()
 					case termi.RuneEnter, termi.RuneNewline:
-						ed.InsertNewline()
-					case termi.RuneBackspace:
-						ed.Backspace()
-					case termi.RuneDelete:
-						ed.Backspace()
+						ed.InputNewline()
+					case termi.RuneBackspace, termi.RuneDelete:
+						ed.InputBackspace()
 					default:
-						ed.InsertRune(key.Rune)
+						ed.InputWriteRune(key.Rune)
 					}
 				case termi.KeyUp:
 					ed.MoveUp(1)

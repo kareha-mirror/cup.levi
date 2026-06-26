@@ -30,7 +30,7 @@ type Editor struct {
 	msg    *Msg
 
 	parser   *Parser
-	inp      *Input
+	inp      Input
 	inpRow   int // 0-based
 	inserted []string
 	prompt   termi.RuneBuf
@@ -78,7 +78,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		msg:    msg,
 
 		parser:   NewParser(),
-		inp:      NewInput(),
+		inp:      Input{},
 		inpRow:   0,
 		inserted: []string{},
 		prompt:   termi.RuneBuf{},
@@ -157,10 +157,10 @@ func (ed *Editor) Line(row int) string {
 	if ed.mode == ModeInsert {
 		if row < ed.inpRow {
 			return b.Line(row)
-		} else if row < ed.inpRow+ed.inp.LineLen() {
+		} else if row < ed.inpRow+ed.inp.NumLines() {
 			return ed.inp.Line(row - ed.inpRow)
 		} else {
-			return b.Line(row - ed.inp.LineLen() + 1)
+			return b.Line(row - ed.inp.NumLines() + 1)
 		}
 	}
 

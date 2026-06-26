@@ -137,7 +137,7 @@ func (ed *Editor) renderBuffer(
 
 	y := 0
 	first := true
-	for i := viewLoc.Row; i < numLines+ed.inp.LineLen()-1; i++ {
+	for i := viewLoc.Row; i < numLines+ed.inp.NumLines()-1; i++ {
 		tail := i == b.Loc.Row && ed.mode == ModeInsert
 		lines := termi.Wrap(ed.Line(i), ed.w, tail)
 
