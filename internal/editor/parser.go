@@ -3,6 +3,8 @@ package editor
 import (
 	"strconv"
 	"strings"
+
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
 type Parser struct {
@@ -495,9 +497,9 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 					return Cmd{}, false
 				}
 				return Cmd{
-					Kind:     CmdOpCopyLineRegion,
-					StartRow: start.Row,
-					EndRow:   end.Row,
+					Kind:  CmdOpCopyLineRegion,
+					Start: buf.Loc{0, start.Row},
+					End:   buf.Loc{0, end.Row},
 				}, true
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
@@ -528,9 +530,9 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 					return Cmd{}, false
 				}
 				return Cmd{
-					Kind:     CmdOpDeleteLineRegion,
-					StartRow: start.Row,
-					EndRow:   end.Row,
+					Kind:  CmdOpDeleteLineRegion,
+					Start: buf.Loc{0, start.Row},
+					End:   buf.Loc{0, end.Row},
 				}, true
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
@@ -561,9 +563,9 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 					return Cmd{}, false
 				}
 				return Cmd{
-					Kind:     CmdOpChangeLineRegion,
-					StartRow: start.Row,
-					EndRow:   end.Row,
+					Kind:  CmdOpChangeLineRegion,
+					Start: buf.Loc{0, start.Row},
+					End:   buf.Loc{0, end.Row},
 				}, true
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
@@ -626,10 +628,18 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 			}, true
 		}
 	case "P":
-		return Cmd{
-			Kind: CmdOpPasteBefore,
-			Num:  num,
-		}, true
+		if reg == "" {
+			return Cmd{
+				Kind: CmdOpPasteBefore,
+				Num:  num,
+			}, true
+		} else {
+			return Cmd{
+				Kind: CmdOpPasteBeforeFromReg,
+				Num:  num,
+				Reg:  reg,
+			}, true
+		}
 
 	case "x":
 		return Cmd{
@@ -687,7 +697,7 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseEdit(num int, op string, noSubnum bool, subnum int, mv string) (Cmd, bool) {
+func (ed *Editor) ParseEdit(num int, op string, noSubnum bool, subnum int, mv string, letter rune) (Cmd, bool) {
 	switch op {
 	case "J":
 		return Cmd{
@@ -705,21 +715,71 @@ func (ed *Editor) ParseEdit(num int, op string, noSubnum bool, subnum int, mv st
 			Num:  num,
 		}, true
 	case ">":
-		/*
+		b := ed.Buf()
+		start := b.Loc
+		cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
+		if ok {
+			end, ok := ed.RunMove(cmd)
+			if !ok {
+				return Cmd{}, false
+			}
 			return Cmd{
-				Kind: CmdEditIndentRegion,
-				Start: Loc{},
-				End: Loc{},
+				Kind:  CmdEditIndentRegion,
+				Start: buf.Loc{0, start.Row},
+				End:   buf.Loc{0, end.Row},
 			}, true
-		*/
+		}
+		cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
+		if ok {
+			meta, ok := MoveMetas[cmd.Kind]
+			if !ok {
+				return Cmd{}, false
+			}
+			end, ok := ed.RunMove(cmd)
+			if !ok {
+				return Cmd{}, false
+			}
+			return Cmd{
+				Kind:      CmdEditIndentRegion,
+				Start:     start,
+				End:       end,
+				Inclusive: meta.Inclusive,
+			}, true
+		}
+		return Cmd{}, false
 	case "<":
-		/*
+		b := ed.Buf()
+		start := b.Loc
+		cmd, ok := ed.ParseMoveLines(noSubnum, subnum, mv, letter)
+		if ok {
+			end, ok := ed.RunMove(cmd)
+			if !ok {
+				return Cmd{}, false
+			}
 			return Cmd{
-				Kind: CmdEditOutdentRegion,
-				Start: Loc{},
-				End: Loc{},
+				Kind:  CmdEditOutdentRegion,
+				Start: buf.Loc{0, start.Row},
+				End:   buf.Loc{0, end.Row},
 			}, true
-		*/
+		}
+		cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
+		if ok {
+			meta, ok := MoveMetas[cmd.Kind]
+			if !ok {
+				return Cmd{}, false
+			}
+			end, ok := ed.RunMove(cmd)
+			if !ok {
+				return Cmd{}, false
+			}
+			return Cmd{
+				Kind:      CmdEditOutdentRegion,
+				Start:     start,
+				End:       end,
+				Inclusive: meta.Inclusive,
+			}, true
+		}
+		return Cmd{}, false
 	}
 
 	return Cmd{}, false
@@ -924,7 +984,7 @@ func (ed *Editor) Parse() (Cmd, bool) {
 	if ok {
 		return cmd, true
 	}
-	cmd, ok = ed.ParseEdit(num, op, noSubnum, subnum, mv)
+	cmd, ok = ed.ParseEdit(num, op, noSubnum, subnum, mv, letter)
 	if ok {
 		return cmd, true
 	}

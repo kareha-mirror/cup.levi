@@ -112,8 +112,13 @@ func (ed *Editor) InsertAfterEnd(n int, replay bool) {
 	if !replay {
 		n = 1
 	}
+	b := ed.Buf()
 	for i := 0; i < n; i++ {
-		ed.MoveToEnd()
+		loc, ok := ed.MoveToEnd()
+		if !ok {
+			return
+		}
+		b.Loc = b.ConfineInclusive(loc)
 		ed.InsertAfter(1, replay)
 	}
 }

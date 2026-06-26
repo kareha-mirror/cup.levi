@@ -3,7 +3,6 @@ package editor
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"unicode/utf8"
 
@@ -13,10 +12,6 @@ import (
 	"tea.kareha.org/cup/levi/internal/colors"
 	"tea.kareha.org/cup/levi/internal/rkind"
 )
-
-func getConfigPath(dir string) string {
-	return filepath.Join(dir, "editor.yaml")
-}
 
 type Mode int
 
@@ -145,23 +140,20 @@ func (ed *Editor) InitialInfo() {
 }
 
 func Init(dir string, args []string) (*Editor, error) {
-	var cfg *Config
-	cfgPath := getConfigPath(dir)
-	_, err := os.Stat(cfgPath)
+	cfg, err := PrepareConfig(dir)
 	if err != nil {
-		cfg = DefaultConfig()
-		SaveConfig(cfgPath, cfg)
-	} else {
-		cfg = LoadConfig(cfgPath)
+		// TODO show error
 	}
 
+	var clrs *colors.Colors
 	list, err := colors.LoadList(dir)
 	if err != nil {
-		return nil, err
-	}
-	colors, err := list.Load(cfg.Colors)
-	if err != nil {
-		return nil, err
+		// TODO show error
+	} else {
+		clrs, err = list.Load(cfg.Colors)
+		if err != nil {
+			// TODO show error
+		}
 	}
 
 	w, h := termi.Size()
@@ -190,7 +182,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		view:     []string{},
 		listener: nil,
 		esc:      false,
-		colors:   colors,
+		colors:   clrs,
 	}
 
 	ed.regs.LoadConfig(ed.cfg)
@@ -357,11 +349,13 @@ func (ed *Editor) EnsureCommand() {
 		}
 		b.Modified = true
 
-		if MultiInsertCmds[ed.lastCmd.Kind] && ed.lastCmd.Num > 1 {
+		if _, ok := MultiInsertCmds[ed.lastCmd.Kind]; ok && ed.lastCmd.Num > 1 {
 			cmd := ed.lastCmd
 			cmd.Num--
 			ed.Run(cmd, true)
 		}
+
+		b.VirtCol = b.Loc.Col
 
 		ed.EndMemory()
 

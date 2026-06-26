@@ -269,17 +269,18 @@ func (ed *Editor) DrawStatus() {
 }
 
 func (ed *Editor) PlaceCursor() {
-	if ed.mode == ModePrompt {
+	switch ed.mode {
+	case ModePrompt:
 		line := ":" + ed.prompt.String()
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
-	} else if ed.mode == ModeSearch {
-		line := "/" + ed.pattern.String()
+	case ModeSearch:
+		line := "/" + ed.pattern.String() // "/" or "?"
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
-	} else {
+	default:
 		b := ed.Buf()
 		fmt.Print(termi.MoveCursor(b.Pos.X, b.Pos.Y))
 	}

@@ -46,23 +46,23 @@ func (ed *Editor) Main() {
 
 					c, ok := ed.Parse()
 					if ok {
-						if InsertCmds[c.Kind] {
+						if _, ok := InsertCmds[c.Kind]; ok {
 							ed.BeginMemory()
-						} else if EditCmds[c.Kind] {
+						} else if _, ok := EditCmds[c.Kind]; ok {
 							ed.BeginMemory()
 						}
 						if ed.Run(c, false) {
-							if InsertCmds[c.Kind] {
+							if _, ok := InsertCmds[c.Kind]; ok {
 								ed.lastCmd = c
-							} else if EditCmds[c.Kind] {
+							} else if _, ok := EditCmds[c.Kind]; ok {
 								ed.EndMemory()
 								ed.lastCmd = c
 							}
 							ed.parser.Clear()
 						} else {
-							if InsertCmds[c.Kind] {
+							if _, ok := InsertCmds[c.Kind]; ok {
 								ed.CancelMemory()
-							} else if EditCmds[c.Kind] {
+							} else if _, ok := EditCmds[c.Kind]; ok {
 								ed.CancelMemory()
 							}
 						}

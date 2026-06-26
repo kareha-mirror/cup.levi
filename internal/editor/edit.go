@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"strings"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/levi/internal/buf"
@@ -15,15 +16,6 @@ import (
 func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
 	ed.EnsureCommand()
 	ed.Unimplemented("EditReplace")
-}
-
-func trimLeftBlanks(s string) string {
-	for i, r := range s {
-		if !rkind.IsBlank(r) {
-			return s[i:]
-		}
-	}
-	return ""
 }
 
 // J : Join current line with next line.
@@ -42,56 +34,112 @@ func (ed *Editor) EditJoin(n int) {
 		n--
 	}
 
-	current := b.CurrentLine()
-	col := b.Loc.Col
-
+	sb := strings.Builder{}
+	sb.WriteString(b.CurrentLine())
 	for i := 1; i <= n; i++ {
 		if b.Loc.Row+i >= b.NumLines() {
 			break
 		}
-		next := trimLeftBlanks(b.Line(b.Loc.Row + i))
-		link := ""
+		next := rkind.TrimPrefixBlanks(b.Line(b.Loc.Row + i))
+		b.Loc.Col = utf8.RuneCountInString(sb.String())
 		if len(next) > 0 {
-			r, _ := utf8.DecodeLastRuneInString(current)
+			r, _ := utf8.DecodeLastRuneInString(sb.String())
 			if r != utf8.RuneError && !rkind.IsBlank(r) {
-				link = " "
+				sb.WriteString(" ")
 			}
+			sb.WriteString(next)
 		}
-		col = utf8.RuneCountInString(current)
-		current = current + link + next
 	}
 
 	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
-	lines = append(lines, current)
+	lines = append(lines, sb.String())
 	if b.Loc.Row+1+n < b.NumLines() {
 		lines = append(lines, b.Lines[b.Loc.Row+1+n:]...)
 	}
 	b.Lines = lines
 
-	b.Loc.Col = col
-	b.Loc.Col = b.ConfineCol(b.Loc)
+	b.Loc = b.ConfineInclusive(b.Loc)
+	b.Modified = true
 }
 
 // >> : Indent current line.
 func (ed *Editor) EditIndent(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("EditIndent")
+	b := ed.Buf()
+	if b.Loc.Row+n > b.NumLines() {
+		return
+	}
+	for row := b.Loc.Row; row < b.Loc.Row+n; row++ {
+		line := b.Line(row)
+		b.SetLine(row, "\t"+line)
+	}
+	b.Loc.Col++
+	b.Loc = b.ConfineInclusive(b.Loc)
+	b.Modified = true
 }
 
 // << : Outdent current line.
 func (ed *Editor) EditOutdent(n int) {
 	ed.EnsureCommand()
-	ed.Unimplemented("EditOutdent")
+	b := ed.Buf()
+	if b.Loc.Row+n > b.NumLines() {
+		return
+	}
+	outdented := false
+	for row := b.Loc.Row; row < b.Loc.Row+n; row++ {
+		line := b.Line(row)
+		if strings.HasPrefix(line, "\t") {
+			b.SetLine(row, line[1:])
+			if row == b.Loc.Row {
+				outdented = true
+			}
+		}
+	}
+	if outdented {
+		b.Loc.Col--
+		b.Loc = b.ConfineInclusive(b.Loc)
+	}
+	b.Modified = true
 }
 
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
 func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
 	ed.EnsureCommand()
-	ed.Unimplemented("EditIndentRegion")
+	start, end = ed.confineRegion(start, end, true)
+	b := ed.Buf()
+	indented := false
+	for row := start.Row; row <= end.Row; row++ {
+		line := b.Line(row)
+		b.SetLine(row, "\t"+line)
+		if row == b.Loc.Row {
+			indented = true
+		}
+	}
+	if indented {
+		b.Loc.Col++
+	}
+	b.Loc = b.ConfineInclusive(b.Loc)
+	b.Modified = true
 }
 
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
 func (ed *Editor) EditOutdentRegion(start buf.Loc, end buf.Loc) {
 	ed.EnsureCommand()
-	ed.Unimplemented("EditOutdentRegion")
+	start, end = ed.confineRegion(start, end, true)
+	b := ed.Buf()
+	outdented := false
+	for row := start.Row; row <= end.Row; row++ {
+		line := b.Line(row)
+		if strings.HasPrefix(line, "\t") {
+			b.SetLine(row, line[1:])
+			if row == b.Loc.Row {
+				outdented = true
+			}
+		}
+	}
+	if outdented {
+		b.Loc.Col--
+		b.Loc = b.ConfineInclusive(b.Loc)
+	}
+	b.Modified = true
 }

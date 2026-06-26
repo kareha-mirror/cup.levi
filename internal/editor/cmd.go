@@ -14,8 +14,6 @@ type Cmd struct {
 	Reg       string
 	Start     buf.Loc
 	End       buf.Loc
-	StartRow  int
-	EndRow    int
 	Inclusive bool
 }
 
@@ -111,6 +109,7 @@ const (
 	CmdOpPaste
 	CmdOpPasteBefore
 	CmdOpPasteFromReg
+	CmdOpPasteBeforeFromReg
 
 	CmdOpDelete
 	CmdOpDeleteBefore
@@ -143,54 +142,55 @@ const (
 	CmdMiscSuspend
 )
 
-var InsertCmds = map[CmdKind]bool{
-	CmdInsertBefore:         true,
-	CmdInsertAfter:          true,
-	CmdInsertBeforeNonBlank: true,
-	CmdInsertAfterEnd:       true,
-	CmdInsertOverwrite:      true,
+var InsertCmds = map[CmdKind]struct{}{
+	CmdInsertBefore:         {},
+	CmdInsertAfter:          {},
+	CmdInsertBeforeNonBlank: {},
+	CmdInsertAfterEnd:       {},
+	CmdInsertOverwrite:      {},
 
-	CmdInsertOpenBelow: true,
-	CmdInsertOpenAbove: true,
+	CmdInsertOpenBelow: {},
+	CmdInsertOpenAbove: {},
 
-	CmdOpChangeLine:       true,
-	CmdOpChangeRegion:     true,
-	CmdOpChangeLineRegion: true,
-	CmdOpChangeWord:       true,
-	CmdOpChangeToEnd:      true,
-	CmdOpSubst:            true,
-	CmdOpSubstLine:        true,
+	CmdOpChangeLine:       {},
+	CmdOpChangeRegion:     {},
+	CmdOpChangeLineRegion: {},
+	CmdOpChangeWord:       {},
+	CmdOpChangeToEnd:      {},
+	CmdOpSubst:            {},
+	CmdOpSubstLine:        {},
 
-	//CmdEditReplace:       true,
+	//CmdEditReplace: {},
 }
 
-var EditCmds = map[CmdKind]bool{
-	CmdOpPaste:        true,
-	CmdOpPasteBefore:  true,
-	CmdOpPasteFromReg: true,
+var EditCmds = map[CmdKind]struct{}{
+	CmdOpPaste:              {},
+	CmdOpPasteBefore:        {},
+	CmdOpPasteFromReg:       {},
+	CmdOpPasteBeforeFromReg: {},
 
-	CmdOpDelete:           true,
-	CmdOpDeleteBefore:     true,
-	CmdOpDeleteLine:       true,
-	CmdOpDeleteRegion:     true,
-	CmdOpDeleteLineRegion: true,
-	CmdOpDeleteWord:       true,
-	CmdOpDeleteToEnd:      true,
+	CmdOpDelete:           {},
+	CmdOpDeleteBefore:     {},
+	CmdOpDeleteLine:       {},
+	CmdOpDeleteRegion:     {},
+	CmdOpDeleteLineRegion: {},
+	CmdOpDeleteWord:       {},
+	CmdOpDeleteToEnd:      {},
 
-	CmdEditJoin:          true,
-	CmdEditIndent:        true,
-	CmdEditOutdent:       true,
-	CmdEditIndentRegion:  true,
-	CmdEditOutdentRegion: true,
+	CmdEditJoin:          {},
+	CmdEditIndent:        {},
+	CmdEditOutdent:       {},
+	CmdEditIndentRegion:  {},
+	CmdEditOutdentRegion: {},
 }
 
-var MultiInsertCmds = map[CmdKind]bool{
-	CmdInsertBefore:         true,
-	CmdInsertAfter:          true,
-	CmdInsertBeforeNonBlank: true,
-	CmdInsertAfterEnd:       true,
-	CmdInsertOverwrite:      true,
+var MultiInsertCmds = map[CmdKind]struct{}{
+	CmdInsertBefore:         {},
+	CmdInsertAfter:          {},
+	CmdInsertBeforeNonBlank: {},
+	CmdInsertAfterEnd:       {},
+	CmdInsertOverwrite:      {},
 
-	CmdInsertOpenBelow: true,
-	CmdInsertOpenAbove: true,
+	CmdInsertOpenBelow: {},
+	CmdInsertOpenAbove: {},
 }

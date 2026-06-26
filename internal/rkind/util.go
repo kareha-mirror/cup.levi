@@ -8,3 +8,12 @@ func IsBlankLine(line string) bool {
 	}
 	return true
 }
+
+func TrimPrefixBlanks(s string) string {
+	for i, r := range s {
+		if !IsBlank(r) {
+			return s[i:]
+		}
+	}
+	return ""
+}

@@ -37,21 +37,21 @@ func (ed *Editor) MiscShowInfo() {
 func (ed *Editor) MiscRepeat(n int) {
 	ed.EnsureCommand()
 	c := ed.lastCmd
-	if InsertCmds[c.Kind] {
+	if _, ok := InsertCmds[c.Kind]; ok {
 		ed.BeginMemory()
-	} else if EditCmds[c.Kind] {
+	} else if _, ok := EditCmds[c.Kind]; ok {
 		ed.BeginMemory()
 	}
 	if ed.Run(c, true) {
-		if InsertCmds[c.Kind] {
+		if _, ok := InsertCmds[c.Kind]; ok {
 			ed.EndMemory()
-		} else if EditCmds[c.Kind] {
+		} else if _, ok := EditCmds[c.Kind]; ok {
 			ed.EndMemory()
 		}
 	} else {
-		if InsertCmds[c.Kind] {
+		if _, ok := InsertCmds[c.Kind]; ok {
 			ed.CancelMemory()
-		} else if EditCmds[c.Kind] {
+		} else if _, ok := EditCmds[c.Kind]; ok {
 			ed.CancelMemory()
 		}
 	}

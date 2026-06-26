@@ -43,7 +43,12 @@ func (ed *Editor) confineRegion(
 	start, end buf.Loc, inclusive bool,
 ) (buf.Loc, buf.Loc) {
 	start, end = orderRegion(start, end)
-	return ed.confineLoc(start), ed.confineLoc(end)
+	if inclusive {
+		b := ed.Buf()
+		return b.ConfineInclusive(start), b.ConfineInclusive(end)
+	} else {
+		return ed.confineLoc(start), ed.confineLoc(end)
+	}
 }
 
 func (ed *Editor) getRegion(start, end buf.Loc) []string {
@@ -246,7 +251,12 @@ func (ed *Editor) OpPasteFromReg(reg string, n int) {
 		move := b.NumLines() > 0
 		b.Lines = lines
 		if move {
-			ed.MoveByLine(1)
+			loc, ok := ed.MoveByLine(1)
+			if ok {
+				b.Loc = b.Confine(loc)
+			}
+			b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+			b.VirtCol = b.Loc.Col
 		}
 	}
 	b.Modified = true
@@ -309,6 +319,7 @@ func (ed *Editor) OpPasteBeforeFromReg(reg string, n int) {
 		lines = append(lines, b.Lines[b.Loc.Row:]...)
 		b.Lines = lines
 		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+		b.VirtCol = b.Loc.Col
 	}
 	b.Modified = true
 }
@@ -503,6 +514,7 @@ func (ed *Editor) OpChangeRegion(
 		}
 		ed.replayInsert(b.CurrentLine())
 		b.Loc = b.ConfineInclusive(b.Loc)
+		b.VirtCol = b.Loc.Col
 		b.Modified = true
 	} else {
 		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
@@ -563,6 +575,10 @@ func (ed *Editor) OpSubst(n int, replay bool) {
 	ed.EnsureCommand()
 	b := ed.Buf()
 	rs := []rune(ed.CurrentLine())
+	if b.Loc.Col+n > len(rs) {
+		n = len(rs) - b.Loc.Col
+	}
+	ed.regs.SetRunes("", []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
 	nrs := append([]rune{}, rs[:b.Loc.Col]...)
 	if b.Loc.Col+n <= len(rs)-1 {
 		nrs = append(nrs, rs[b.Loc.Col+n:]...)

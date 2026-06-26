@@ -157,6 +157,7 @@ Command categories:
 * p : Paste after cursor. (OpPaste)
 * P : Paste before cursor. (OpPasteBefore)
 * "<reg>p : Paste from register <reg>. (OpPasteFromReg)
+* "<reg>P : Paste before cursor from register <reg>. (OpPasteBeforeFromReg)
 
 === Delete ===
 
