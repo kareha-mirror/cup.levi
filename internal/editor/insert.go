@@ -15,8 +15,8 @@ import (
 //
 
 func (ed *Editor) replayInsert() {
-	b := ed.Buf()
 	inserted := append([]string{}, ed.inserted...)
+	b := ed.Buf()
 	rs := []rune(b.CurrentLine())
 	head := string(rs[:b.Loc.Col])
 	tail := ""
@@ -57,10 +57,10 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 		if len(ed.inserted) < 0 {
 			return
 		}
-		b := ed.Buf()
 		for i := 0; i < n; i++ {
 			ed.replayInsert()
 		}
+		b := ed.Buf()
 		b.Loc.Col--
 		b.Loc = b.ConfineInclusive(b.Loc)
 		b.VirtCol = b.Loc.Col
@@ -188,8 +188,8 @@ func (ed *Editor) InsertOpenAbove(n int, replay bool) {
 		ed.Error("InsertOpenAbove: n < 1")
 		return
 	}
-	b := ed.Buf()
 	indent := ""
+	b := ed.Buf()
 	if ed.cfg.AutoIndent {
 		indent = rkind.IndentOf(b.CurrentLine())
 	}

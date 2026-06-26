@@ -42,8 +42,7 @@ func findBackwardRuneCol(line string, start int, r rune) int {
 func (ed *Editor) internalMoveFindForward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	b := ed.Buf()
-	col := findRuneCol(b.Line(loc.Row), loc.Col+1, letter)
+	col := findRuneCol(ed.Buf().Line(loc.Row), loc.Col+1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -58,8 +57,7 @@ func (ed *Editor) MoveFindForward(letter rune, n int) (buf.Loc, bool) {
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, false, false}
-	b := ed.Buf()
-	loc := b.Loc
+	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
 		loc, ok = ed.internalMoveFindForward(loc, letter)
@@ -77,8 +75,7 @@ func (ed *Editor) MoveFindForward(letter rune, n int) (buf.Loc, bool) {
 func (ed *Editor) internalMoveFindBackward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	b := ed.Buf()
-	col := findBackwardRuneCol(b.Line(loc.Row), loc.Col-1, letter)
+	col := findBackwardRuneCol(ed.Buf().Line(loc.Row), loc.Col-1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -93,8 +90,7 @@ func (ed *Editor) MoveFindBackward(letter rune, n int) (buf.Loc, bool) {
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, true, false}
-	b := ed.Buf()
-	loc := b.Loc
+	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
 		loc, ok = ed.internalMoveFindBackward(loc, letter)
@@ -112,8 +108,7 @@ func (ed *Editor) MoveFindBackward(letter rune, n int) (buf.Loc, bool) {
 func (ed *Editor) internalMoveFindBeforeForward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	b := ed.Buf()
-	col := findRuneCol(b.Line(loc.Row), loc.Col+1, letter)
+	col := findRuneCol(ed.Buf().Line(loc.Row), loc.Col+1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -129,8 +124,7 @@ func (ed *Editor) MoveFindBeforeForward(letter rune, n int) (buf.Loc, bool) {
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, false, true}
-	b := ed.Buf()
-	loc := b.Loc
+	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
 		loc, ok = ed.internalMoveFindBeforeForward(loc, letter)
@@ -148,8 +142,7 @@ func (ed *Editor) MoveFindBeforeForward(letter rune, n int) (buf.Loc, bool) {
 func (ed *Editor) internalMoveFindBeforeBackward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	b := ed.Buf()
-	col := findBackwardRuneCol(b.Line(loc.Row), loc.Col-1, letter)
+	col := findBackwardRuneCol(ed.Buf().Line(loc.Row), loc.Col-1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -165,8 +158,7 @@ func (ed *Editor) MoveFindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, true, true}
-	b := ed.Buf()
-	loc := b.Loc
+	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
 		loc, ok = ed.internalMoveFindBeforeBackward(loc, letter)
@@ -191,8 +183,7 @@ func (ed *Editor) MoveFindNextMatch(n int) (buf.Loc, bool) {
 	if ed.find.Letter == 0 {
 		return buf.Loc{}, false
 	}
-	b := ed.Buf()
-	loc := b.Loc
+	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
 		if ed.find.Backward {
@@ -237,8 +228,7 @@ func (ed *Editor) MoveFindPrevMatch(n int) (buf.Loc, bool) {
 	if ed.find.Letter == 0 {
 		return buf.Loc{}, false
 	}
-	b := ed.Buf()
-	loc := b.Loc
+	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
 		if ed.find.Backward {

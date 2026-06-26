@@ -79,14 +79,16 @@ func (ed *Editor) MiscRestore() {
 func (ed *Editor) MiscSaveAndQuit() {
 	ed.Commit()
 	b := ed.Buf()
-	if b.Modified && b.Path == "" {
-		ed.Ring("File is a temporary; exit will discard modifications")
-		return
-	}
-	if b.Modified && b.Path != "" {
-		err := ed.Save(false)
-		if err != nil {
+	if b.Modified {
+		if b.Path == "" {
+			ed.Ring("File is a temporary; exit will discard modifications")
 			return
+		} else {
+			err := ed.Save(false)
+			if err != nil {
+				ed.Error("%v", err)
+				return
+			}
 		}
 	}
 	ed.Close(false)

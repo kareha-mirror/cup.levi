@@ -23,8 +23,7 @@ func (ed *Editor) Buf() *buf.Buf {
 }
 
 func (ed *Editor) Close(force bool) {
-	b := ed.Buf()
-	if !force && b.Modified {
+	if !force && ed.Buf().Modified {
 		ed.Ring(
 			"File modified since last complete write;" +
 				" write or use ! to override.",
@@ -46,8 +45,7 @@ func (ed *Editor) Close(force bool) {
 }
 
 func (ed *Editor) Load(path string, force bool) error {
-	b := ed.Buf()
-	if !force && b.Modified {
+	if !force && ed.Buf().Modified {
 		ed.Ring(
 			"File modified since last complete write;" +
 				" write or use ! to override.",
@@ -55,7 +53,7 @@ func (ed *Editor) Load(path string, force bool) error {
 		return fmt.Errorf("file modified")
 	}
 	ed.NewBuf()
-	b = ed.Buf()
+	b := ed.Buf()
 	b.Path = path
 	if path == "" {
 		ed.Message("(memory): new file: line 1")
@@ -137,6 +135,5 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 }
 
 func (ed *Editor) Save(force bool) error {
-	b := ed.Buf()
-	return ed.SaveAs(b.Path, force)
+	return ed.SaveAs(ed.Buf().Path, force)
 }

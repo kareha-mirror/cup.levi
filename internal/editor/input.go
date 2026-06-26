@@ -137,8 +137,7 @@ func (ed *Editor) InputWriteRune(r rune) {
 		panic("invalid state")
 	}
 	ed.inp.WriteRune(r)
-	b := ed.Buf()
-	b.Loc.Col = ed.inp.Column()
+	ed.Buf().Loc.Col = ed.inp.Column()
 }
 
 func (ed *Editor) InputBackspace() {
@@ -157,8 +156,8 @@ func (ed *Editor) InputNewline() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
-	b := ed.Buf()
 	ed.inp.Newline(ed.cfg.AutoIndent)
+	b := ed.Buf()
 	b.Loc.Row++
 	b.Loc.Col = ed.inp.Column()
 	// col is already confined

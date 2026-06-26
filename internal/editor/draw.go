@@ -129,9 +129,9 @@ func (ed *Editor) UpdateCursor() {
 func (ed *Editor) renderBuffer(
 	viewLoc buf.Loc, real bool,
 ) ([]string, []ViewMeta) {
-	b := ed.Buf()
 	view := []string{}
 	viewMeta := []ViewMeta{}
+	b := ed.Buf()
 	numLines := max(b.NumLines(), 1)
 	sb := strings.Builder{}
 
@@ -214,8 +214,7 @@ func (ed *Editor) RenderMeta(loc buf.Loc) []ViewMeta {
 }
 
 func (ed *Editor) DrawBuffer() {
-	b := ed.Buf()
-	view, viewMeta := ed.RenderBuffer(b.ViewLoc)
+	view, viewMeta := ed.RenderBuffer(ed.Buf().ViewLoc)
 	for i, line := range view {
 		if i < len(ed.view) && line == ed.view[i] {
 			continue
@@ -342,8 +341,8 @@ func (ed *Editor) PlaceCursor() {
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
 	default:
-		b := ed.Buf()
-		fmt.Print(termi.MoveCursor(b.Pos.X, b.Pos.Y))
+		p := ed.Buf().Pos
+		fmt.Print(termi.MoveCursor(p.X, p.Y))
 	}
 }
 
