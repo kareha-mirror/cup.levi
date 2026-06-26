@@ -30,6 +30,8 @@ type Editor struct {
 	msg    *Msg
 
 	parser   *Parser
+	tokens   Tokens
+	parsed   bool
 	inp      Input
 	inpRow   int // 0-based
 	inserted []string
@@ -78,6 +80,8 @@ func Init(dir string, args []string) (*Editor, error) {
 		msg:    msg,
 
 		parser:   NewParser(),
+		tokens:   Tokens{},
+		parsed:   false,
 		inp:      Input{},
 		inpRow:   0,
 		inserted: []string{},
@@ -167,6 +171,12 @@ func (ed *Editor) Line(row int) string {
 	return b.Line(row)
 }
 
+func (ed *Editor) Reset() {
+	ed.parser.ClearAll()
+	ed.tokens = Tokens{}
+	ed.parsed = false
+}
+
 func (ed *Editor) Commit() {
 	switch ed.mode {
 	case ModeCommand:
@@ -204,7 +214,7 @@ func (ed *Editor) Commit() {
 
 		ed.EndMemory()
 		b.VirtCol = b.Loc.Col
-		ed.parser.ClearAll()
+		ed.Reset()
 		return
 	case ModeSearch:
 		ed.mode = ModeCommand

@@ -81,7 +81,11 @@ func (inp *Input) Lines() []string {
 }
 
 func (inp *Input) Inserted() []string {
-	lines := append([]string{}, inp.bodies[0].String()[inp.offset:])
+	first := inp.bodies[0].String()
+	if inp.offset < len(first) {
+		first = first[inp.offset:]
+	}
+	lines := append([]string{}, first)
 	for i := 1; i < len(inp.bodies); i++ {
 		lines = append(lines, inp.bodies[i].String())
 	}

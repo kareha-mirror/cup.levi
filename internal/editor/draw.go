@@ -256,7 +256,64 @@ func (ed *Editor) DrawStatus() {
 		case ModeInsert:
 			mode = "ins:"
 		}
-		fmt.Printf("(%s)%s", mode, ed.parser.Cache())
+		t := strings.Builder{}
+		first := true
+		if ed.tokens.Reg != "" {
+			if !first {
+				t.WriteRune('-')
+			}
+			first = false
+			t.WriteString(fmt.Sprintf("Reg(%s)", ed.tokens.Reg))
+		}
+		if !ed.tokens.NoNum && ed.tokens.Num > 0 {
+			if !first {
+				t.WriteRune('-')
+			}
+			first = false
+			t.WriteString(fmt.Sprintf("%d", ed.tokens.Num))
+		}
+		if ed.tokens.Op != "" {
+			if !first {
+				t.WriteRune('-')
+			}
+			first = false
+			t.WriteString(fmt.Sprintf("Op(%s)", ed.tokens.Op))
+		}
+		if !ed.tokens.NoSubnum && ed.tokens.Subnum > 0 {
+			if !first {
+				t.WriteRune('-')
+			}
+			first = false
+			t.WriteString(fmt.Sprintf("%d", ed.tokens.Subnum))
+		}
+		if ed.tokens.Mv != "" {
+			if !first {
+				t.WriteRune('-')
+			}
+			first = false
+			t.WriteString(fmt.Sprintf("Mv(%s)", ed.tokens.Mv))
+		}
+		if ed.tokens.Letter != 0 {
+			if !first {
+				t.WriteRune('-')
+			}
+			first = false
+			t.WriteString(fmt.Sprintf("Letter(%c)", ed.tokens.Letter))
+		}
+		sep := ""
+		if t.Len() > 0 {
+			sep = " : "
+		}
+		cursor := ""
+		period := "."
+		if !ed.parsed {
+			cursor = "_"
+			period = ""
+		}
+		fmt.Printf(
+			"(%s)%s%s%s%s%s",
+			mode, ed.parser.Cache(), cursor, sep, t.String(), period,
+		)
 	}
 	fmt.Print(termi.ClearTail)
 

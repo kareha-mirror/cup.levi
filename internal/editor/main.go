@@ -21,30 +21,32 @@ func (ed *Editor) Main() {
 						if ed.parser.String() == "" {
 							ed.Ring("already in vi command mode")
 						}
-						ed.parser.ClearAll()
+						ed.Reset()
 						continue
 					}
 
 					if ed.parser.String() == "" && key.Rune == ':' {
-						ed.parser.ClearAll()
+						ed.Reset()
 						ed.mode = ModePrompt
 						continue
 					}
 					if ed.parser.String() == "" && key.Rune == '/' {
-						ed.parser.ClearAll()
+						ed.Reset()
 						ed.mode = ModeSearch
 						ed.search.backward = false
 						continue
 					}
 					if ed.parser.String() == "" && key.Rune == '?' {
-						ed.parser.ClearAll()
+						ed.Reset()
 						ed.mode = ModeSearch
 						ed.search.backward = true
 						continue
 					}
 					ed.parser.InsertRune(key.Rune)
 
-					c, ok := ed.Parse()
+					c, t, ok := ed.Parse()
+					ed.tokens = t
+					ed.parsed = ok
 					if ok {
 						if _, ok := InsertCmds[c.Kind]; ok {
 							ed.BeginMemory()
