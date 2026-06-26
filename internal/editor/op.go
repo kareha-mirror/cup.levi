@@ -328,16 +328,10 @@ func (ed *Editor) OpPasteBeforeFromReg(reg string, n int) {
 // Delete
 //
 
-// x : Delete character under cursor.
-func (ed *Editor) OpDelete(n int) {
-	if n < 1 {
-		ed.Error("OpDelete: n < 1")
-		return
-	}
-	ed.Commit()
+func (ed *Editor) internalOpDelete(n int) bool {
 	b := ed.Buf()
 	if len(b.CurrentLine()) < 1 {
-		return
+		return false
 	}
 	rs := []rune(b.CurrentLine())
 	n = min(n, len(rs)-b.Loc.Col)
@@ -349,6 +343,20 @@ func (ed *Editor) OpDelete(n int) {
 		tail := string(rs[b.Loc.Col+n:])
 		b.SetCurrentLine(head + tail)
 	}
+	return true
+}
+
+// x : Delete character under cursor.
+func (ed *Editor) OpDelete(n int) {
+	if n < 1 {
+		ed.Error("OpDelete: n < 1")
+		return
+	}
+	ed.Commit()
+	if !ed.internalOpDelete(n) {
+		return
+	}
+	b := ed.Buf()
 	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 }
@@ -512,7 +520,8 @@ func (ed *Editor) OpChangeRegion(
 		if len(ed.inserted) < 0 {
 			return
 		}
-		ed.replayInsert(b.CurrentLine())
+		ed.replayInsert()
+		b.Loc.Col--
 		b.Loc = b.ConfineInclusive(b.Loc)
 		b.VirtCol = b.Loc.Col
 		b.Modified = true
@@ -573,23 +582,19 @@ func (ed *Editor) OpSubst(n int, replay bool) {
 		return
 	}
 	ed.Commit()
+	ed.internalOpDelete(n)
 	b := ed.Buf()
-	rs := []rune(b.CurrentLine())
-	if b.Loc.Col+n > len(rs) {
-		n = len(rs) - b.Loc.Col
-	}
-	ed.regs.SetRunes("", []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
-	nrs := append([]rune{}, rs[:b.Loc.Col]...)
-	if b.Loc.Col+n <= len(rs)-1 {
-		nrs = append(nrs, rs[b.Loc.Col+n:]...)
-	}
 	if replay {
 		if len(ed.inserted) < 0 {
 			return
 		}
-		ed.replayInsert(string(nrs))
+		ed.replayInsert()
+		b.Loc.Col--
+		b.Loc = b.ConfineInclusive(b.Loc)
+		b.VirtCol = b.Loc.Col
+		b.Modified = true
 	} else {
-		ed.inp.Init(string(nrs), b.Loc.Col, ed.cfg.AutoIndent)
+		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
 		ed.inpRow = b.Loc.Row
 		ed.mode = ModeInsert
 	}

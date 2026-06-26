@@ -15,16 +15,20 @@ import (
 // r : Replace single character under cursor.
 func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
 	ed.Commit()
+	if n < 1 {
+		ed.Error("EditReplace: n < 1")
+		return
+	}
 	ed.Unimplemented("EditReplace")
 }
 
 // J : Join current line with next line.
 func (ed *Editor) EditJoin(n int) {
+	ed.Commit()
 	if n < 1 {
 		ed.Error("EditJoin: n < 1")
 		return
 	}
-	ed.Commit()
 	b := ed.Buf()
 	if b.Loc.Row+1 >= b.NumLines() {
 		ed.Ring("No following lines to join")
@@ -65,6 +69,10 @@ func (ed *Editor) EditJoin(n int) {
 // >> : Indent current line.
 func (ed *Editor) EditIndent(n int) {
 	ed.Commit()
+	if n < 1 {
+		ed.Error("EditIndent: n < 1")
+		return
+	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
 		return
@@ -81,6 +89,10 @@ func (ed *Editor) EditIndent(n int) {
 // << : Outdent current line.
 func (ed *Editor) EditOutdent(n int) {
 	ed.Commit()
+	if n < 1 {
+		ed.Error("EditOutdent: n < 1")
+		return
+	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
 		return

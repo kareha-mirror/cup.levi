@@ -59,8 +59,9 @@ func (b *Buf) ConfineInclusive(loc Loc) Loc {
 	line := b.Line(loc.Row)
 	rc := utf8.RuneCountInString(line)
 	if loc.Col >= rc {
-		loc.Col = max(rc-1, 0)
+		loc.Col = rc - 1
 	}
+	loc.Col = max(loc.Col, 0)
 	return loc
 }
 

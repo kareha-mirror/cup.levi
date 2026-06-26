@@ -200,20 +200,19 @@ func (ed *Editor) Commit() {
 		ed.inserted = ed.inp.Inserted()
 		ed.inp.Reset()
 		ed.mode = ModeCommand
-		loc, ok := ed.MoveLeft(1)
-		if ok {
-			b.Loc = loc
-		}
-		b.Modified = true
 
 		if _, ok := MultiInsertCmds[ed.lastCmd.Kind]; ok && ed.lastCmd.Num > 1 {
 			cmd := ed.lastCmd
 			cmd.Num--
 			ed.Run(cmd, true) // replay
+		} else {
+			b.Loc.Col--
+			b.Loc = b.ConfineInclusive(b.Loc)
+			b.VirtCol = b.Loc.Col
+			b.Modified = true
 		}
 
 		ed.EndMemory()
-		b.VirtCol = b.Loc.Col
 		ed.Reset()
 		return
 	case ModeSearch:

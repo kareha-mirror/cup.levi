@@ -96,9 +96,9 @@ func (inp *Input) Newline(ai bool) {
 	indent := ""
 	if ai {
 		if len(inp.bodies) < 2 {
-			indent = getIndent(inp.head + inp.bodies[0].String())
+			indent = rkind.IndentOf(inp.head + inp.bodies[0].String())
 		} else {
-			indent = getIndent(inp.bodies[len(inp.bodies)-1].String())
+			indent = rkind.IndentOf(inp.bodies[len(inp.bodies)-1].String())
 		}
 	}
 	body := termi.RuneBuf{}

@@ -17,3 +17,12 @@ func TrimPrefixBlanks(s string) string {
 	}
 	return ""
 }
+
+func IndentOf(line string) string {
+	for i, r := range line {
+		if !IsBlank(r) {
+			return line[:i]
+		}
+	}
+	return line
+}
