@@ -518,8 +518,8 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:  CmdOpCopyLineRegion,
-					Start: buf.Loc{0, start.Row},
-					End:   buf.Loc{0, end.Row},
+					Start: start,
+					End:   end,
 				}, true
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
@@ -551,8 +551,8 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:  CmdOpDeleteLineRegion,
-					Start: buf.Loc{0, start.Row},
-					End:   buf.Loc{0, end.Row},
+					Start: start,
+					End:   end,
 				}, true
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)
@@ -584,8 +584,8 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:  CmdOpChangeLineRegion,
-					Start: buf.Loc{0, start.Row},
-					End:   buf.Loc{0, end.Row},
+					Start: start,
+					End:   end,
 				}, true
 			}
 			cmd, ok = ed.ParseMoveRunes(noSubnum, subnum, mv, letter)

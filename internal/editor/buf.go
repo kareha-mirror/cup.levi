@@ -8,13 +8,13 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
-func (ed *Editor) Clear() {
+func (ed *Editor) NewBuf() {
 	if ed.bufIdx < len(ed.bufs) {
 		ed.bufs[ed.bufIdx] = new(buf.Buf)
 	} else {
 		ed.bufs = append(ed.bufs, new(buf.Buf))
+		ed.bufIdx = len(ed.bufs) - 1
 	}
-	ed.mode = ModeCommand
 	ed.redraw = true
 }
 
@@ -25,7 +25,10 @@ func (ed *Editor) Buf() *buf.Buf {
 func (ed *Editor) Close(force bool) {
 	b := ed.Buf()
 	if !force && b.Modified {
-		ed.Ring("File modified since last complete write; write or use ! to override.")
+		ed.Ring(
+			"File modified since last complete write;" +
+				" write or use ! to override.",
+		)
 		return
 	}
 	bufs := append([]*buf.Buf{}, ed.bufs[:ed.bufIdx]...)
@@ -45,10 +48,13 @@ func (ed *Editor) Close(force bool) {
 func (ed *Editor) Load(path string, force bool) error {
 	b := ed.Buf()
 	if !force && b.Modified {
-		ed.Ring("File modified since last complete write; write or use ! to override.")
+		ed.Ring(
+			"File modified since last complete write;" +
+				" write or use ! to override.",
+		)
 		return fmt.Errorf("file modified")
 	}
-	ed.Clear()
+	ed.NewBuf()
 	b = ed.Buf()
 	b.Path = path
 	if path == "" {
@@ -94,7 +100,8 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	b := ed.Buf()
 	if !force && path == b.Path && stamp != b.Stamp {
 		ed.Ring(
-			"%s: file modified more recently than this copy; use ! to override.",
+			"%s: file modified more recently than this copy;"+
+				" use ! to override.",
 			path,
 		)
 		return fmt.Errorf("file modified more recently")

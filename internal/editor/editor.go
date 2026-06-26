@@ -126,11 +126,11 @@ func Init(dir string, args []string) (*Editor, error) {
 	ed.listener = termi.EscapeListener(&listener)
 
 	if len(args) < 1 {
-		ed.Clear()
+		ed.NewBuf()
 		ed.Load("", true)
 	} else {
 		for _, path := range args {
-			ed.Clear()
+			ed.NewBuf()
 			ed.Load(path, true)
 			ed.bufIdx++
 		}

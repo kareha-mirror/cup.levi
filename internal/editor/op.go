@@ -105,19 +105,20 @@ func (ed *Editor) OpCopyRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 	start, end = ed.confineRegion(start, end, inclusive)
 	lines := ed.getRegion(start, end)
 	ed.regs.SetRunes("", lines)
+	b := ed.Buf()
+	b.Loc = start
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpCopyLineRegion(start int, end int) {
+func (ed *Editor) OpCopyLineRegion(start buf.Loc, end buf.Loc) {
 	ed.Commit()
-	if end < start {
-		start, end = end, start
-	}
+	start, end = ed.confineRegion(start, end, true)
 	b := ed.Buf()
-	if end+1 > b.NumLines() {
+	if end.Row+1 > b.NumLines() {
 		return
 	}
-	ed.regs.SetLines("", b.Lines[start:end+1])
+	ed.regs.SetLines("", b.Lines[start.Row:end.Row+1])
+	b.Loc = start
 }
 
 // yw : Copy word.
@@ -424,26 +425,20 @@ func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpDeleteLineRegion(start int, end int) {
+func (ed *Editor) OpDeleteLineRegion(start buf.Loc, end buf.Loc) {
 	ed.Commit()
-	if end < start {
-		start, end = end, start
-	}
+	start, end = ed.confineRegion(start, end, true)
 	b := ed.Buf()
-	if end+1 > b.NumLines() {
+	if end.Row+1 > b.NumLines() {
 		return
 	}
-	lines := []string{}
-	if start > 0 {
-		lines = append(lines, b.Lines[:start]...)
-	}
-	ed.regs.SetLines("", b.Lines[start:end+1])
-	if end+1 <= b.NumLines()-1 {
-		lines = append(lines, b.Lines[end+1:]...)
+	lines := append([]string{}, b.Lines[:start.Row]...)
+	ed.regs.SetLines("", b.Lines[start.Row:end.Row+1])
+	if end.Row+1 <= b.NumLines()-1 {
+		lines = append(lines, b.Lines[end.Row+1:]...)
 	}
 	b.Lines = lines
-	b.Loc.Row = start
-	b.Loc.Col = 0
+	b.Loc = start
 	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 }
@@ -457,7 +452,7 @@ func (ed *Editor) OpDeleteWord(n int) {
 	ed.Commit()
 	b := ed.Buf()
 	start := b.Loc
-	end, ok := ed.MoveByWordEx(n)
+	end, ok := ed.MoveByWord(n)
 	if !ok {
 		return
 	}
@@ -533,7 +528,7 @@ func (ed *Editor) OpChangeRegion(
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpChangeLineRegion(start int, end int, replay bool) {
+func (ed *Editor) OpChangeLineRegion(start buf.Loc, end buf.Loc, replay bool) {
 	ed.Commit()
 	ed.Unimplemented("OpChangeLineRegion")
 }

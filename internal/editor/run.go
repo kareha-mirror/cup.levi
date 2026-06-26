@@ -108,7 +108,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		ed.OpCopyRegion(c.Start, c.End, c.Inclusive)
 		return true
 	case CmdOpCopyLineRegion:
-		ed.OpCopyLineRegion(c.Start.Row, c.End.Row)
+		ed.OpCopyLineRegion(c.Start, c.End)
 		return true
 	case CmdOpCopyWord:
 		ed.OpCopyWord(c.Num)
@@ -146,7 +146,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		ed.OpDeleteRegion(c.Start, c.End, c.Inclusive)
 		return true
 	case CmdOpDeleteLineRegion:
-		ed.OpDeleteLineRegion(c.Start.Row, c.End.Row)
+		ed.OpDeleteLineRegion(c.Start, c.End)
 		return true
 	case CmdOpDeleteWord:
 		ed.OpDeleteWord(c.Num)
@@ -162,7 +162,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		ed.OpChangeRegion(c.Start, c.End, c.Inclusive, replay)
 		return true
 	case CmdOpChangeLineRegion:
-		ed.OpChangeLineRegion(c.Start.Row, c.End.Row, replay)
+		ed.OpChangeLineRegion(c.Start, c.End, replay)
 		return true
 	case CmdOpChangeWord:
 		ed.OpChangeWord(c.Num, replay)

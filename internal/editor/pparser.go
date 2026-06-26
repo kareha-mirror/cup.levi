@@ -90,6 +90,7 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 
 	case "set":
 		if len(parts) < 2 {
+			// TODO show variables
 			return Pcmd{Kind: PcmdInvalid}, false
 		}
 		if strings.HasPrefix(parts[1], "ts=") {
@@ -108,6 +109,11 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		case "noai", "noautoindent":
 			return Pcmd{Kind: PcmdNoAutoIndent}, true
 		}
+		// TODO set all
+		ed.Ring(
+			"set no %s option: 'set all' gives all option values.",
+			parts[1],
+		)
 		return Pcmd{Kind: PcmdInvalid}, false
 
 	case "col", "colors", "colorscheme":
@@ -118,6 +124,7 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		}
 
 	default:
+		ed.Ring("The %s command is unknown.", parts[0])
 		return Pcmd{Kind: PcmdInvalid}, false
 	}
 }
