@@ -99,12 +99,6 @@ func ToDestRegName(name string) string {
 }
 
 func (regs *Regs) SetLines(name string, killed []string) {
-	addName := ToDestRegName(name)
-	if addName != "" {
-		regs.AddLines(name, killed)
-		return
-	}
-
 	lines := append([]string{}, killed...)
 	regs.DefMode = KillLines
 	regs.DefKilled = lines
@@ -128,12 +122,6 @@ func (regs *Regs) SetLines(name string, killed []string) {
 }
 
 func (regs *Regs) SetRunes(name string, killed []string) {
-	addName := ToDestRegName(name)
-	if addName != "" {
-		regs.AddRunes(name, killed)
-		return
-	}
-
 	lines := append([]string{}, killed...)
 	regs.DefMode = KillRunes
 	regs.DefKilled = lines
@@ -206,6 +194,24 @@ func (regs *Regs) AddRunes(name string, killed []string) {
 	}
 	reg.Mode = KillRunes
 	reg.Killed = append([]string{}, killed...)
+}
+
+func (regs *Regs) ApplyLines(name string, killed []string) {
+	addName := ToDestRegName(name)
+	if addName != "" {
+		regs.AddLines(name, killed)
+		return
+	}
+	regs.SetLines(name, killed)
+}
+
+func (regs *Regs) ApplyRunes(name string, killed []string) {
+	addName := ToDestRegName(name)
+	if addName != "" {
+		regs.AddRunes(name, killed)
+		return
+	}
+	regs.SetRunes(name, killed)
 }
 
 func (regs *Regs) SyncWithConfig(cfg *Config) {

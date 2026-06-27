@@ -64,7 +64,6 @@ func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 		}
 		return buf.Loc{col, row}, true
 	}
-	ed.Ring("Search wrapped")
 	for row := 0; row <= b.Loc.Row; row++ {
 		line := b.Line(row)
 		loc := ed.search.regexp.FindStringIndex(line)
@@ -72,6 +71,7 @@ func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:loc[0]])
+		ed.Ring("Search wrapped")
 		return buf.Loc{col, row}, true
 	}
 	ed.Ring("Pattern not found")
@@ -114,7 +114,6 @@ func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
 		col := utf8.RuneCountInString(line[:found[0]])
 		return buf.Loc{col, row}, true
 	}
-	ed.Ring("Search wrapped")
 	for row := b.NumLines() - 1; row >= b.Loc.Row; row-- {
 		line := b.Line(row)
 		subLine := line
@@ -136,6 +135,7 @@ func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
+		ed.Ring("Search wrapped")
 		return buf.Loc{col, row}, true
 	}
 	ed.Ring("Pattern not found")
