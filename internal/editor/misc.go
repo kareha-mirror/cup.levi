@@ -2,7 +2,7 @@ package editor
 
 import (
 	"fmt"
-	//"unicode/utf8"
+	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
 )
@@ -25,19 +25,16 @@ func (ed *Editor) MiscShowInfo() {
 	info := "empty file"
 	numLines := b.NumLines()
 	if numLines > 0 {
-		/*
-			numBytes := numLines
-			numRunes := numLines
-			for _, line := range b.Lines {
-				numBytes += len(line)
-				numRunes += utf8.RuneCountInString(line)
-			}
-		*/
+		numBytes := numLines
+		numRunes := numLines
+		for _, line := range b.Lines {
+			numBytes += len(line)
+			numRunes += utf8.RuneCountInString(line)
+		}
 		info = fmt.Sprintf(
-			"line %d of %d [%d%%]",
-			//"line %d of %d [%d%%] %d bytes, %d runes.",
+			"line %d of %d [%d%%] %d bytes, %d runes.",
 			b.Loc.Row+1, numLines, 100*(b.Loc.Row+1)/numLines,
-			//numBytes, numRunes,
+			numBytes, numRunes,
 		)
 	}
 	ed.Message("%s: %s: %s", path, modified, info)

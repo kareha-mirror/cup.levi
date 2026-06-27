@@ -69,6 +69,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		}
 	}
 
+	w, h := termi.Size()
 	ed := &Editor{
 		dir:    dir,
 		cfg:    cfg,
@@ -88,8 +89,8 @@ func Init(dir string, args []string) (*Editor, error) {
 		regs:     Regs{},
 		lastCmd:  Cmd{Kind: CmdInvalid},
 
-		w:        80,
-		h:        24,
+		w:        w,
+		h:        h,
 		redraw:   true,
 		view:     nil,
 		viewMeta: nil,
@@ -98,6 +99,8 @@ func Init(dir string, args []string) (*Editor, error) {
 		listener: nil,
 		esc:      false,
 	}
+	ed.RenderMsg(false)
+	ed.RenderMsg(true)
 
 	ed.regs.SyncWithConfig(ed.cfg)
 

@@ -76,7 +76,7 @@ func (ed *Editor) PromptSaveAndQuit() {
 	if b.Modified && b.Path != "" {
 		err := ed.Save(false)
 		if err != nil {
-			//ed.Error("%v", err) // XXX multiline message
+			ed.Error("%v", err)
 			return
 		}
 	}
@@ -88,14 +88,14 @@ func (ed *Editor) PromptSave(name string) {
 	if name == "" {
 		err := ed.Save(false)
 		if err != nil {
-			//ed.Error("%v", err) // XXX multiline message
+			ed.Error("%v", err)
 			return
 		}
 		return
 	}
 	err := ed.SaveAs(name, false)
 	if err != nil {
-		//ed.Error("%v", err) // XXX multiline message
+		ed.Error("%v", err)
 		return
 	}
 }
@@ -105,14 +105,14 @@ func (ed *Editor) PromptForceSave(name string) {
 	if name == "" {
 		err := ed.Save(true)
 		if err != nil {
-			//ed.Error("%v", err) // XXX multiline message
+			ed.Error("%v", err)
 			return
 		}
 		return
 	}
 	err := ed.SaveAs(name, true)
 	if err != nil {
-		//ed.Error("%v", err) // XXX multiline message
+		ed.Error("%v", err)
 		return
 	}
 }
@@ -140,7 +140,7 @@ func (ed *Editor) PromptForceQuit() {
 func (ed *Editor) PromptOpen(name string) {
 	err := ed.Load(name, false)
 	if err != nil {
-		//ed.Error("%v", err) // XXX multiline message
+		ed.Error("%v", err)
 		return
 	}
 	ed.InitialInfo()
@@ -150,7 +150,7 @@ func (ed *Editor) PromptOpen(name string) {
 func (ed *Editor) PromptForceOpen(name string) {
 	err := ed.Load(name, true)
 	if err != nil {
-		//ed.Error("%v", err) // XXX multiline message
+		ed.Error("%v", err)
 		return
 	}
 	ed.InitialInfo()

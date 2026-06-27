@@ -232,14 +232,30 @@ func (ed *Editor) DrawStatus() {
 		fmt.Print(ed.colors.Status.Seq())
 	}
 
-	if ed.msg.ring != "" {
+	if ed.msg.IsSingle() {
+		fmt.Print(ed.msg.view[0])
+		ed.msg.Reset()
+	} else if ed.msg.IsMulti() {
+		numLines := len(ed.msg.view)
+		y := ed.h - numLines - 1
+		skip := 0
+		if y < 0 {
+			skip = -y
+			y = 0
+		}
+		fmt.Print(termi.MoveCursor(0, y))
 		fmt.Print(termi.SetInvert)
-		fmt.Print(ed.msg.ring)
+		fmt.Print("+=+=+=+=+=+=+=+")
 		fmt.Print(termi.ResetInvert)
-		ed.msg.ring = ""
-	} else if ed.msg.message != "" {
-		fmt.Print(ed.msg.message)
-		ed.msg.message = ""
+		fmt.Print(termi.ClearTail)
+		y++
+		for i := skip; i < len(ed.msg.view); i++ {
+			fmt.Print(termi.MoveCursor(0, y))
+			fmt.Printf("%s", ed.msg.view[i])
+			y++
+		}
+		ed.msg.Reset()
+		ed.redraw = true
 	} else if ed.mode == ModePrompt {
 		escaped := rkind.Escape(ed.prompt.String())
 		fmt.Printf(":%s", escaped)

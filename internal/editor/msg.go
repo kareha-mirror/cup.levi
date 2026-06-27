@@ -2,35 +2,100 @@ package editor
 
 import (
 	"fmt"
+	"strings"
+	"unicode/utf8"
+
+	"tea.kareha.org/cup/termi"
 )
 
 type Msg struct {
-	message string
-	ring    string
+	messages []string
+	rings    []string
+	view     []string
+}
+
+func (msg *Msg) IsSingle() bool {
+	return len(msg.view) == 1
+}
+
+func (msg *Msg) IsMulti() bool {
+	return len(msg.view) > 1
+}
+
+func (msg *Msg) Reset() {
+	msg.view = msg.view[:0]
+}
+
+func splitTextIntoLines(text string) []string {
+	if len(text) < 1 {
+		return nil
+	}
+	if text[len(text)-1] == '\n' {
+		text = text[:len(text)-1]
+	}
+	return strings.Split(text, "\n")
 }
 
 func (msg *Msg) Message(format string, a ...any) {
-	msg.message = fmt.Sprintf(format, a...)
+	text := fmt.Sprintf(format, a...)
+	lines := splitTextIntoLines(text)
+	msg.messages = append(msg.messages, lines...)
 }
 
 func (msg *Msg) Ring(format string, a ...any) {
-	msg.ring = fmt.Sprintf(format, a...)
+	text := fmt.Sprintf(format, a...)
+	lines := splitTextIntoLines(text)
+	msg.rings = append(msg.rings, lines...)
 }
 
 func (msg *Msg) Error(format string, a ...any) {
 	msg.Ring("Error: "+format, a...)
 }
 
+func (ed *Editor) RenderMsg(ring bool) {
+	var source *[]string
+	if ring {
+		source = &ed.msg.rings
+	} else {
+		source = &ed.msg.messages
+	}
+	sb := strings.Builder{}
+
+	for _, s := range *source {
+		lines := termi.Wrap(s, ed.w, false)
+		for _, line := range lines {
+			if ring {
+				sb.WriteString(termi.SetInvert)
+			}
+			sb.WriteString(line)
+			if ring {
+				sb.WriteString(termi.ResetInvert)
+			}
+			rc := utf8.RuneCountInString(line)
+			if termi.StringWidth(line, rc) < ed.w {
+				sb.WriteString(termi.ClearTail)
+			}
+			ed.msg.view = append(ed.msg.view, sb.String())
+			sb.Reset()
+		}
+	}
+
+	*source = nil
+}
+
 func (ed *Editor) Message(format string, a ...any) {
 	ed.msg.Message(format, a...)
+	ed.RenderMsg(false)
 }
 
 func (ed *Editor) Ring(format string, a ...any) {
 	ed.msg.Ring(format, a...)
+	ed.RenderMsg(true)
 }
 
 func (ed *Editor) Error(format string, a ...any) {
 	ed.msg.Error(format, a...)
+	ed.RenderMsg(true)
 }
 
 func (ed *Editor) Notice(format string, a ...any) {
