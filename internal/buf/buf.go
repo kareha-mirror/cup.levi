@@ -29,6 +29,7 @@ type Buf struct {
 	Path     string
 	Modified bool
 	Stamp    Stamp
+	NewFile  bool
 	Marks    map[rune]Loc
 	Snapshot []string
 }

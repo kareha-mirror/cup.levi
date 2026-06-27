@@ -115,6 +115,10 @@ func (ed *Editor) InitialInfo() {
 	if path == "" {
 		path = "(memory)"
 	}
+	if b.NewFile {
+		ed.Message("%s: new file: line 1", path)
+		return
+	}
 	modified := "unmodified"
 	if b.Modified {
 		modified = "modified"

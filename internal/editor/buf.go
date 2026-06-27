@@ -9,10 +9,12 @@ import (
 )
 
 func (ed *Editor) NewBuf() {
+	b := new(buf.Buf)
+	b.NewFile = true
 	if ed.bufIdx < len(ed.bufs) {
-		ed.bufs[ed.bufIdx] = new(buf.Buf)
+		ed.bufs[ed.bufIdx] = b
 	} else {
-		ed.bufs = append(ed.bufs, new(buf.Buf))
+		ed.bufs = append(ed.bufs, b)
 		ed.bufIdx = len(ed.bufs) - 1
 	}
 	ed.redraw = true
@@ -20,6 +22,12 @@ func (ed *Editor) NewBuf() {
 
 func (ed *Editor) Buf() *buf.Buf {
 	return ed.bufs[ed.bufIdx]
+}
+
+func (ed *Editor) CheckQuit() {
+	if len(ed.bufs) < 1 {
+		ed.alive = false
+	}
 }
 
 func (ed *Editor) Close(force bool) {
@@ -39,9 +47,6 @@ func (ed *Editor) Close(force bool) {
 	if ed.bufIdx >= n {
 		ed.bufIdx = max(n-1, 0)
 	}
-	if n < 1 {
-		ed.alive = false
-	}
 }
 
 func (ed *Editor) Load(path string, force bool) error {
@@ -56,12 +61,10 @@ func (ed *Editor) Load(path string, force bool) error {
 	b := ed.Buf()
 	b.Path = path
 	if path == "" {
-		ed.Message("(memory): new file: line 1")
 		return nil
 	}
 	info, err := os.Stat(path)
 	if err != nil {
-		ed.Message("%s: new file: line 1", path)
 		return nil
 	}
 	stamp := buf.Stamp{
@@ -75,6 +78,7 @@ func (ed *Editor) Load(path string, force bool) error {
 	}
 	b.SetText(string(data))
 	b.Stamp = stamp
+	b.NewFile = false
 	b.Modified = false
 	return nil
 }
@@ -130,6 +134,7 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	if path == b.Path {
 		b.Stamp = stamp
 	}
+	b.NewFile = false
 	b.Modified = false
 	return nil
 }

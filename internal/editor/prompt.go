@@ -81,6 +81,7 @@ func (ed *Editor) PromptSaveAndQuit() {
 		}
 	}
 	ed.Close(false)
+	ed.CheckQuit()
 }
 
 // :w Enter : Save current file.
@@ -129,11 +130,13 @@ func (ed *Editor) PromptQuit() {
 		return
 	}
 	ed.Close(false)
+	ed.CheckQuit()
 }
 
 // :q! Enter : Force quit editor.
 func (ed *Editor) PromptForceQuit() {
 	ed.Close(true)
+	ed.CheckQuit()
 }
 
 // :e Enter : Open file.
@@ -255,4 +258,15 @@ func (ed *Editor) PromptColors(name string) {
 	}
 	ed.colors = colors
 	ed.redraw = true
+}
+
+// :colors Enter
+func (ed *Editor) PromptHello(n int) {
+	if n < 1 {
+		ed.Message("Hello, World!")
+		return
+	}
+	for i := 1; i <= n; i++ {
+		ed.Message("%d", i)
+	}
 }

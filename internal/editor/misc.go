@@ -96,6 +96,7 @@ func (ed *Editor) MiscSaveAndQuit() {
 		}
 	}
 	ed.Close(false)
+	ed.CheckQuit()
 }
 
 // Ctrl-Z : Suspend.

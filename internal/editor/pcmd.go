@@ -37,4 +37,6 @@ const (
 	PcmdNoAutoIndent
 
 	PcmdColors
+
+	PcmdHello // XXX debug
 )

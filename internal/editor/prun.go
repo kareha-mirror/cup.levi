@@ -2,8 +2,8 @@ package editor
 
 func (ed *Editor) RunPrompt(c Pcmd) bool {
 	ed.Commit()
-
 	switch c.Kind {
+
 	case PcmdMoveToLine:
 		ed.PromptMoveToLine(c.Num)
 		return true
@@ -66,7 +66,11 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 	case PcmdColors:
 		ed.PromptColors(c.Name)
 		return true
-	}
 
+	case PcmdHello:
+		ed.PromptHello(c.Num)
+		return true
+
+	}
 	return false
 }

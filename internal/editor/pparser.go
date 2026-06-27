@@ -125,6 +125,18 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 			return Pcmd{Kind: PcmdColors}, true
 		}
 
+	case "hello":
+		if len(parts) > 1 {
+			n, err := strconv.ParseUint(parts[1], 10, 16)
+			if err != nil {
+				ed.Error("Goodbye, World!")
+				return Pcmd{Kind: PcmdInvalid}, false
+			}
+			return Pcmd{Kind: PcmdHello, Num: int(n)}, true
+		} else {
+			return Pcmd{Kind: PcmdHello}, true
+		}
+
 	default:
 		ed.Ring("The %s command is unknown.", rkind.Escape(parts[0]))
 		return Pcmd{Kind: PcmdInvalid}, false

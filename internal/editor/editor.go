@@ -130,10 +130,19 @@ func Init(dir string, args []string) (*Editor, error) {
 	} else {
 		for _, path := range args {
 			ed.NewBuf()
-			ed.Load(path, true)
+			err := ed.Load(path, true)
+			if err != nil {
+				ed.Error("%v", err)
+				ed.Close(true)
+				continue
+			}
 			ed.bufIdx++
 		}
 		ed.bufIdx = 0
+	}
+	if len(ed.bufs) < 1 {
+		ed.NewBuf()
+		ed.Load("", true)
 	}
 	ed.InitialInfo()
 
