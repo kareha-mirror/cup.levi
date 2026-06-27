@@ -22,6 +22,7 @@ func (ed *Editor) MoveToMark(letter rune) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc, ok := b.Marks[letter]
 	if !ok {
+		ed.Notice("Mark not found")
 		return buf.Loc{}, false
 	}
 	loc = b.Confine(loc)
@@ -33,6 +34,7 @@ func (ed *Editor) MoveToMarkLine(letter rune) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc, ok := b.Marks[letter]
 	if !ok {
+		ed.Notice("Mark not found")
 		return buf.Loc{}, false
 	}
 	loc = b.Confine(loc)

@@ -518,6 +518,7 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:  CmdOpCopyLineRegion,
+					Reg:   reg,
 					Start: start,
 					End:   end,
 				}, true
@@ -534,6 +535,7 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:      CmdOpCopyRegion,
+					Reg:       reg,
 					Start:     start,
 					End:       end,
 					Inclusive: meta.Inclusive,
@@ -551,6 +553,7 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:  CmdOpDeleteLineRegion,
+					Reg:   reg,
 					Start: start,
 					End:   end,
 				}, true
@@ -567,6 +570,7 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:      CmdOpDeleteRegion,
+					Reg:       reg,
 					Start:     start,
 					End:       end,
 					Inclusive: meta.Inclusive,
@@ -584,6 +588,7 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:  CmdOpChangeLineRegion,
+					Reg:   reg,
 					Start: start,
 					End:   end,
 				}, true
@@ -600,6 +605,7 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 				}
 				return Cmd{
 					Kind:      CmdOpChangeRegion,
+					Reg:       reg,
 					Start:     start,
 					End:       end,
 					Inclusive: meta.Inclusive,
@@ -611,105 +617,96 @@ func (ed *Editor) ParseOp(reg string, num int, op string, noSubnum bool, subnum 
 
 	switch op {
 	case "yy", "Y":
-		if reg == "" {
-			return Cmd{
-				Kind: CmdOpCopyLine,
-				Num:  num,
-			}, true
-		} else {
-			return Cmd{
-				Kind: CmdOpCopyLineIntoReg,
-				Num:  num,
-				Reg:  reg,
-			}, true
-		}
+		return Cmd{
+			Kind: CmdOpCopyLine,
+			Reg:  reg,
+			Num:  num,
+		}, true
 	case "yw":
 		return Cmd{
 			Kind: CmdOpCopyWord,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "y$":
 		return Cmd{
 			Kind: CmdOpCopyToEnd,
+			Reg:  reg,
 			Num:  num,
 		}, true
 
 	case "p":
-		if reg == "" {
-			return Cmd{
-				Kind: CmdOpPaste,
-				Num:  num,
-			}, true
-		} else {
-			return Cmd{
-				Kind: CmdOpPasteFromReg,
-				Num:  num,
-				Reg:  reg,
-			}, true
-		}
+		return Cmd{
+			Kind: CmdOpPaste,
+			Reg:  reg,
+			Num:  num,
+		}, true
 	case "P":
-		if reg == "" {
-			return Cmd{
-				Kind: CmdOpPasteBefore,
-				Num:  num,
-			}, true
-		} else {
-			return Cmd{
-				Kind: CmdOpPasteBeforeFromReg,
-				Num:  num,
-				Reg:  reg,
-			}, true
-		}
+		return Cmd{
+			Kind: CmdOpPasteBefore,
+			Reg:  reg,
+			Num:  num,
+		}, true
 
 	case "x":
 		return Cmd{
 			Kind: CmdOpDelete,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "X":
 		return Cmd{
 			Kind: CmdOpDeleteBefore,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "dd":
 		return Cmd{
 			Kind: CmdOpDeleteLine,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "dw":
 		return Cmd{
 			Kind: CmdOpDeleteWord,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "d$", "D":
 		return Cmd{
 			Kind: CmdOpDeleteToEnd,
+			Reg:  reg,
 			Num:  num,
 		}, true
 
 	case "cc":
 		return Cmd{
 			Kind: CmdOpChangeLine,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "cw":
 		return Cmd{
 			Kind: CmdOpChangeWord,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "C":
 		return Cmd{
 			Kind: CmdOpChangeToEnd,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "s":
 		return Cmd{
 			Kind: CmdOpSubst,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	case "S":
 		return Cmd{
 			Kind: CmdOpSubstLine,
+			Reg:  reg,
 			Num:  num,
 		}, true
 	}

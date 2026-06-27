@@ -114,8 +114,8 @@ func (ed *Editor) EditOutdent(n int) {
 
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
 func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
-	start, end = ed.confineRegion(start, end, true)
 	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, true)
 	indented := false
 	for row := start.Row; row <= end.Row; row++ {
 		line := b.Line(row)
@@ -133,8 +133,8 @@ func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
 
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
 func (ed *Editor) EditOutdentRegion(start buf.Loc, end buf.Loc) {
-	start, end = ed.confineRegion(start, end, true)
 	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, true)
 	outdented := false
 	for row := start.Row; row <= end.Row; row++ {
 		line := b.Line(row)

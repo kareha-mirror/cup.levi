@@ -6,82 +6,6 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
-func orderRegion(start, end buf.Loc) (buf.Loc, buf.Loc) {
-	if start.Row < end.Row {
-		return start, end
-	}
-	if end.Row < start.Row {
-		return end, start
-	}
-	// start.Row == end.Row
-	if start.Col < end.Col {
-		return start, end
-	}
-	return end, start
-}
-
-func (ed *Editor) confineLoc(loc buf.Loc) buf.Loc {
-	b := ed.Buf()
-	if loc.Row < 0 {
-		return buf.Loc{0, 0}
-	}
-	if loc.Row > b.NumLines() {
-		return buf.Loc{0, b.NumLines()}
-	}
-	if loc.Col < 0 {
-		return buf.Loc{0, loc.Row}
-	}
-	line := b.Line(loc.Row)
-	rc := utf8.RuneCountInString(line)
-	if loc.Col > rc {
-		return buf.Loc{rc, loc.Row}
-	}
-	return loc
-}
-
-func (ed *Editor) confineRegion(
-	start, end buf.Loc, inclusive bool,
-) (buf.Loc, buf.Loc) {
-	start, end = orderRegion(start, end)
-	if inclusive {
-		b := ed.Buf()
-		return b.ConfineInclusive(start), b.ConfineInclusive(end)
-	} else {
-		return ed.confineLoc(start), ed.confineLoc(end)
-	}
-}
-
-func (ed *Editor) getRegion(start, end buf.Loc) []string {
-	b := ed.Buf()
-	if start.Row == end.Row {
-		line := b.Line(start.Row)
-		if line == "" {
-			return []string{""}
-		}
-		rs := []rune(line)
-		return []string{string(rs[start.Col:end.Col])}
-	}
-	lines := []string{}
-	line := b.Line(start.Row)
-	if line == "" {
-		lines = append(lines, "")
-	} else {
-		rs := []rune(line)
-		lines = append(lines, string(rs[start.Col:]))
-	}
-	for row := start.Row + 1; row < end.Row; row++ {
-		lines = append(lines, b.Line(row))
-	}
-	line = b.Line(end.Row)
-	if line == "" {
-		lines = append(lines, "")
-	} else {
-		rs := []rune(line)
-		lines = append(lines, string(rs[:end.Col]))
-	}
-	return lines
-}
-
 ///////////////////////////////////////////////
 // Operator Commands (Copy / Delte / Change) //
 ///////////////////////////////////////////////
@@ -90,37 +14,47 @@ func (ed *Editor) getRegion(start, end buf.Loc) []string {
 // Copy (Yank)
 //
 
-// yy, Y : Copy current line.
-func (ed *Editor) OpCopyLine(n int) {
+// "<reg>yy, "<reg>Y : Copy current line into register <reg>.
+func (ed *Editor) OpCopyLine(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpCopyLine: n < 1")
 		return
 	}
-	ed.OpCopyLineIntoReg("", n)
+	b := ed.Buf()
+	if b.Loc.Row+n > b.NumLines() {
+		ed.Notice("Out of range")
+		return
+	}
+	ed.regs.SetLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpCopyRegion(start buf.Loc, end buf.Loc, inclusive bool) {
-	start, end = ed.confineRegion(start, end, inclusive)
-	lines := ed.getRegion(start, end)
-	ed.regs.SetRunes("", lines)
+func (ed *Editor) OpCopyRegion(
+	reg string, start buf.Loc, end buf.Loc, inclusive bool,
+) {
 	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, inclusive)
+	lines := b.RegionLines(start, end)
+	ed.regs.SetRunes(reg, lines)
 	b.Loc = start
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpCopyLineRegion(start buf.Loc, end buf.Loc) {
-	start, end = ed.confineRegion(start, end, true)
+func (ed *Editor) OpCopyLineRegion(
+	reg string, start buf.Loc, end buf.Loc,
+) {
 	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, true)
 	if end.Row+1 > b.NumLines() {
+		ed.Notice("Out of range")
 		return
 	}
-	ed.regs.SetLines("", b.Lines[start.Row:end.Row+1])
+	ed.regs.SetLines(reg, b.Lines[start.Row:end.Row+1])
 	b.Loc = start
 }
 
 // yw : Copy word.
-func (ed *Editor) OpCopyWord(n int) {
+func (ed *Editor) OpCopyWord(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpCopyWord: n < 1")
 		return
@@ -129,7 +63,7 @@ func (ed *Editor) OpCopyWord(n int) {
 }
 
 // y$ : Copy to end of current line.
-func (ed *Editor) OpCopyToEnd(n int) {
+func (ed *Editor) OpCopyToEnd(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpCopyToEnd: n < 1")
 		return
@@ -137,53 +71,26 @@ func (ed *Editor) OpCopyToEnd(n int) {
 	ed.Unimplemented("OpCopyToEnd")
 }
 
-// "<reg>yy : Copy current line into register <reg>.
-func (ed *Editor) OpCopyLineIntoReg(reg string, n int) {
-	if n < 1 {
-		ed.Error("OpCopyLineIntoReg: n < 1")
-		return
-	}
-	b := ed.Buf()
-	if b.Loc.Row+n > b.NumLines() {
-		return
-	}
-	ed.regs.SetLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
-}
-
 //
 // Paste (Put)
 //
 
-// p : Paste after cursor.
-func (ed *Editor) OpPaste(n int) {
+// "<reg>p : Paste after cursor from register <reg>.
+func (ed *Editor) OpPaste(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpPaste: n < 1")
 		return
 	}
-	ed.OpPasteFromReg("", n)
-}
-
-// P : Paste before cursor.
-func (ed *Editor) OpPasteBefore(n int) {
-	if n < 1 {
-		ed.Error("OpPasteBefore: n < 1")
-		return
-	}
-	ed.OpPasteBeforeFromReg("", n)
-}
-
-// "<reg>p : Paste from register <reg>.
-func (ed *Editor) OpPasteFromReg(reg string, n int) {
-	if n < 1 {
-		ed.Error("OpPasteFromReg: n < 1")
-		return
-	}
-	b := ed.Buf()
 	if ed.regs.Mode(reg) == KillNone {
-		ed.Ring("The default buffer is empty")
+		if reg == "" {
+			ed.Ring("The default buffer is empty")
+		} else {
+			ed.Ring("Buffer %s is empty", reg)
+		}
 		return
 	}
 	killed := ed.regs.Killed(reg)
+	b := ed.Buf()
 	switch ed.regs.Mode(reg) {
 	case KillRunes:
 		if len(killed) < 2 {
@@ -201,6 +108,7 @@ func (ed *Editor) OpPasteFromReg(reg string, n int) {
 			b.SetCurrentLine(string(rs))
 			if len(runes) > 0 {
 				b.Loc.Col++
+				b.VirtCol = b.Loc.Col
 			}
 		} else {
 			lines := []string{}
@@ -215,9 +123,7 @@ func (ed *Editor) OpPasteFromReg(reg string, n int) {
 			lines = append(lines, string(rs))
 
 			if len(killed) > 2 {
-				lines = append(
-					lines, killed[1:len(killed)-2]...,
-				)
+				lines = append(lines, killed[1:len(killed)-2]...)
 			}
 
 			rs = []rune(killed[len(killed)-1])
@@ -246,10 +152,8 @@ func (ed *Editor) OpPasteFromReg(reg string, n int) {
 		move := b.NumLines() > 0
 		b.Lines = lines
 		if move {
-			loc, ok := ed.MoveByLine(1)
-			if ok {
-				b.Loc = b.Confine(loc)
-			}
+			b.Loc.Row++
+			b.Loc = b.Confine(b.Loc)
 			b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 			b.VirtCol = b.Loc.Col
 		}
@@ -258,14 +162,18 @@ func (ed *Editor) OpPasteFromReg(reg string, n int) {
 }
 
 // "<reg>p : Paste before cursor from register <reg>.
-func (ed *Editor) OpPasteBeforeFromReg(reg string, n int) {
+func (ed *Editor) OpPasteBefore(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpPasteBeforeFromReg: n < 1")
+		ed.Error("OpPasteBefore: n < 1")
 		return
 	}
 	b := ed.Buf()
 	if ed.regs.Mode(reg) == KillNone {
-		ed.Ring("The default buffer is empty")
+		if reg == "" {
+			ed.Ring("The default buffer is empty")
+		} else {
+			ed.Ring("Buffer %s is empty", reg)
+		}
 		return
 	}
 	killed := ed.regs.Killed(reg)
@@ -280,12 +188,10 @@ func (ed *Editor) OpPasteBeforeFromReg(reg string, n int) {
 			rs = append(rs, runes[b.Loc.Col:]...)
 			b.SetCurrentLine(string(rs))
 		} else {
-			lines := []string{}
-			lines = append(lines, b.Lines[:b.Loc.Row]...)
+			lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 
 			runes := []rune(b.CurrentLine())
-			rs := []rune{}
-			rs = append(rs, runes[:b.Loc.Col]...)
+			rs := append([]rune{}, runes[:b.Loc.Col]...)
 			rs = append(rs, []rune(killed[0])...)
 			lines = append(lines, string(rs))
 
@@ -299,7 +205,7 @@ func (ed *Editor) OpPasteBeforeFromReg(reg string, n int) {
 			rs = append(rs, runes[b.Loc.Col:]...)
 			lines = append(lines, string(rs))
 
-			if b.Loc.Row+1 <= b.NumLines()-1 {
+			if b.Loc.Row+1 < b.NumLines() {
 				lines = append(lines, b.Lines[b.Loc.Row+1:]...)
 			}
 
@@ -322,14 +228,14 @@ func (ed *Editor) OpPasteBeforeFromReg(reg string, n int) {
 // Delete
 //
 
-func (ed *Editor) internalOpDelete(n int) bool {
+func (ed *Editor) internalOpDelete(reg string, n int) bool {
 	b := ed.Buf()
 	if len(b.CurrentLine()) < 1 {
 		return false
 	}
 	rs := []rune(b.CurrentLine())
 	n = min(n, len(rs)-b.Loc.Col)
-	ed.regs.SetRunes("", []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
+	ed.regs.SetRunes(reg, []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
 	if b.Loc.Col < 1 {
 		b.SetCurrentLine(string(rs[n:]))
 	} else {
@@ -341,12 +247,13 @@ func (ed *Editor) internalOpDelete(n int) bool {
 }
 
 // x : Delete character under cursor.
-func (ed *Editor) OpDelete(n int) {
+func (ed *Editor) OpDelete(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpDelete: n < 1")
 		return
 	}
-	if !ed.internalOpDelete(n) {
+	if !ed.internalOpDelete(reg, n) {
+		ed.Notice("Nothing to delete")
 		return
 	}
 	b := ed.Buf()
@@ -355,7 +262,7 @@ func (ed *Editor) OpDelete(n int) {
 }
 
 // X : Delete character before cursor.
-func (ed *Editor) OpDeleteBefore(n int) {
+func (ed *Editor) OpDeleteBefore(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpDeleteBefore: n < 1")
 		return
@@ -364,21 +271,19 @@ func (ed *Editor) OpDeleteBefore(n int) {
 }
 
 // dd : Delete current line.
-func (ed *Editor) OpDeleteLine(n int) {
+func (ed *Editor) OpDeleteLine(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpDeleteLine: n < 1")
 		return
 	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
+		ed.Notice("Out of range")
 		return
 	}
-	lines := []string{}
-	if b.Loc.Row > 0 {
-		lines = append(lines, b.Lines[:b.Loc.Row]...)
-	}
-	ed.regs.SetLines("", b.Lines[b.Loc.Row:b.Loc.Row+n])
-	if b.Loc.Row+n <= b.NumLines()-1 {
+	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
+	ed.regs.SetLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
+	if b.Loc.Row+n < b.NumLines() {
 		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
 	}
 	b.Lines = lines
@@ -387,16 +292,15 @@ func (ed *Editor) OpDeleteLine(n int) {
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc, inclusive bool) {
-	start, end = ed.confineRegion(start, end, inclusive)
-	lines := ed.getRegion(start, end)
-	ed.regs.SetRunes("", lines)
-
+func (ed *Editor) OpDeleteRegion(
+	reg string, start buf.Loc, end buf.Loc, inclusive bool,
+) {
 	b := ed.Buf()
-	lines = []string{}
-	if start.Row > 0 {
-		lines = append(lines, b.Lines[:start.Row]...)
-	}
+	start, end = b.ConfineRegion(start, end, inclusive)
+	lines := b.RegionLines(start, end)
+	ed.regs.SetRunes(reg, lines)
+
+	lines = append([]string{}, b.Lines[:start.Row]...)
 
 	runes := []rune(b.Line(start.Row))
 	rs := append([]rune{}, runes[:start.Col]...)
@@ -404,7 +308,7 @@ func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 	rs = append(rs, runes[end.Col:]...)
 	lines = append(lines, string(rs))
 
-	if end.Row+1 <= b.NumLines()-1 {
+	if end.Row+1 < b.NumLines() {
 		lines = append(lines, b.Lines[end.Row+1:]...)
 	}
 	b.Lines = lines
@@ -414,15 +318,18 @@ func (ed *Editor) OpDeleteRegion(start buf.Loc, end buf.Loc, inclusive bool) {
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpDeleteLineRegion(start buf.Loc, end buf.Loc) {
-	start, end = ed.confineRegion(start, end, true)
+func (ed *Editor) OpDeleteLineRegion(
+	reg string, start buf.Loc, end buf.Loc,
+) {
 	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, true)
 	if end.Row+1 > b.NumLines() {
+		ed.Notice("Out of range")
 		return
 	}
 	lines := append([]string{}, b.Lines[:start.Row]...)
-	ed.regs.SetLines("", b.Lines[start.Row:end.Row+1])
-	if end.Row+1 <= b.NumLines()-1 {
+	ed.regs.SetLines(reg, b.Lines[start.Row:end.Row+1])
+	if end.Row+1 < b.NumLines() {
 		lines = append(lines, b.Lines[end.Row+1:]...)
 	}
 	b.Lines = lines
@@ -432,7 +339,7 @@ func (ed *Editor) OpDeleteLineRegion(start buf.Loc, end buf.Loc) {
 }
 
 // dw : Delete word.
-func (ed *Editor) OpDeleteWord(n int) {
+func (ed *Editor) OpDeleteWord(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpDeleteWord: n < 1")
 		return
@@ -441,14 +348,15 @@ func (ed *Editor) OpDeleteWord(n int) {
 	start := b.Loc
 	end, ok := ed.MoveByWord(n)
 	if !ok {
+		ed.Error("Failed to move")
 		return
 	}
-	ed.OpDeleteRegion(start, end, false)
+	ed.OpDeleteRegion(reg, start, end, false)
 	// TODO n
 }
 
 // d$, D : Delete to end of current line.
-func (ed *Editor) OpDeleteToEnd(n int) {
+func (ed *Editor) OpDeleteToEnd(reg string, n int) {
 	if n < 1 {
 		ed.Error("OpDeleteToEnd: n < 1")
 		return
@@ -456,7 +364,7 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 	b := ed.Buf()
 	rs := []rune(b.CurrentLine())
 	if b.Loc.Col < len(rs) {
-		ed.regs.SetRunes("", []string{string(rs[b.Loc.Col:])})
+		ed.regs.SetRunes(reg, []string{string(rs[b.Loc.Col:])})
 	}
 	b.SetCurrentLine(string(rs[:b.Loc.Col]))
 	b.Loc = b.ConfineInclusive(b.Loc)
@@ -469,7 +377,7 @@ func (ed *Editor) OpDeleteToEnd(n int) {
 //
 
 // cc : Change current line.
-func (ed *Editor) OpChangeLine(n int, replay bool) {
+func (ed *Editor) OpChangeLine(reg string, n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpChangeLine: n < 1")
 		return
@@ -479,24 +387,24 @@ func (ed *Editor) OpChangeLine(n int, replay bool) {
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
 func (ed *Editor) OpChangeRegion(
-	start buf.Loc, end buf.Loc, inclusive bool, replay bool,
+	reg string, start buf.Loc, end buf.Loc, inclusive bool, replay bool,
 ) {
-	start, end = ed.confineRegion(start, end, inclusive)
-	after := false
 	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, inclusive)
+	after := false
 	if end.Row < b.NumLines() {
-		line := b.Line(end.Row)
-		rc := utf8.RuneCountInString(line)
+		rc := utf8.RuneCountInString(b.Line(end.Row))
 		if end.Col >= rc {
 			after = true
 		}
 	}
-	ed.OpDeleteRegion(start, end, inclusive)
+	ed.OpDeleteRegion(reg, start, end, inclusive)
 	if after {
 		b.Loc.Col++
 	}
 	if replay {
 		if len(ed.inserted) < 0 {
+			ed.Notice("Not inserted yet")
 			return
 		}
 		ed.replayInsert()
@@ -512,28 +420,30 @@ func (ed *Editor) OpChangeRegion(
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpChangeLineRegion(start buf.Loc, end buf.Loc, replay bool) {
+func (ed *Editor) OpChangeLineRegion(
+	reg string, start buf.Loc, end buf.Loc, replay bool,
+) {
 	ed.Unimplemented("OpChangeLineRegion")
 }
 
 // cw : Change word.
-func (ed *Editor) OpChangeWord(n int, replay bool) {
+func (ed *Editor) OpChangeWord(reg string, n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpChangeWord: n < 1")
 		return
 	}
-	b := ed.Buf()
-	start := b.Loc
+	start := ed.Buf().Loc
 	end, ok := ed.MoveByWordEx(n)
 	if !ok {
+		ed.Error("Failed to move")
 		return
 	}
-	ed.OpChangeRegion(start, end, false, replay)
+	ed.OpChangeRegion(reg, start, end, false, replay)
 	// TODO n
 }
 
 // C : Change to end of current line.
-func (ed *Editor) OpChangeToEnd(n int, replay bool) {
+func (ed *Editor) OpChangeToEnd(reg string, n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpChangeToEnd: n < 1")
 		return
@@ -541,7 +451,7 @@ func (ed *Editor) OpChangeToEnd(n int, replay bool) {
 	b := ed.Buf()
 	rs := []rune(b.CurrentLine())
 	if b.Loc.Col < len(rs) {
-		ed.regs.SetRunes("", []string{string(rs[b.Loc.Col:])})
+		ed.regs.SetRunes(reg, []string{string(rs[b.Loc.Col:])})
 	}
 	line := string(rs[:b.Loc.Col])
 	b.SetCurrentLine(line)
@@ -552,15 +462,16 @@ func (ed *Editor) OpChangeToEnd(n int, replay bool) {
 }
 
 // s : Substitute one character under cursor.
-func (ed *Editor) OpSubst(n int, replay bool) {
+func (ed *Editor) OpSubst(reg string, n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpSubst: n < 1")
 		return
 	}
-	ed.internalOpDelete(n)
+	ed.internalOpDelete(reg, n)
 	b := ed.Buf()
 	if replay {
 		if len(ed.inserted) < 0 {
+			ed.Notice("Not inserted yet")
 			return
 		}
 		ed.replayInsert()
@@ -576,10 +487,10 @@ func (ed *Editor) OpSubst(n int, replay bool) {
 }
 
 // S : Substtute current line (equals cc).
-func (ed *Editor) OpSubstLine(n int, replay bool) {
+func (ed *Editor) OpSubstLine(reg string, n int, replay bool) {
 	if n < 1 {
 		ed.Error("OpSubstLine: n < 1")
 		return
 	}
-	ed.OpChangeLine(n, replay)
+	ed.OpChangeLine(reg, n, replay)
 }

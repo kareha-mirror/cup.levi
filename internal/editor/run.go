@@ -104,79 +104,70 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 		return true
 
 	case CmdOpCopyLine:
-		ed.OpCopyLine(c.Num)
+		ed.OpCopyLine(c.Reg, c.Num)
 		return true
 	case CmdOpCopyRegion:
-		ed.OpCopyRegion(c.Start, c.End, c.Inclusive)
+		ed.OpCopyRegion(c.Reg, c.Start, c.End, c.Inclusive)
 		return true
 	case CmdOpCopyLineRegion:
-		ed.OpCopyLineRegion(c.Start, c.End)
+		ed.OpCopyLineRegion(c.Reg, c.Start, c.End)
 		return true
 	case CmdOpCopyWord:
-		ed.OpCopyWord(c.Num)
+		ed.OpCopyWord(c.Reg, c.Num)
 		return true
 	case CmdOpCopyToEnd:
-		ed.OpCopyToEnd(c.Num)
-		return true
-	case CmdOpCopyLineIntoReg:
-		ed.OpCopyLineIntoReg(c.Reg, c.Num)
+		ed.OpCopyToEnd(c.Reg, c.Num)
 		return true
 
 	case CmdOpPaste:
-		ed.OpPaste(c.Num)
+		ed.OpPaste(c.Reg, c.Num)
 		return true
 	case CmdOpPasteBefore:
-		ed.OpPasteBefore(c.Num)
-		return true
-	case CmdOpPasteFromReg:
-		ed.OpPasteFromReg(c.Reg, c.Num)
-		return true
-	case CmdOpPasteBeforeFromReg:
-		ed.OpPasteBeforeFromReg(c.Reg, c.Num)
+		ed.OpPasteBefore(c.Reg, c.Num)
 		return true
 
 	case CmdOpDelete:
-		ed.OpDelete(c.Num)
+		ed.OpDelete(c.Reg, c.Num)
 		return true
 	case CmdOpDeleteBefore:
-		ed.OpDeleteBefore(c.Num)
+		ed.OpDeleteBefore(c.Reg, c.Num)
 		return true
 	case CmdOpDeleteLine:
-		ed.OpDeleteLine(c.Num)
+		ed.OpDeleteLine(c.Reg, c.Num)
 		return true
 	case CmdOpDeleteRegion:
-		ed.OpDeleteRegion(c.Start, c.End, c.Inclusive)
+		ed.OpDeleteRegion(c.Reg, c.Start, c.End, c.Inclusive)
 		return true
 	case CmdOpDeleteLineRegion:
-		ed.OpDeleteLineRegion(c.Start, c.End)
+		ed.OpDeleteLineRegion(c.Reg, c.Start, c.End)
 		return true
 	case CmdOpDeleteWord:
-		ed.OpDeleteWord(c.Num)
+		ed.OpDeleteWord(c.Reg, c.Num)
 		return true
 	case CmdOpDeleteToEnd:
-		ed.OpDeleteToEnd(c.Num)
+		ed.OpDeleteToEnd(c.Reg, c.Num)
 		return true
 
 	case CmdOpChangeLine:
-		ed.OpChangeLine(c.Num, replay)
+		ed.OpChangeLine(c.Reg, c.Num, replay)
 		return true
 	case CmdOpChangeRegion:
-		ed.OpChangeRegion(c.Start, c.End, c.Inclusive, replay)
+		ed.OpChangeRegion(c.Reg, c.Start, c.End, c.Inclusive, replay)
 		return true
 	case CmdOpChangeLineRegion:
-		ed.OpChangeLineRegion(c.Start, c.End, replay)
+		ed.OpChangeLineRegion(c.Reg, c.Start, c.End, replay)
 		return true
 	case CmdOpChangeWord:
-		ed.OpChangeWord(c.Num, replay)
+		ed.OpChangeWord(c.Reg, c.Num, replay)
 		return true
 	case CmdOpChangeToEnd:
-		ed.OpChangeToEnd(c.Num, replay)
+		ed.OpChangeToEnd(c.Reg, c.Num, replay)
 		return true
 	case CmdOpSubst:
-		ed.OpSubst(c.Num, replay)
+		ed.OpSubst(c.Reg, c.Num, replay)
 		return true
 	case CmdOpSubstLine:
-		ed.OpSubstLine(c.Num, replay)
+		ed.OpSubstLine(c.Reg, c.Num, replay)
 		return true
 
 	case CmdEditReplace:

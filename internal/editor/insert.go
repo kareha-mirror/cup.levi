@@ -54,6 +54,7 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 	}
 	if replay {
 		if len(ed.inserted) < 0 {
+			ed.Notice("Not inserted yet")
 			return
 		}
 		for i := 0; i < n; i++ {
@@ -80,6 +81,7 @@ func (ed *Editor) InsertAfter(n int, replay bool) {
 	}
 	if replay {
 		if len(ed.inserted) < 0 {
+			ed.Notice("Not inserted yet")
 			return
 		}
 		b := ed.Buf()

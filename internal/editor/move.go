@@ -39,6 +39,7 @@ func (ed *Editor) MoveDown(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	loc.Row += n
 	if !b.CheckRowInclusive(loc.Row) {
+		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
 	return loc, true
@@ -54,6 +55,7 @@ func (ed *Editor) MoveUp(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	loc.Row -= n
 	if !b.CheckRowInclusive(loc.Row) {
+		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
 	return loc, true
@@ -242,6 +244,7 @@ func (ed *Editor) MoveByLine(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	loc.Row += n
 	if !b.CheckRowInclusive(loc.Row) {
+		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
 	loc.Col = b.NonBlankColOfLine(loc.Row)
@@ -258,6 +261,7 @@ func (ed *Editor) MoveBackwardByLine(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	loc.Row -= n
 	if !b.CheckRowInclusive(loc.Row) {
+		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
 	loc.Col = b.NonBlankColOfLine(loc.Row)
@@ -283,6 +287,7 @@ func (ed *Editor) MoveToLine(n int) (buf.Loc, bool) { // n: 1-based
 	loc.Row = n - 1
 	b := ed.Buf()
 	if !b.CheckRowInclusive(loc.Row) {
+		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
 	loc.Col = b.NonBlankColOfLine(loc.Row)
@@ -401,11 +406,9 @@ func (ed *Editor) MoveToBelowTopOfView(n int) (buf.Loc, bool) {
 		ed.Error("MoveToBelowTopOfView: n < 1")
 		return buf.Loc{}, false
 	}
-	if len(ed.viewMeta) < 1 {
-		return buf.Loc{}, false
-	}
 	i := n - 1
 	if i >= len(ed.viewMeta) {
+		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
 	loc := ed.viewMeta[i].Loc
@@ -423,6 +426,7 @@ func (ed *Editor) MoveToAboveBottomOfView(n int) (buf.Loc, bool) {
 	}
 	i := len(ed.viewMeta) - n
 	if i < 0 {
+		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
 	loc := ed.viewMeta[i].Loc

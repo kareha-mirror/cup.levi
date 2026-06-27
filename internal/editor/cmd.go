@@ -104,12 +104,9 @@ const (
 	CmdOpCopyLineRegion
 	CmdOpCopyWord
 	CmdOpCopyToEnd
-	CmdOpCopyLineIntoReg
 
 	CmdOpPaste
 	CmdOpPasteBefore
-	CmdOpPasteFromReg
-	CmdOpPasteBeforeFromReg
 
 	CmdOpDelete
 	CmdOpDeleteBefore
@@ -164,10 +161,8 @@ var InsertCmds = map[CmdKind]struct{}{
 }
 
 var EditCmds = map[CmdKind]struct{}{
-	CmdOpPaste:              {},
-	CmdOpPasteBefore:        {},
-	CmdOpPasteFromReg:       {},
-	CmdOpPasteBeforeFromReg: {},
+	CmdOpPaste:       {},
+	CmdOpPasteBefore: {},
 
 	CmdOpDelete:           {},
 	CmdOpDeleteBefore:     {},
