@@ -24,6 +24,10 @@ func (ed *Editor) Buf() *buf.Buf {
 	return ed.bufs[ed.bufIdx]
 }
 
+func (ed *Editor) NumBufs() int {
+	return len(ed.bufs)
+}
+
 func (ed *Editor) CheckQuit() {
 	if len(ed.bufs) < 1 {
 		ed.alive = false

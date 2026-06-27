@@ -109,7 +109,7 @@ func (ed *Editor) Unimplemented(name string) {
 	ed.Ring("not implemented (" + name + ")")
 }
 
-func (ed *Editor) InitialInfo() {
+func (ed *Editor) ShowFileInfo() {
 	b := ed.Buf()
 	path := b.Path
 	if path == "" {
@@ -129,4 +129,28 @@ func (ed *Editor) InitialInfo() {
 		info = fmt.Sprintf("line %d", b.Loc.Row+1)
 	}
 	ed.Message("%s: %s: %s", path, modified, info)
+}
+
+// show statistical info of inserted text
+func (ed *Editor) ShowStatOfInserted() {
+	numLines := len(ed.inserted)
+	numBytes := numLines - 1
+	numRunes := numLines - 1
+	for _, line := range ed.inserted {
+		numBytes += len(line)
+		numRunes += utf8.RuneCountInString(line)
+	}
+	if numBytes > 0 {
+		if numLines < 2 {
+			ed.Notice(
+				"%d bytes, %d runes inserted",
+				numBytes, numRunes,
+			)
+		} else {
+			ed.Notice(
+				"%d lines, %d bytes, %d runes inserted",
+				numLines, numBytes, numRunes,
+			)
+		}
+	}
 }

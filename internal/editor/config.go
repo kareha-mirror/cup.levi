@@ -33,12 +33,12 @@ func DefaultConfig() *Config {
 	}
 }
 
-func ConfigPath(dir string) string {
-	return filepath.Join(dir, ConfigFilename)
+func ConfigPath(cfgDir string) string {
+	return filepath.Join(cfgDir, ConfigFilename)
 }
 
-func LoadConfig(dir string) (*Config, error) {
-	path := ConfigPath(dir)
+func LoadConfig(cfgDir string) (*Config, error) {
+	path := ConfigPath(cfgDir)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -50,8 +50,8 @@ func LoadConfig(dir string) (*Config, error) {
 	return &cfg, nil
 }
 
-func SaveConfig(dir string, cfg *Config) error {
-	path := ConfigPath(dir)
+func SaveConfig(cfgDir string, cfg *Config) error {
+	path := ConfigPath(cfgDir)
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
@@ -68,18 +68,18 @@ func SaveConfig(dir string, cfg *Config) error {
 }
 
 // return default on error
-func PrepareConfig(dir string) (*Config, error) {
-	path := ConfigPath(dir)
+func PrepareConfig(cfgDir string) (*Config, error) {
+	path := ConfigPath(cfgDir)
 	_, err := os.Stat(path)
 	if err == nil {
-		cfg, err := LoadConfig(dir)
+		cfg, err := LoadConfig(cfgDir)
 		if err != nil {
 			return DefaultConfig(), err
 		}
 		return cfg, nil
 	} else {
 		cfg := DefaultConfig()
-		err := SaveConfig(dir, cfg)
+		err := SaveConfig(cfgDir, cfg)
 		return cfg, err
 	}
 }

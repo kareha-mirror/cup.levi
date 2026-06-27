@@ -3,7 +3,6 @@ package editor
 import (
 	"fmt"
 	"time"
-	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
 
@@ -22,7 +21,8 @@ const (
 )
 
 type Editor struct {
-	dir    string
+	// config and state
+	cfgDir string
 	cfg    *Config
 	bufs   []*buf.Buf
 	bufIdx int
@@ -30,6 +30,7 @@ type Editor struct {
 	alive  bool
 	msg    *Msg
 
+	// parser and input
 	parser   Parser
 	inp      Input
 	inpRow   int // 0-based
@@ -40,121 +41,107 @@ type Editor struct {
 	regs     Regs
 	lastCmd  Cmd
 
+	// screen
 	w, h     int
 	redraw   bool
 	view     []string
 	viewMeta []ViewMeta
 	colors   *colors.Colors
 
+	// escape key indicator
 	listener termi.EscapeListener
 	esc      bool
 }
 
-func Init(dir string, args []string) (*Editor, error) {
+func Init(cfgDir string, paths []string) (*Editor, error) {
+	// for storing bootup errors
 	msg := new(Msg)
 
-	cfg, err := PrepareConfig(dir)
+	// load config file
+	cfg, err := PrepareConfig(cfgDir)
 	if err != nil {
 		msg.Error("%v", err)
 	}
 
-	var clrs *colors.Colors
-	list, err := colors.LoadList(dir)
+	// load colorscheme
+	clrs, err := colors.Load(cfgDir, cfg.Colors)
 	if err != nil {
 		msg.Error("%v", err)
-	} else {
-		clrs, err = list.Load(cfg.Colors)
-		if err != nil {
-			msg.Error("%v", err)
-		}
 	}
 
-	w, h := termi.Size()
+	// create and init editor struct
 	ed := &Editor{
-		dir:    dir,
+		cfgDir: cfgDir,
 		cfg:    cfg,
-		bufs:   []*buf.Buf{},
-		bufIdx: 0,
-		mode:   ModeCommand,
 		alive:  true,
 		msg:    msg,
 
-		parser:   Parser{},
-		inp:      Input{},
-		inpRow:   0,
-		inserted: []string{},
-		prompt:   termi.RuneBuf{},
-		search:   Search{},
-		find:     Find{},
-		regs:     Regs{},
-		lastCmd:  Cmd{Kind: CmdInvalid},
-
-		w:        w,
-		h:        h,
-		redraw:   true,
-		view:     nil,
-		viewMeta: nil,
-		colors:   clrs,
-
-		listener: nil,
-		esc:      false,
+		redraw: true,
+		colors: clrs,
 	}
-	ed.RenderMsg(false)
-	ed.RenderMsg(true)
 
+	// render bootup errors
+	ed.w, ed.h = termi.Size() // must be filled before rendered
+	ed.RenderMsg(false)       // messages
+	ed.RenderMsg(true)        // errors
+
+	// setup shared registers
 	ed.regs.SyncWithConfig(ed.cfg)
 
+	// preferences
 	termi.EscapeTimeout = time.Duration(ed.cfg.EscTimeout) * time.Millisecond
 	termi.TabWidth = ed.cfg.TabStop
 
+	// init terminal framework and terminal state
 	termi.Raw()
 	fmt.Print(termi.SetAlternate)
-	err = termi.StartKey()
+	err = termi.StartKey() // setup key handler
 	if err != nil {
 		fmt.Print(termi.ResetAlternate)
 		termi.Cooked()
 		return nil, err
 	}
-	termi.StartSig()
+	termi.StartSig() // setup signal handler
 
+	// init escape key indicator
 	listener := func(esc bool) {
 		ed.esc = esc
 		ed.DrawStatus()
 		ed.PlaceCursor()
 	}
 	ed.listener = termi.EscapeListener(&listener)
-
-	if len(args) < 1 {
-		ed.NewBuf()
-		ed.Load("", true)
-	} else {
-		for _, path := range args {
-			ed.NewBuf()
-			err := ed.Load(path, true)
-			if err != nil {
-				ed.Error("%v", err)
-				ed.Close(true)
-				continue
-			}
-			ed.bufIdx++
-		}
-		ed.bufIdx = 0
-	}
-	if len(ed.bufs) < 1 {
-		ed.NewBuf()
-		ed.Load("", true)
-	}
-	ed.InitialInfo()
-
 	termi.SetEscapeListener(ed.listener)
+
+	// load files if supplied
+	for _, path := range paths {
+		ed.NewBuf()
+		err := ed.Load(path, true)
+		if err != nil {
+			ed.Error("%v", err)
+			ed.Close(true)
+			continue
+		}
+		ed.bufIdx++
+	}
+	// select first buffer
+	ed.bufIdx = 0
+	// setup empty buffer if no files are loaded
+	if ed.NumBufs() < 1 {
+		ed.NewBuf()
+		ed.Load("", true)
+	}
+	ed.ShowFileInfo()
+
 	return ed, nil
 }
 
 func (ed *Editor) Finish() error {
+	// shutdown terminal framework
 	termi.SetEscapeListener(nil)
 	termi.StopSig()
 	err := termi.StopKey()
 
+	// reset terminal mode
 	fmt.Print(termi.Clear)
 	fmt.Print(termi.HomeCursor)
 	fmt.Print(termi.ResetAlternate)
@@ -167,6 +154,7 @@ func (ed *Editor) Finish() error {
 func (ed *Editor) Line(row int) string {
 	b := ed.Buf()
 
+	// input possibly has multiple lines
 	if ed.mode == ModeInsert {
 		if row < ed.inpRow {
 			return b.Line(row)
@@ -186,11 +174,18 @@ func (ed *Editor) Reset() {
 
 func (ed *Editor) Commit() {
 	switch ed.mode {
+
 	case ModeCommand:
+		// do nothing
 		return
+
+	// commit input text and ensure command mode
 	case ModeInsert:
 		b := ed.Buf()
+		// head
 		lines := append([]string{}, b.Lines[:ed.inpRow]...)
+
+		// body
 		inputLines := ed.inp.Lines()
 		if ed.cfg.AutoIndent {
 			for i := 0; i < len(inputLines); i++ {
@@ -200,54 +195,45 @@ func (ed *Editor) Commit() {
 			}
 		}
 		lines = append(lines, inputLines...)
+
+		// tail
 		if ed.inpRow+1 < b.NumLines() {
 			lines = append(lines, b.Lines[ed.inpRow+1:]...)
 		}
+
+		// replace slice
 		b.Lines = lines
+
 		ed.inserted = ed.inp.Inserted()
 		ed.inp.Reset()
+
 		ed.mode = ModeCommand
 
+		// if number prefix is supplied, repeat insertion
 		if _, ok := MultiInsertCmds[ed.lastCmd.Kind]; ok && ed.lastCmd.Num > 1 {
 			cmd := ed.lastCmd
 			cmd.Num--
 			ed.Run(cmd, true) // replay
 		} else {
+			// or finish insertion
 			b.Loc.Col--
 			b.Loc = b.ConfineInclusive(b.Loc)
 			b.VirtCol = b.Loc.Col
 			b.Modified = true
 		}
 
-		ed.EndMemory()
+		ed.EndRecordForUndo()
 		ed.Reset()
 
 		if !ed.cfg.Silent {
-			numLines := len(ed.inserted)
-			numBytes := numLines - 1
-			numRunes := numLines - 1
-			for _, line := range ed.inserted {
-				numBytes += len(line)
-				numRunes += utf8.RuneCountInString(line)
-			}
-			if numBytes > 0 {
-				if numLines < 2 {
-					ed.Notice(
-						"%d bytes, %d runes inserted",
-						numBytes, numRunes,
-					)
-				} else {
-					ed.Notice(
-						"%d lines, %d bytes, %d runes inserted",
-						numLines, numBytes, numRunes,
-					)
-				}
-			}
+			ed.ShowStatOfInserted()
 		}
 		return
+
 	case ModeSearch:
 		ed.mode = ModeCommand
 		return
+
 	case ModePrompt:
 		ed.mode = ModeCommand
 		return

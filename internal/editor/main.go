@@ -49,23 +49,23 @@ func (ed *Editor) MainCommand(key termi.Key) {
 		c, ok := ed.Parse()
 		if ok {
 			if _, ok := InsertCmds[c.Kind]; ok {
-				ed.BeginMemory()
+				ed.BeginRecordForUndo()
 			} else if _, ok := EditCmds[c.Kind]; ok {
-				ed.BeginMemory()
+				ed.BeginRecordForUndo()
 			}
 			if ed.Run(c, false) {
 				if _, ok := InsertCmds[c.Kind]; ok {
 					ed.lastCmd = c
 				} else if _, ok := EditCmds[c.Kind]; ok {
-					ed.EndMemory()
+					ed.EndRecordForUndo()
 					ed.lastCmd = c
 				}
 				ed.parser.Reset()
 			} else {
 				if _, ok := InsertCmds[c.Kind]; ok {
-					ed.CancelMemory()
+					ed.CancelRecordForUndo()
 				} else if _, ok := EditCmds[c.Kind]; ok {
-					ed.CancelMemory()
+					ed.CancelRecordForUndo()
 				}
 			}
 		}

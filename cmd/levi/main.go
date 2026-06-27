@@ -11,12 +11,15 @@ import (
 
 const appName = "levi"
 
+const failure = 1
+
 func fatal(a ...any) {
 	fmt.Fprintln(os.Stderr, a...)
-	os.Exit(1)
+	os.Exit(failure)
+	// never returns
 }
 
-func getConfigDir() string {
+func defaultConfigDir() string {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		fatal(err)
@@ -25,23 +28,25 @@ func getConfigDir() string {
 }
 
 func main() {
-	configDir := flag.String("d", "", "config directory")
+	// parse options
+	cfgDir := flag.String("d", "", "config directory")
 	flag.Parse()
-	if *configDir == "" {
-		*configDir = getConfigDir()
+	if *cfgDir == "" {
+		*cfgDir = defaultConfigDir()
 	}
-	args := flag.Args()
+	paths := flag.Args()
 
-	ed, err := editor.Init(*configDir, args)
+	// init editor
+	ed, err := editor.Init(*cfgDir, paths)
 	if err != nil {
 		fatal(err)
 	}
 	defer func() {
-		err := ed.Finish()
-		if err != nil {
+		if err := ed.Finish(); err != nil {
 			fatal(err)
 		}
 	}()
 
+	// enter main loop
 	ed.Main()
 }

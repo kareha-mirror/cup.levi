@@ -146,7 +146,7 @@ func (ed *Editor) PromptOpen(name string) {
 		ed.Error("%v", err)
 		return
 	}
-	ed.InitialInfo()
+	ed.ShowFileInfo()
 }
 
 // :e! Enter : Force open file.
@@ -156,7 +156,7 @@ func (ed *Editor) PromptForceOpen(name string) {
 		ed.Error("%v", err)
 		return
 	}
-	ed.InitialInfo()
+	ed.ShowFileInfo()
 }
 
 // :r Enter : Read file and insert to current buffer.
@@ -172,7 +172,7 @@ func (ed *Editor) PromptNext() {
 	}
 	ed.bufIdx++
 	ed.redraw = true
-	ed.InitialInfo()
+	ed.ShowFileInfo()
 }
 
 // :prev Enter : Switch to previous buffer (tab).
@@ -183,7 +183,7 @@ func (ed *Editor) PromptPrev() {
 	}
 	ed.bufIdx--
 	ed.redraw = true
-	ed.InitialInfo()
+	ed.ShowFileInfo()
 }
 
 // :sh Enter : Execute shell.
@@ -240,7 +240,7 @@ func (ed *Editor) PromptColors(name string) {
 		return
 	}
 
-	list, err := colors.LoadList(ed.dir)
+	list, err := colors.LoadList(ed.cfgDir)
 	if err != nil {
 		ed.Error("%v", err)
 		return

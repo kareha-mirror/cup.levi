@@ -60,7 +60,7 @@ func (cfg *Config) Colors() (*Colors, error) {
 }
 
 type List struct {
-	Dir string
+	cfgDir string
 
 	Customs  map[string]struct{}
 	Builtins map[string]struct{}
@@ -68,8 +68,8 @@ type List struct {
 	Names []string
 }
 
-func ListCustoms(dir string) ([]string, error) {
-	colorsDir := filepath.Join(dir, "colors")
+func ListCustoms(cfgDir string) ([]string, error) {
+	colorsDir := filepath.Join(cfgDir, "colors")
 	entries, err := os.ReadDir(colorsDir)
 	if err != nil {
 		return nil, err
@@ -109,8 +109,8 @@ func ListBuiltins() ([]string, error) {
 	return names, nil
 }
 
-func LoadList(dir string) (*List, error) {
-	customDir := filepath.Join(dir, "colors")
+func LoadList(cfgDir string) (*List, error) {
+	customDir := filepath.Join(cfgDir, "colors")
 	os.Mkdir(customDir, 0777)
 	customPath := filepath.Join(customDir, "custom.yaml")
 	_, err := os.Stat(customPath)
@@ -118,7 +118,7 @@ func LoadList(dir string) (*List, error) {
 		os.WriteFile(customPath, []byte(CustomConfig), 0666)
 	}
 
-	cList, err := ListCustoms(dir)
+	cList, err := ListCustoms(cfgDir)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func LoadList(dir string) (*List, error) {
 	}
 	sort.Strings(total)
 
-	return &List{dir, customs, builtins, total}, nil
+	return &List{cfgDir, customs, builtins, total}, nil
 }
 
 func ParseConfig(b []byte) (*Config, error) {
@@ -160,8 +160,8 @@ func ParseConfig(b []byte) (*Config, error) {
 	return &cfg, nil
 }
 
-func LoadCustom(dir string, name string) (*Config, error) {
-	path := filepath.Join(dir, "colors", name+".yaml")
+func LoadCustom(cfgDir string, name string) (*Config, error) {
+	path := filepath.Join(cfgDir, "colors", name+".yaml")
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func LoadBuiltin(name string) (*Config, error) {
 
 func (list *List) Load(name string) (*Colors, error) {
 	if _, ok := list.Customs[name]; ok {
-		cfg, err := LoadCustom(list.Dir, name)
+		cfg, err := LoadCustom(list.cfgDir, name)
 		if err != nil {
 			return nil, err
 		}
@@ -194,6 +194,14 @@ func (list *List) Load(name string) (*Colors, error) {
 		return cfg.Colors()
 	}
 	return nil, fmt.Errorf("not found")
+}
+
+func Load(cfgDir string, name string) (*Colors, error) {
+	list, err := LoadList(cfgDir)
+	if err != nil {
+		return nil, err
+	}
+	return list.Load(name)
 }
 
 func Parse(s string) (*Colors, error) {
