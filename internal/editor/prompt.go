@@ -19,11 +19,12 @@ func (ed *Editor) PromptMoveByLine(n int) {
 		return
 	}
 	b := ed.Buf()
-	if !b.CheckRowInclusive(b.Loc.Row + n) {
+	row := b.Loc.Row + n
+	if !b.CheckRowInclusive(row) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
-	b.Loc.Row += n
+	b.Loc.Row = row
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
@@ -34,14 +35,15 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 		return
 	}
 	b := ed.Buf()
-	if b.Loc.Row-n == -1 {
-		n++
+	row := b.Loc.Row - n
+	if row == -1 {
+		row++
 	}
-	if !b.CheckRowInclusive(b.Loc.Row - n) {
+	if !b.CheckRowInclusive(row) {
 		ed.Ring("Reference to a line number less than 0.")
 		return
 	}
-	b.Loc.Row -= n
+	b.Loc.Row = row
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
@@ -51,15 +53,16 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 		ed.Error("PromptMoveToLine: n < 0")
 		return
 	}
-	b := ed.Buf()
 	if n == 0 {
 		n = 1
 	}
-	if !b.CheckRowInclusive(n - 1) {
+	b := ed.Buf()
+	row := n - 1
+	if !b.CheckRowInclusive(row) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
-	b.Loc.Row = n - 1
+	b.Loc.Row = row
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
@@ -73,6 +76,7 @@ func (ed *Editor) PromptSaveAndQuit() {
 	if b.Modified && b.Path != "" {
 		err := ed.Save(false)
 		if err != nil {
+			//ed.Error("%v", err) // XXX multiline message
 			return
 		}
 	}
@@ -82,19 +86,35 @@ func (ed *Editor) PromptSaveAndQuit() {
 // :w Enter : Save current file.
 func (ed *Editor) PromptSave(name string) {
 	if name == "" {
-		ed.Save(false)
+		err := ed.Save(false)
+		if err != nil {
+			//ed.Error("%v", err) // XXX multiline message
+			return
+		}
 		return
 	}
-	ed.SaveAs(name, false)
+	err := ed.SaveAs(name, false)
+	if err != nil {
+		//ed.Error("%v", err) // XXX multiline message
+		return
+	}
 }
 
 // :w! Enter : Force save current file.
 func (ed *Editor) PromptForceSave(name string) {
 	if name == "" {
-		ed.Save(true)
+		err := ed.Save(true)
+		if err != nil {
+			//ed.Error("%v", err) // XXX multiline message
+			return
+		}
 		return
 	}
-	ed.SaveAs(name, true)
+	err := ed.SaveAs(name, true)
+	if err != nil {
+		//ed.Error("%v", err) // XXX multiline message
+		return
+	}
 }
 
 // :q Enter : Quit editor.
@@ -118,13 +138,21 @@ func (ed *Editor) PromptForceQuit() {
 
 // :e Enter : Open file.
 func (ed *Editor) PromptOpen(name string) {
-	ed.Load(name, false)
+	err := ed.Load(name, false)
+	if err != nil {
+		//ed.Error("%v", err) // XXX multiline message
+		return
+	}
 	ed.InitialInfo()
 }
 
 // :e! Enter : Force open file.
 func (ed *Editor) PromptForceOpen(name string) {
-	ed.Load(name, true)
+	err := ed.Load(name, true)
+	if err != nil {
+		//ed.Error("%v", err) // XXX multiline message
+		return
+	}
 	ed.InitialInfo()
 }
 
