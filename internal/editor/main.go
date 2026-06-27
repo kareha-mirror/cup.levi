@@ -182,7 +182,7 @@ func (ed *Editor) MainSearch(key termi.Key) {
 	}
 }
 
-func (ed *Editor) Main() {
+func (ed *Editor) Main() error {
 	for ed.alive {
 		ed.Draw()
 
@@ -221,4 +221,5 @@ func (ed *Editor) Main() {
 			}
 		}
 	}
+	return nil
 }
