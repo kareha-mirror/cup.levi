@@ -8,6 +8,7 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 type ViewMeta struct {
@@ -240,13 +241,15 @@ func (ed *Editor) DrawStatus() {
 		fmt.Print(ed.msg.message)
 		ed.msg.message = ""
 	} else if ed.mode == ModePrompt {
-		fmt.Printf(":%s", ed.prompt.String())
+		escaped := rkind.Escape(ed.prompt.String())
+		fmt.Printf(":%s", escaped)
 	} else if ed.mode == ModeSearch {
 		head := "/"
 		if ed.search.backward {
 			head = "?"
 		}
-		fmt.Printf("%s%s", head, ed.search.pattern.String())
+		escaped := rkind.Escape(ed.search.pattern.String())
+		fmt.Printf("%s%s", head, escaped)
 	} else if !ed.cfg.Silent {
 		mode := ""
 		switch ed.mode {
@@ -255,64 +258,19 @@ func (ed *Editor) DrawStatus() {
 		case ModeInsert:
 			mode = "ins:"
 		}
-		t := strings.Builder{}
-		first := true
-		if ed.tokens.Reg != "" {
-			if !first {
-				t.WriteRune('-')
-			}
-			first = false
-			t.WriteString(fmt.Sprintf("Reg(%s)", ed.tokens.Reg))
-		}
-		if !ed.tokens.NoNum && ed.tokens.Num > 0 {
-			if !first {
-				t.WriteRune('-')
-			}
-			first = false
-			t.WriteString(fmt.Sprintf("%d", ed.tokens.Num))
-		}
-		if ed.tokens.Op != "" {
-			if !first {
-				t.WriteRune('-')
-			}
-			first = false
-			t.WriteString(fmt.Sprintf("Op(%s)", ed.tokens.Op))
-		}
-		if !ed.tokens.NoSubnum && ed.tokens.Subnum > 0 {
-			if !first {
-				t.WriteRune('-')
-			}
-			first = false
-			t.WriteString(fmt.Sprintf("%d", ed.tokens.Subnum))
-		}
-		if ed.tokens.Mv != "" {
-			if !first {
-				t.WriteRune('-')
-			}
-			first = false
-			t.WriteString(fmt.Sprintf("Mv(%s)", ed.tokens.Mv))
-		}
-		if ed.tokens.Letter != 0 {
-			if !first {
-				t.WriteRune('-')
-			}
-			first = false
-			t.WriteString(fmt.Sprintf("Letter(%c)", ed.tokens.Letter))
+
+		seq := rkind.Escape(ed.parser.Cache)
+		cursor := ""
+		if !ed.parser.Ok {
+			cursor = "_"
 		}
 		sep := ""
-		if t.Len() > 0 {
+		code := ed.SeqCode()
+		if len(code) > 0 {
 			sep = " : "
 		}
-		cursor := ""
-		period := "."
-		if !ed.parsed {
-			cursor = "_"
-			period = ""
-		}
-		fmt.Printf(
-			"(%s)%s%s%s%s%s",
-			mode, ed.parser.Cache(), cursor, sep, t.String(), period,
-		)
+
+		fmt.Printf("(%s)%s%s%s%s", mode, seq, cursor, sep, code)
 	}
 	fmt.Print(termi.ClearTail)
 
@@ -331,12 +289,13 @@ func (ed *Editor) DrawStatus() {
 func (ed *Editor) PlaceCursor() {
 	switch ed.mode {
 	case ModePrompt:
-		line := ":" + ed.prompt.String()
+		line := ":" + rkind.Escape(ed.prompt.String())
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
 	case ModeSearch:
-		line := "/" + ed.search.pattern.String() // "/" or "?"
+		// "/" or "?"
+		line := "/" + rkind.Escape(ed.search.pattern.String())
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))

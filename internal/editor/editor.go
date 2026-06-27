@@ -30,9 +30,7 @@ type Editor struct {
 	alive  bool
 	msg    *Msg
 
-	parser   *Parser
-	tokens   Tokens
-	parsed   bool
+	parser   Parser
 	inp      Input
 	inpRow   int // 0-based
 	inserted []string
@@ -80,9 +78,7 @@ func Init(dir string, args []string) (*Editor, error) {
 		alive:  true,
 		msg:    msg,
 
-		parser:   NewParser(),
-		tokens:   Tokens{},
-		parsed:   false,
+		parser:   Parser{},
 		inp:      Input{},
 		inpRow:   0,
 		inserted: []string{},
@@ -173,9 +169,7 @@ func (ed *Editor) Line(row int) string {
 }
 
 func (ed *Editor) Reset() {
-	ed.parser.ClearAll()
-	ed.tokens = Tokens{}
-	ed.parsed = false
+	ed.parser.ResetAll()
 }
 
 func (ed *Editor) Commit() {

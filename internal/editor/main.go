@@ -43,12 +43,10 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				return
 			}
 		} else {
-			ed.parser.InsertRune(key.Rune)
+			ed.parser.WriteRune(key.Rune)
 		}
 
-		c, t, ok := ed.Parse()
-		ed.tokens = t
-		ed.parsed = ok
+		c, ok := ed.Parse()
 		if ok {
 			if _, ok := InsertCmds[c.Kind]; ok {
 				ed.BeginMemory()
@@ -62,7 +60,7 @@ func (ed *Editor) MainCommand(key termi.Key) {
 					ed.EndMemory()
 					ed.lastCmd = c
 				}
-				ed.parser.Clear()
+				ed.parser.Reset()
 			} else {
 				if _, ok := InsertCmds[c.Kind]; ok {
 					ed.CancelMemory()

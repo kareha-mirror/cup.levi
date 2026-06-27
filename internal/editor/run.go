@@ -10,7 +10,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 	switch c.Kind {
 	case CmdInvalid:
 		ed.Ring("not (yet) a vi command [" + ed.parser.String() + "]")
-		ed.parser.Clear()
+		ed.parser.Reset()
 		return true
 	}
 

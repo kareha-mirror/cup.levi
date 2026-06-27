@@ -3,6 +3,8 @@ package editor
 import (
 	"strconv"
 	"strings"
+
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 func (ed *Editor) ParsePrompt() (Pcmd, bool) {
@@ -112,7 +114,7 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		// TODO set all
 		ed.Ring(
 			"set no %s option: 'set all' gives all option values.",
-			parts[1],
+			rkind.Escape(parts[1]),
 		)
 		return Pcmd{Kind: PcmdInvalid}, false
 
@@ -124,7 +126,7 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		}
 
 	default:
-		ed.Ring("The %s command is unknown.", parts[0])
+		ed.Ring("The %s command is unknown.", rkind.Escape(parts[0]))
 		return Pcmd{Kind: PcmdInvalid}, false
 	}
 }
