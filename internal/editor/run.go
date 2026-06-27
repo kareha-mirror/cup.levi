@@ -2,6 +2,8 @@ package editor
 
 import (
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 func (ed *Editor) Run(c Cmd, replay bool) bool {
@@ -9,8 +11,10 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 
 	switch c.Kind {
 	case CmdInvalid:
-		ed.Ring("not (yet) a vi command [" + ed.parser.String() + "]")
-		ed.parser.Reset()
+		ed.Notice(
+			"Not a levi command [%s]",
+			rkind.Escape(ed.parser.String()),
+		)
 		return true
 	}
 
@@ -43,6 +47,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 	}
 
 	switch c.Kind {
+
 	case CmdMarkSet:
 		ed.MarkSet(c.Letter)
 		return true
@@ -207,6 +212,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 	case CmdMiscSuspend:
 		ed.MiscSuspend()
 		return true
+
 	}
 
 	return false

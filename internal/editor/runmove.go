@@ -6,7 +6,6 @@ import (
 
 func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 	ed.Commit()
-
 	switch c.Kind {
 
 	case CmdMoveLeft:
@@ -112,6 +111,5 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.MoveFindPrevMatch(c.Num)
 
 	}
-
 	return buf.Loc{}, false
 }
