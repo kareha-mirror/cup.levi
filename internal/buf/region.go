@@ -19,36 +19,21 @@ func (b *Buf) ConfineRegion(start, end Loc, inclusive bool) (Loc, Loc) {
 	if inclusive {
 		return b.ConfineInclusive(start), b.ConfineInclusive(end)
 	} else {
-		return b.Confine(start), b.Confine(end)
+		return b.ConfineInclusive(start), b.Confine(end)
 	}
 }
 
 func (b *Buf) RegionLines(start, end Loc) []string {
 	if start.Row == end.Row {
-		line := b.Line(start.Row)
-		if line == "" {
-			return []string{""}
-		}
-		rs := []rune(line)
+		rs := []rune(b.Line(start.Row))
 		return []string{string(rs[start.Col:end.Col])}
 	}
-	lines := []string{}
-	line := b.Line(start.Row)
-	if line == "" {
-		lines = append(lines, "")
-	} else {
-		rs := []rune(line)
-		lines = append(lines, string(rs[start.Col:]))
-	}
+	rs := []rune(b.Line(start.Row))
+	lines := append([]string{}, string(rs[start.Col:]))
 	for row := start.Row + 1; row < end.Row; row++ {
 		lines = append(lines, b.Line(row))
 	}
-	line = b.Line(end.Row)
-	if line == "" {
-		lines = append(lines, "")
-	} else {
-		rs := []rune(line)
-		lines = append(lines, string(rs[:end.Col]))
-	}
+	rs = []rune(b.Line(end.Row))
+	lines = append(lines, string(rs[:end.Col]))
 	return lines
 }

@@ -10,7 +10,7 @@ func (b *Buf) CheckRowInclusive(row int) bool {
 	if row < 0 {
 		return false
 	}
-	numLines := len(b.Lines)
+	numLines := b.NumLines()
 	if row < numLines {
 		return true
 	}
@@ -24,9 +24,9 @@ func (b *Buf) ConfineRow(row int) int {
 	if row < 0 {
 		return 0
 	}
-	n := len(b.Lines)
-	if row > n {
-		return n
+	numLines := b.NumLines()
+	if row > numLines {
+		return numLines
 	}
 	return row
 }
@@ -51,13 +51,11 @@ func (b *Buf) Confine(loc Loc) Loc {
 func (b *Buf) ConfineInclusive(loc Loc) Loc {
 	if loc.Row >= b.NumLines() {
 		loc.Row = max(b.NumLines()-1, 0)
-		line := b.Line(loc.Row)
-		rc := utf8.RuneCountInString(line)
+		rc := utf8.RuneCountInString(b.Line(loc.Row))
 		loc.Col = max(rc-1, 0)
 		return loc
 	}
-	line := b.Line(loc.Row)
-	rc := utf8.RuneCountInString(line)
+	rc := utf8.RuneCountInString(b.Line(loc.Row))
 	if loc.Col >= rc {
 		loc.Col = rc - 1
 	}
@@ -66,9 +64,8 @@ func (b *Buf) ConfineInclusive(loc Loc) Loc {
 }
 
 func (b *Buf) NonBlankColOfLine(row int) int {
-	line := b.Line(row)
 	col := 0
-	for _, r := range line {
+	for _, r := range b.Line(row) {
 		if !rkind.IsBlank(r) {
 			break
 		}

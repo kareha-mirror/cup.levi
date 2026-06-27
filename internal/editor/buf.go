@@ -9,8 +9,7 @@ import (
 )
 
 func (ed *Editor) NewBuf() {
-	b := new(buf.Buf)
-	b.NewFile = true
+	b := &buf.Buf{NewFile: true}
 	if ed.bufIdx < len(ed.bufs) {
 		ed.bufs[ed.bufIdx] = b
 	} else {

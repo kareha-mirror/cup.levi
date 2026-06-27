@@ -138,16 +138,16 @@ func (ed *Editor) renderBuffer(
 
 	y := 0
 	first := true
-	for i := viewLoc.Row; i < numLines+ed.inp.NumLines()-1; i++ {
-		tail := i == b.Loc.Row && ed.mode == ModeInsert
-		lines := termi.Wrap(ed.Line(i), ed.w, tail)
+	for row := viewLoc.Row; row < numLines+ed.inp.NumLines()-1; row++ {
+		tail := row == b.Loc.Row && ed.mode == ModeInsert
+		lines := termi.Wrap(ed.Line(row), ed.w, tail)
 
 		col := 0
 		for _, line := range lines {
 			if real {
 				sb.WriteString(termi.MoveCursor(0, y))
 				if ed.colors != nil {
-					if i == b.Loc.Row {
+					if row == b.Loc.Row {
 						sb.WriteString(ed.colors.Current.Seq())
 					} else {
 						sb.WriteString(ed.colors.Buffer.Seq())
@@ -171,7 +171,7 @@ func (ed *Editor) renderBuffer(
 				view = append(view, sb.String())
 				sb.Reset()
 			}
-			loc := buf.Loc{col, i}
+			loc := buf.Loc{col, row}
 			viewMeta = append(viewMeta, ViewMeta{loc})
 			col += rc
 

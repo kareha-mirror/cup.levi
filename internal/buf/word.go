@@ -9,9 +9,8 @@ import (
 func (b *Buf) SkipBlankLines(loc Loc) (Loc, bool) {
 	numLines := b.NumLines()
 	for loc.Row < numLines {
-		line := b.Line(loc.Row)
 		col := 0
-		for _, r := range line {
+		for _, r := range b.Line(loc.Row) {
 			if col >= loc.Col && !rkind.IsBlank(r) {
 				loc.Col = col
 				return loc, true
@@ -28,9 +27,8 @@ func (b *Buf) SkipBlankLines(loc Loc) (Loc, bool) {
 
 func (b *Buf) SkipBackwardBlankLines(loc Loc) (Loc, bool) {
 	for loc.Row >= 0 {
-		line := b.Line(loc.Row)
-		if line != "" {
-			rs := []rune(line)
+		rs := []rune(b.Line(loc.Row))
+		if len(rs) > 0 {
 			for col := loc.Col; col >= 0; col-- {
 				r := rs[col]
 				if !rkind.IsBlank(r) {
@@ -49,11 +47,10 @@ func (b *Buf) SkipBackwardBlankLines(loc Loc) (Loc, bool) {
 }
 
 func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
-	line := b.Line(loc.Row)
-	if len(line) < 1 {
+	rs := []rune(b.Line(loc.Row))
+	if len(rs) < 1 {
 		return loc, false
 	}
-	rs := []rune(line)
 	kind := rkind.Kind(rs[loc.Col])
 	loc.Col++
 	k := kind
@@ -80,11 +77,10 @@ func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
 }
 
 func (b *Buf) MoveByWordEx(loc Loc) (Loc, bool) {
-	line := b.Line(loc.Row)
-	if len(line) < 1 {
+	rs := []rune(b.Line(loc.Row))
+	if len(rs) < 1 {
 		return loc, false
 	}
-	rs := []rune(line)
 	kind := rkind.Kind(rs[loc.Col])
 	loc.Col++
 	k := kind
@@ -98,11 +94,10 @@ func (b *Buf) MoveByWordEx(loc Loc) (Loc, bool) {
 }
 
 func (b *Buf) MoveBackwardByWord(loc Loc) (Loc, bool) {
-	line := b.Line(loc.Row)
-	if len(line) < 1 {
+	rs := []rune(b.Line(loc.Row))
+	if len(rs) < 1 {
 		return loc, false
 	}
-	rs := []rune(line)
 	kind := rkind.Kind(rs[loc.Col])
 	if kind == rkind.Blank {
 		return loc, false

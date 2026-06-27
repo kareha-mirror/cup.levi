@@ -6,11 +6,13 @@ import (
 )
 
 type Loc struct {
+	// order matters
 	Col int // 0-based
 	Row int // 0-based
 }
 
 type Pos struct {
+	// order matters
 	X int // 0-based
 	Y int // 0-based
 }
@@ -47,16 +49,13 @@ func (b *Buf) Line(row int) string {
 
 func (b *Buf) SetLine(row int, line string) {
 	if len(b.Lines) < 1 {
-		b.Lines = []string{""}
+		b.Lines = append(b.Lines, "")
 	}
 	b.Lines[row] = line
 }
 
 func (b *Buf) CurrentLine() string {
-	if len(b.Lines) < 1 {
-		return ""
-	}
-	return b.Lines[b.Loc.Row]
+	return b.Line(b.Loc.Row)
 }
 
 func (b *Buf) SetCurrentLine(line string) {
@@ -72,7 +71,7 @@ func (b *Buf) Text() string {
 
 func (b *Buf) SetText(text string) {
 	if len(text) < 1 {
-		b.Lines = []string{}
+		b.Lines = b.Lines[:0]
 	} else {
 		// should also support CRLF or not?
 		if text[len(text)-1] == '\n' {
