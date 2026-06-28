@@ -39,6 +39,7 @@ type Editor struct {
 	search   Search
 	find     Find
 	regs     Regs
+	clipUsed bool
 	lastCmd  CmdPair
 
 	// screen

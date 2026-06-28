@@ -1,5 +1,11 @@
 package editor
 
+import (
+	"strings"
+
+	"golang.design/x/clipboard"
+)
+
 type KillMode int
 
 const (
@@ -225,4 +231,68 @@ func (regs *Regs) SyncWithConfig(cfg *Config) {
 		}
 		regs.SetShared(name, true)
 	}
+}
+
+func (ed *Editor) EnsureClipboard() error {
+	if ed.clipUsed {
+		return nil
+	}
+	if err := clipboard.Init(); err != nil {
+		return err
+	}
+	ed.clipUsed = true
+	return nil
+}
+
+func (ed *Editor) RegMode(name string) KillMode {
+	if name == "+" {
+		if err := ed.EnsureClipboard(); err != nil {
+			ed.Error("%v", err)
+			return KillNone
+		}
+		return KillRunes
+	}
+	return ed.regs.Mode(name)
+}
+
+func (ed *Editor) RegKilled(name string) []string {
+	if name == "+" {
+		if err := ed.EnsureClipboard(); err != nil {
+			ed.Error("%v", err)
+			return []string{""}
+		}
+		text := string(clipboard.Read(clipboard.FmtText))
+		text = strings.ReplaceAll(text, "\r\n", "\n")
+		return strings.Split(text, "\n")
+	}
+	return ed.regs.Killed(name)
+}
+
+func (ed *Editor) ApplyRegLines(name string, killed []string) {
+	if name == "+" {
+		lines := append([]string{}, killed...)
+		lines = append(lines, "")
+		ed.ApplyRegRunes(name, lines)
+		return
+	}
+	ed.regs.ApplyLines(name, killed)
+}
+
+func (ed *Editor) ApplyRegRunes(name string, killed []string) {
+	if name == "+" {
+		if err := ed.EnsureClipboard(); err != nil {
+			ed.Error("%v", err)
+			return
+		}
+		var newline string
+		if ed.Buf().CRLF {
+			newline = "\r\n"
+		} else {
+			newline = "\n"
+		}
+		text := strings.Join(killed, newline)
+		clipboard.Write(clipboard.FmtText, []byte(text))
+		return
+	}
+	ed.regs.ApplyRunes(name, killed)
 }

@@ -25,7 +25,7 @@ func (ed *Editor) OpCopyLine(reg string, n int) {
 		ed.Notice("Out of range")
 		return
 	}
-	ed.regs.ApplyLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
+	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
@@ -35,7 +35,7 @@ func (ed *Editor) OpCopyRegion(
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
 	lines := b.RegionRunewise(start, end)
-	ed.regs.ApplyRunes(reg, lines)
+	ed.ApplyRegRunes(reg, lines)
 	b.Loc = start
 }
 
@@ -49,7 +49,7 @@ func (ed *Editor) OpCopyLineRegion(
 		ed.Notice("Out of range")
 		return
 	}
-	ed.regs.ApplyLines(reg, b.Lines[start.Row:end.Row+1])
+	ed.ApplyRegLines(reg, b.Lines[start.Row:end.Row+1])
 	b.Loc = start
 }
 
@@ -81,7 +81,7 @@ func (ed *Editor) OpPaste(reg string, n int) {
 		ed.Error("OpPaste: n < 1")
 		return
 	}
-	if ed.regs.Mode(reg) == KillNone {
+	if ed.RegMode(reg) == KillNone {
 		if reg == "" {
 			ed.Ring("The default buffer is empty")
 		} else {
@@ -89,9 +89,9 @@ func (ed *Editor) OpPaste(reg string, n int) {
 		}
 		return
 	}
-	killed := ed.regs.Killed(reg)
+	killed := ed.RegKilled(reg)
 	b := ed.Buf()
-	switch ed.regs.Mode(reg) {
+	switch ed.RegMode(reg) {
 	case KillRunes:
 		if len(killed) < 2 {
 			runes := []rune(b.CurrentLine())
@@ -167,7 +167,7 @@ func (ed *Editor) OpPasteBefore(reg string, n int) {
 		return
 	}
 	b := ed.Buf()
-	if ed.regs.Mode(reg) == KillNone {
+	if ed.RegMode(reg) == KillNone {
 		if reg == "" {
 			ed.Ring("The default buffer is empty")
 		} else {
@@ -175,8 +175,8 @@ func (ed *Editor) OpPasteBefore(reg string, n int) {
 		}
 		return
 	}
-	killed := ed.regs.Killed(reg)
-	switch ed.regs.Mode(reg) {
+	killed := ed.RegKilled(reg)
+	switch ed.RegMode(reg) {
 	case KillRunes:
 		if len(killed) < 2 {
 			runes := []rune(b.CurrentLine())
@@ -234,7 +234,7 @@ func (ed *Editor) internalOpDelete(reg string, n int) bool {
 	}
 	rs := []rune(b.CurrentLine())
 	n = min(n, len(rs)-b.Loc.Col)
-	ed.regs.ApplyRunes(reg, []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
+	ed.ApplyRegRunes(reg, []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
 	if b.Loc.Col < 1 {
 		b.SetCurrentLine(string(rs[n:]))
 	} else {
@@ -281,7 +281,7 @@ func (ed *Editor) OpDeleteLine(reg string, n int) {
 		return
 	}
 	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
-	ed.regs.ApplyLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
+	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
 	if b.Loc.Row+n < b.NumLines() {
 		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
 	}
@@ -297,7 +297,7 @@ func (ed *Editor) OpDeleteRegion(
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
 	lines := b.RegionRunewise(start, end)
-	ed.regs.ApplyRunes(reg, lines)
+	ed.ApplyRegRunes(reg, lines)
 
 	lines = append([]string{}, b.Lines[:start.Row]...)
 
@@ -327,7 +327,7 @@ func (ed *Editor) OpDeleteLineRegion(
 		return
 	}
 	lines := append([]string{}, b.Lines[:start.Row]...)
-	ed.regs.ApplyLines(reg, b.Lines[start.Row:end.Row+1])
+	ed.ApplyRegLines(reg, b.Lines[start.Row:end.Row+1])
 	if end.Row+1 < b.NumLines() {
 		lines = append(lines, b.Lines[end.Row+1:]...)
 	}
@@ -363,7 +363,7 @@ func (ed *Editor) OpDeleteToEnd(reg string, n int) {
 	b := ed.Buf()
 	rs := []rune(b.CurrentLine())
 	if b.Loc.Col < len(rs) {
-		ed.regs.ApplyRunes(reg, []string{string(rs[b.Loc.Col:])})
+		ed.ApplyRegRunes(reg, []string{string(rs[b.Loc.Col:])})
 	}
 	b.SetCurrentLine(string(rs[:b.Loc.Col]))
 	b.Loc = b.ConfineInclusive(b.Loc)
@@ -450,7 +450,7 @@ func (ed *Editor) OpChangeToEnd(reg string, n int, replay bool) {
 	b := ed.Buf()
 	rs := []rune(b.CurrentLine())
 	if b.Loc.Col < len(rs) {
-		ed.regs.ApplyRunes(reg, []string{string(rs[b.Loc.Col:])})
+		ed.ApplyRegRunes(reg, []string{string(rs[b.Loc.Col:])})
 	}
 	line := string(rs[:b.Loc.Col])
 	b.SetCurrentLine(line)
