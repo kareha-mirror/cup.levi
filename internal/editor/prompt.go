@@ -277,12 +277,39 @@ func (ed *Editor) PromptMem() {
 	runtime.ReadMemStats(&m)
 	sb := strings.Builder{}
 
-	sb.WriteString(fmt.Sprintf("Alloc     = % 8d KiB\n", m.Alloc/1024))
-	sb.WriteString(fmt.Sprintf("HeapAlloc = % 8d KiB\n", m.HeapAlloc/1024))
-	sb.WriteString(fmt.Sprintf("HeapSys   = % 8d KiB\n", m.HeapSys/1024))
-	sb.WriteString(fmt.Sprintf("Sys       = % 8d KiB\n", m.Sys/1024))
+	if m.Alloc >= 1024*1024 || m.HeapAlloc >= 1024*1024 {
+		sb.WriteString(fmt.Sprintf(
+			"Alloc     = % 6d MiB\n", m.Alloc/1024/1024,
+		))
+		sb.WriteString(fmt.Sprintf(
+			"HeapAlloc = % 6d MiB\n", m.HeapAlloc/1024/1024,
+		))
+	} else {
+		sb.WriteString(fmt.Sprintf(
+			"Alloc     = % 6d KiB\n", m.Alloc/1024,
+		))
+		sb.WriteString(fmt.Sprintf(
+			"HeapAlloc = % 6d KiB\n", m.HeapAlloc/1024,
+		))
+	}
 	sb.WriteRune('\n')
-	sb.WriteString(fmt.Sprintf("NumGC = %d\n", m.NumGC))
+	if m.HeapSys >= 1024*1024 || m.Sys >= 1024*1024 {
+		sb.WriteString(fmt.Sprintf(
+			"HeapSys   = % 6d MiB\n", m.HeapSys/1024/1024,
+		))
+		sb.WriteString(fmt.Sprintf(
+			"Sys       = % 6d MiB\n", m.Sys/1024/1024,
+		))
+	} else {
+		sb.WriteString(fmt.Sprintf(
+			"HeapSys   = % 6d KiB\n", m.HeapSys/1024,
+		))
+		sb.WriteString(fmt.Sprintf(
+			"Sys       = % 6d KiB\n", m.Sys/1024,
+		))
+	}
+	sb.WriteRune('\n')
+	sb.WriteString(fmt.Sprintf("NumGC     = % 6d\n", m.NumGC))
 
 	ed.Message(sb.String())
 }
