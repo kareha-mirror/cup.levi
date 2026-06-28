@@ -13,26 +13,13 @@ type Config struct {
 	AutoIndent bool `yaml:"auto-indent"`
 	TabStop    int  `yaml:"tab-stop"`
 
-	CRLF   bool   `yaml:"crlf"`
 	Colors string `yaml:"colors"`
 	Silent bool   `yaml:"silent"`
+	CRLF   bool   `yaml:"crlf"`
+	Depth  int    `yaml:"depth"`
 	Shared string `yaml:"shared"`
 
 	EscapeTimeout int `yaml:"escape-timeout"`
-}
-
-func DefaultConfig() *Config {
-	return &Config{
-		AutoIndent: true,
-		TabStop:    4,
-
-		CRLF:   false,
-		Colors: "standard",
-		Silent: false,
-		Shared: "xyz",
-
-		EscapeTimeout: 100,
-	}
 }
 
 func ConfigPath(cfgDir string) string {

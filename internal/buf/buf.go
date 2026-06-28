@@ -36,8 +36,9 @@ type Buf struct {
 	NewFile bool
 	CRLF    bool
 
-	Marks    map[rune]Loc
-	Snapshot []string
+	Marks   map[rune]Loc
+	History History
+	Depth   int
 }
 
 func (b *Buf) NumLines() int {

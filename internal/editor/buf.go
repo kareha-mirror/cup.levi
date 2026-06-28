@@ -11,6 +11,7 @@ func (ed *Editor) NewBuf() {
 	b := &buf.Buf{
 		NewFile: true,
 		CRLF:    ed.cfg.CRLF,
+		Depth:   ed.cfg.Depth,
 	}
 
 	if ed.bufIdx < len(ed.bufs) {
@@ -93,7 +94,6 @@ func (ed *Editor) Load(path string, force bool) bool {
 	b.Stamp = stamp
 	b.NewFile = false
 	b.Modified = false
-	b.Snapshot = nil
 	return true
 }
 
@@ -152,7 +152,6 @@ func (ed *Editor) SaveAs(path string, force bool) bool {
 	}
 	b.NewFile = false
 	b.Modified = false
-	b.Snapshot = nil
 	return true
 }
 

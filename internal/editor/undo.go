@@ -1,8 +1,7 @@
 package editor
 
 func (ed *Editor) BeginRecordForUndo() {
-	b := ed.Buf()
-	b.Snapshot = append([]string{}, b.Lines...)
+	ed.Buf().TakeSnapshot()
 }
 
 func (ed *Editor) EndRecordForUndo() {
@@ -10,5 +9,5 @@ func (ed *Editor) EndRecordForUndo() {
 }
 
 func (ed *Editor) CancelRecordForUndo() {
-	// unimplemented
+	ed.Buf().CancelSnapshot()
 }

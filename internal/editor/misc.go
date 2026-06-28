@@ -69,13 +69,21 @@ func (ed *Editor) MiscRepeat(n int) {
 
 // u : Undo.
 func (ed *Editor) MiscUndo(n int, replay bool) {
-	b := ed.Buf()
-	if b.Snapshot == nil {
-		ed.Notice("Not edited yet")
-		return
+	if !replay {
+		ed.undo = !ed.undo
 	}
-	b.Lines = b.Snapshot
-	b.Snapshot = nil
+	b := ed.Buf()
+	if ed.undo {
+		if !b.Undo() {
+			ed.Notice("No more history for undo")
+			return
+		}
+	} else {
+		if !b.Redo() {
+			ed.Notice("No more history for redo")
+			return
+		}
+	}
 	b.Loc = b.ConfineInclusive(b.Loc)
 }
 

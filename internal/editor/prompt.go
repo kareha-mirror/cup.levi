@@ -133,7 +133,10 @@ func (ed *Editor) PromptForceQuit() {
 
 // :e Enter : Open file.
 func (ed *Editor) PromptOpen(name string) {
+	b := ed.Buf()
+	b.TakeSnapshot()
 	if !ed.Load(name, false) {
+		b.CancelSnapshot()
 		return
 	}
 	ed.ShowFileInfo()
@@ -141,7 +144,10 @@ func (ed *Editor) PromptOpen(name string) {
 
 // :e! Enter : Force open file.
 func (ed *Editor) PromptForceOpen(name string) {
+	b := ed.Buf()
+	b.TakeSnapshot()
 	if !ed.Load(name, true) {
+		b.CancelSnapshot()
 		return
 	}
 	ed.ShowFileInfo()
@@ -159,6 +165,7 @@ func (ed *Editor) PromptNext() {
 		return
 	}
 	ed.bufIdx++
+	ed.undo = false
 	ed.redraw = true
 	ed.ShowFileInfo()
 }
@@ -170,6 +177,7 @@ func (ed *Editor) PromptPrev() {
 		return
 	}
 	ed.bufIdx--
+	ed.undo = false
 	ed.redraw = true
 	ed.ShowFileInfo()
 }

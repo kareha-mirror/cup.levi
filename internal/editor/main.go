@@ -59,6 +59,11 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				} else if _, ok := EditCmds[c.Main.Kind]; ok {
 					ed.EndRecordForUndo()
 					ed.lastCmd = c
+				} else if c.Main.Kind == CmdMiscUndo {
+					ed.lastCmd = c
+				}
+				if c.Main.Kind != CmdMiscUndo && c.Main.Kind != CmdMiscRepeat {
+					ed.undo = false
 				}
 				ed.parser.Reset()
 			} else {
