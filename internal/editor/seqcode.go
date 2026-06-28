@@ -3,8 +3,6 @@ package editor
 import (
 	"fmt"
 	"strings"
-
-	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 func (ed *Editor) SeqCode() string {
@@ -16,8 +14,7 @@ func (ed *Editor) SeqCode() string {
 		if found {
 			code.WriteRune('-')
 		}
-		escaped := rkind.Escape(t.Reg)
-		code.WriteString(fmt.Sprintf("Rg(%s)", escaped))
+		code.WriteString(fmt.Sprintf("Rg(%s)", t.Reg))
 		found = true
 	}
 
@@ -33,8 +30,7 @@ func (ed *Editor) SeqCode() string {
 		if found {
 			code.WriteRune('-')
 		}
-		escaped := rkind.Escape(t.Op)
-		code.WriteString(fmt.Sprintf("Op(%s)", escaped))
+		code.WriteString(fmt.Sprintf("Op(%s)", t.Op))
 		found = true
 	}
 
@@ -50,8 +46,7 @@ func (ed *Editor) SeqCode() string {
 		if found {
 			code.WriteRune('-')
 		}
-		escaped := rkind.Escape(t.Mv)
-		code.WriteString(fmt.Sprintf("Mv(%s)", escaped))
+		code.WriteString(fmt.Sprintf("Mv(%s)", t.Mv))
 		found = true
 	}
 
@@ -59,8 +54,7 @@ func (ed *Editor) SeqCode() string {
 		if found {
 			code.WriteRune('-')
 		}
-		escaped := rkind.Escape(string(t.Letter))
-		code.WriteString(fmt.Sprintf("Lt(%s)", escaped))
+		code.WriteString(fmt.Sprintf("Lt(%s)", t.Letter))
 		found = true
 	}
 

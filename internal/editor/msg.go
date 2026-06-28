@@ -67,7 +67,7 @@ func (ed *Editor) RenderMsg(ring bool) {
 			if ring {
 				sb.WriteString(termi.SetInvert)
 			}
-			sb.WriteString(line)
+			sb.WriteString(termi.Render(line))
 			if ring {
 				sb.WriteString(termi.ResetInvert)
 			}

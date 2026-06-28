@@ -8,7 +8,6 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 type ViewMeta struct {
@@ -58,10 +57,10 @@ func (ed *Editor) UpdateCursor() {
 					b.Pos.X += termi.TabWidth - (b.Pos.X % termi.TabWidth) - 1
 				}
 				if ed.mode == ModeInsert && b.Loc.Col > 0 {
-					if termi.IsWide(r) || termi.IsEmoji(r) {
-						b.Pos.X += 2
-					} else {
+					if r == '\t' {
 						b.Pos.X++
+					} else {
+						b.Pos.X += termi.RuneWidth(r)
 					}
 					if b.Pos.X > ed.w {
 						if r == '\t' {
@@ -257,15 +256,15 @@ func (ed *Editor) DrawStatus() {
 		ed.msg.Reset()
 		ed.redraw = true
 	} else if ed.mode == ModePrompt {
-		escaped := rkind.Escape(ed.prompt.String())
-		fmt.Printf(":%s", escaped)
+		fmt.Print(termi.Render(":" + ed.prompt.String()))
 	} else if ed.mode == ModeSearch {
 		head := "/"
 		if ed.search.backward {
 			head = "?"
 		}
-		escaped := rkind.Escape(ed.search.pattern.String())
-		fmt.Printf("%s%s", head, escaped)
+		fmt.Print(termi.Render(
+			fmt.Sprintf("%s%s", head, ed.search.pattern.String()),
+		))
 	} else if !ed.cfg.Silent {
 		mode := ""
 		switch ed.mode {
@@ -275,7 +274,7 @@ func (ed *Editor) DrawStatus() {
 			mode = "ins:"
 		}
 
-		seq := rkind.Escape(ed.parser.Cache)
+		seq := ed.parser.Cache
 		cursor := ""
 		if !ed.parser.Ok {
 			cursor = "_"
@@ -286,7 +285,9 @@ func (ed *Editor) DrawStatus() {
 			sep = " : "
 		}
 
-		fmt.Printf("(%s)%s%s%s%s", mode, seq, cursor, sep, code)
+		fmt.Print(termi.Render(
+			fmt.Sprintf("(%s)%s%s%s%s", mode, seq, cursor, sep, code),
+		))
 	}
 	fmt.Print(termi.ClearTail)
 
@@ -305,13 +306,13 @@ func (ed *Editor) DrawStatus() {
 func (ed *Editor) PlaceCursor() {
 	switch ed.mode {
 	case ModePrompt:
-		line := ":" + rkind.Escape(ed.prompt.String())
+		line := termi.Render(":" + ed.prompt.String())
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
 	case ModeSearch:
 		// "/" or "?"
-		line := "/" + rkind.Escape(ed.search.pattern.String())
+		line := termi.Render("/" + ed.search.pattern.String())
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))

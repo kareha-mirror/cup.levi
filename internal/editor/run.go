@@ -2,8 +2,6 @@ package editor
 
 import (
 	"unicode/utf8"
-
-	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 func (ed *Editor) Run(c Cmd, replay bool) bool {
@@ -11,10 +9,7 @@ func (ed *Editor) Run(c Cmd, replay bool) bool {
 
 	switch c.Kind {
 	case CmdInvalid:
-		ed.Notice(
-			"Not a levi command [%s]",
-			rkind.Escape(ed.parser.String()),
-		)
+		ed.Notice("Not a levi command [%s]", ed.parser.String())
 		return true
 	}
 
