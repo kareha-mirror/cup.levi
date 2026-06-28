@@ -7,7 +7,7 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/levi/internal/colors"
+	"tea.kareha.org/cup/levi/internal/color"
 	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
@@ -46,7 +46,7 @@ type Editor struct {
 	redraw   bool
 	view     []string
 	viewMeta []ViewMeta
-	colors   *colors.Colors
+	colors   *color.Scheme
 
 	// escape key indicator
 	listener termi.EscapeListener
@@ -64,7 +64,7 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	}
 
 	// load colorscheme
-	clrs, err := colors.Load(cfgDir, cfg.Colors)
+	cs, err := color.LoadScheme(cfgDir, cfg.Colors)
 	if err != nil {
 		msg.Error("%v", err)
 	}
@@ -77,7 +77,7 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 		msg:    msg,
 
 		redraw: true,
-		colors: clrs,
+		colors: cs,
 	}
 
 	// render bootup errors

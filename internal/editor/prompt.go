@@ -5,7 +5,7 @@ import (
 
 	"tea.kareha.org/cup/termi"
 
-	"tea.kareha.org/cup/levi/internal/colors"
+	"tea.kareha.org/cup/levi/internal/color"
 )
 
 /////////////////////
@@ -237,7 +237,7 @@ func (ed *Editor) PromptNewline(name string) {
 func (ed *Editor) PromptColors(name string) {
 	// colors . : parse and load colorscheme from current buffer
 	if name == "." {
-		colors, err := colors.Parse(ed.Buf().Text(false))
+		colors, err := color.ParseScheme(ed.Buf().Text(false))
 		if err != nil {
 			ed.Error("%v", err)
 			return
@@ -247,7 +247,7 @@ func (ed *Editor) PromptColors(name string) {
 		return
 	}
 
-	list, err := colors.LoadList(ed.cfgDir)
+	list, err := color.LoadSchemeList(ed.cfgDir)
 	if err != nil {
 		ed.Error("%v", err)
 		return
