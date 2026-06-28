@@ -1,20 +1,18 @@
 package editor
 
-import (
-	"tea.kareha.org/cup/levi/internal/buf"
-)
-
 type CmdKind int
 
 type Cmd struct {
-	Kind      CmdKind
-	Num       int
-	Letter    rune
-	Pat       string
-	Reg       string
-	Start     buf.Loc
-	End       buf.Loc
-	Inclusive bool
+	Kind   CmdKind
+	Num    int
+	Letter rune
+	Pat    string
+}
+
+type CmdPair struct {
+	Reg  string
+	Main Cmd
+	Sub  Cmd
 }
 
 const (
@@ -101,7 +99,6 @@ const (
 
 	CmdOpCopyLine
 	CmdOpCopyRegion
-	CmdOpCopyLineRegion
 	CmdOpCopyWord
 	CmdOpCopyToEnd
 
@@ -112,13 +109,11 @@ const (
 	CmdOpDeleteBefore
 	CmdOpDeleteLine
 	CmdOpDeleteRegion
-	CmdOpDeleteLineRegion
 	CmdOpDeleteWord
 	CmdOpDeleteToEnd
 
 	CmdOpChangeLine
 	CmdOpChangeRegion
-	CmdOpChangeLineRegion
 	CmdOpChangeWord
 	CmdOpChangeToEnd
 	CmdOpSubst
@@ -149,13 +144,12 @@ var InsertCmds = map[CmdKind]struct{}{
 	CmdInsertOpenBelow: {},
 	CmdInsertOpenAbove: {},
 
-	CmdOpChangeLine:       {},
-	CmdOpChangeRegion:     {},
-	CmdOpChangeLineRegion: {},
-	CmdOpChangeWord:       {},
-	CmdOpChangeToEnd:      {},
-	CmdOpSubst:            {},
-	CmdOpSubstLine:        {},
+	CmdOpChangeLine:   {},
+	CmdOpChangeRegion: {},
+	CmdOpChangeWord:   {},
+	CmdOpChangeToEnd:  {},
+	CmdOpSubst:        {},
+	CmdOpSubstLine:    {},
 
 	//CmdEditReplace: {},
 }
@@ -164,13 +158,12 @@ var EditCmds = map[CmdKind]struct{}{
 	CmdOpPaste:       {},
 	CmdOpPasteBefore: {},
 
-	CmdOpDelete:           {},
-	CmdOpDeleteBefore:     {},
-	CmdOpDeleteLine:       {},
-	CmdOpDeleteRegion:     {},
-	CmdOpDeleteLineRegion: {},
-	CmdOpDeleteWord:       {},
-	CmdOpDeleteToEnd:      {},
+	CmdOpDelete:       {},
+	CmdOpDeleteBefore: {},
+	CmdOpDeleteLine:   {},
+	CmdOpDeleteRegion: {},
+	CmdOpDeleteWord:   {},
+	CmdOpDeleteToEnd:  {},
 
 	CmdEditJoin:          {},
 	CmdEditIndent:        {},

@@ -47,21 +47,21 @@ func (ed *Editor) MiscShowInfo() {
 // . : Repeat last edit.
 func (ed *Editor) MiscRepeat(n int) {
 	c := ed.lastCmd
-	if _, ok := InsertCmds[c.Kind]; ok {
+	if _, ok := InsertCmds[c.Main.Kind]; ok {
 		ed.BeginRecordForUndo()
-	} else if _, ok := EditCmds[c.Kind]; ok {
+	} else if _, ok := EditCmds[c.Main.Kind]; ok {
 		ed.BeginRecordForUndo()
 	}
 	if ed.Run(c, true) {
-		if _, ok := InsertCmds[c.Kind]; ok {
+		if _, ok := InsertCmds[c.Main.Kind]; ok {
 			ed.EndRecordForUndo()
-		} else if _, ok := EditCmds[c.Kind]; ok {
+		} else if _, ok := EditCmds[c.Main.Kind]; ok {
 			ed.EndRecordForUndo()
 		}
 	} else {
-		if _, ok := InsertCmds[c.Kind]; ok {
+		if _, ok := InsertCmds[c.Main.Kind]; ok {
 			ed.CancelRecordForUndo()
-		} else if _, ok := EditCmds[c.Kind]; ok {
+		} else if _, ok := EditCmds[c.Main.Kind]; ok {
 			ed.CancelRecordForUndo()
 		}
 	}

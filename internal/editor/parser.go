@@ -104,20 +104,22 @@ func (p *Parser) ResetAll() {
 	p.Ok = false
 }
 
-func (ed *Editor) Parse() (Cmd, bool) {
+func (ed *Editor) Parse() (CmdPair, bool) {
 	p := &ed.parser
 	p.Tokens = Tokens{}
 	p.Ok = false
 	t := &p.Tokens
 
 	if len(p.buf) < 1 {
-		return Cmd{}, false
+		return CmdPair{}, false
 	}
 
 	if p.buf[0] == '0' { // special
 		t.Mv = string(p.buf[0])
 		p.Ok = true
-		return Cmd{Kind: CmdMoveToStart}, true
+		return CmdPair{
+			Main: Cmd{Kind: CmdMoveToStart},
+		}, true
 	}
 
 	i := 0
@@ -152,31 +154,33 @@ func (ed *Editor) Parse() (Cmd, bool) {
 		if ok {
 			t.Op = string(p.buf[i])
 			if i+1 >= len(p.buf) {
-				return Cmd{}, false
+				return CmdPair{}, false
 			}
 			t.Letter = p.buf[i+1]
 			cmd, ok := ed.ParseLetter(t.Num, t.Op, t.Letter)
 			if ok {
 				p.Ok = true
-				return cmd, true
+				return CmdPair{Main: cmd}, true
 			}
 		}
 		_, ok = letterMoveSet[p.buf[i]]
 		if ok {
 			t.Mv = string(p.buf[i])
 			if i+1 >= len(p.buf) {
-				return Cmd{}, false
+				return CmdPair{}, false
 			}
 			t.Letter = p.buf[i+1]
 			cmd, ok := ed.ParseMoveLetter(t.Num, t.Mv, t.Letter)
 			if ok {
 				p.Ok = true
-				return cmd, true
+				return CmdPair{Main: cmd}, true
 			}
 		}
 		if t.Letter != 0 {
 			p.Ok = true
-			return Cmd{Kind: CmdInvalid}, true
+			return CmdPair{
+				Main: Cmd{Kind: CmdInvalid},
+			}, true
 		}
 	}
 
@@ -194,7 +198,7 @@ func (ed *Editor) Parse() (Cmd, bool) {
 		i++
 	}
 	if i <= iPrev {
-		return Cmd{}, false
+		return CmdPair{}, false
 	}
 
 	t.Mv = string(p.buf[iPrev:i])
@@ -202,7 +206,7 @@ func (ed *Editor) Parse() (Cmd, bool) {
 	cmd, ok := ed.ParseMove(t.NoNum, t.Num, t.Mv, 0)
 	if ok {
 		p.Ok = true
-		return cmd, true
+		return CmdPair{Main: cmd}, true
 	}
 	if t.Mv == "/" || t.Mv == "?" {
 		// XXX input pat
@@ -214,17 +218,17 @@ func (ed *Editor) Parse() (Cmd, bool) {
 	cmd, ok = ed.ParseView(t.Num, t.Op)
 	if ok {
 		p.Ok = true
-		return cmd, true
+		return CmdPair{Main: cmd}, true
 	}
 	cmd, ok = ed.ParseInsert(t.Num, t.Op)
 	if ok {
 		p.Ok = true
-		return cmd, true
+		return CmdPair{Main: cmd}, true
 	}
 	cmd, ok = ed.ParseMisc(t.Num, t.Op)
 	if ok {
 		p.Ok = true
-		return cmd, true
+		return CmdPair{Main: cmd}, true
 	}
 
 	iPrev = i
@@ -261,25 +265,27 @@ func (ed *Editor) Parse() (Cmd, bool) {
 		}
 	}
 
-	cmd, ok = ed.ParseOp(
+	cp, ok := ed.ParseOp(
 		t.Reg, t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter,
 	)
 	if ok {
 		p.Ok = true
-		return cmd, true
+		return cp, true
 	}
-	cmd, ok = ed.ParseEdit(t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter)
+	cp, ok = ed.ParseEdit(t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter)
 	if ok {
 		p.Ok = true
-		return cmd, true
+		return cp, true
 	}
 
 	if len(t.Op) < 2 {
 		_, ok := compoundHeadSet[opFirst]
 		if ok {
-			return Cmd{}, false
+			return CmdPair{}, false
 		}
 	}
 	p.Ok = true
-	return Cmd{Kind: CmdInvalid}, true
+	return CmdPair{
+		Main: Cmd{Kind: CmdInvalid},
+	}, true
 }

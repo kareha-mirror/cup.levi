@@ -101,106 +101,43 @@ func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 func (ed *Editor) ParseOp(
 	reg string, num int, op string, noSubnum bool, subnum int,
 	mv string, letter rune,
-) (Cmd, bool) {
+) (CmdPair, bool) {
 	if mv != "" {
 		switch op {
 
 		case "y":
-			b := ed.Buf()
-			start := b.Loc
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
 			if ok {
-				meta, ok := MoveMetas[cmd.Kind]
-				if !ok {
-					return Cmd{}, false
-				}
-				end, ok := ed.RunMove(cmd)
-				if !ok {
-					return Cmd{}, false
-				}
-				if meta.Linewise {
-					return Cmd{
-						Kind:  CmdOpCopyLineRegion,
-						Reg:   reg,
-						Start: start,
-						End:   end,
-					}, true
-				} else {
-					return Cmd{
-						Kind:      CmdOpCopyRegion,
-						Reg:       reg,
-						Start:     start,
-						End:       end,
-						Inclusive: meta.Inclusive,
-					}, true
-				}
+				return CmdPair{
+					Reg:  reg,
+					Main: Cmd{Kind: CmdOpCopyRegion},
+					Sub:  cmd,
+				}, true
 			}
-			return Cmd{}, false
+			return CmdPair{}, false
 		case "d":
-			b := ed.Buf()
-			start := b.Loc
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
 			if ok {
-				meta, ok := MoveMetas[cmd.Kind]
-				if !ok {
-					return Cmd{}, false
-				}
-				end, ok := ed.RunMove(cmd)
-				if !ok {
-					return Cmd{}, false
-				}
-				if meta.Linewise {
-					return Cmd{
-						Kind:  CmdOpDeleteLineRegion,
-						Reg:   reg,
-						Start: start,
-						End:   end,
-					}, true
-				} else {
-					return Cmd{
-						Kind:      CmdOpDeleteRegion,
-						Reg:       reg,
-						Start:     start,
-						End:       end,
-						Inclusive: meta.Inclusive,
-					}, true
-				}
+				return CmdPair{
+					Reg:  reg,
+					Main: Cmd{Kind: CmdOpDeleteRegion},
+					Sub:  cmd,
+				}, true
 			}
-			return Cmd{}, false
+			return CmdPair{}, false
 		case "c":
-			b := ed.Buf()
-			start := b.Loc
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
 			if cmd.Kind == CmdMoveByWord {
 				cmd.Kind = CmdMoveByWordEx
 			}
 			if ok {
-				meta, ok := MoveMetas[cmd.Kind]
-				if !ok {
-					return Cmd{}, false
-				}
-				end, ok := ed.RunMove(cmd)
-				if !ok {
-					return Cmd{}, false
-				}
-				if meta.Linewise {
-					return Cmd{
-						Kind:  CmdOpChangeLineRegion,
-						Reg:   reg,
-						Start: start,
-						End:   end,
-					}, true
-				} else {
-					return Cmd{
-						Kind:      CmdOpChangeRegion,
-						Reg:       reg,
-						Start:     start,
-						End:       end,
-						Inclusive: meta.Inclusive,
-					}, true
-				}
+				return CmdPair{
+					Reg:  reg,
+					Main: Cmd{Kind: CmdOpChangeRegion},
+					Sub:  cmd,
+				}, true
 			}
-			return Cmd{}, false
+			return CmdPair{}, false
 
 		}
 	}
@@ -208,117 +145,150 @@ func (ed *Editor) ParseOp(
 	switch op {
 
 	case "yy", "Y":
-		return Cmd{Kind: CmdOpCopyLine, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpCopyLine, Num: num},
+		}, true
 	case "yw":
-		return Cmd{Kind: CmdOpCopyWord, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpCopyWord, Num: num},
+		}, true
 	case "y$":
-		return Cmd{Kind: CmdOpCopyToEnd, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpCopyToEnd, Num: num},
+		}, true
 
 	case "p":
-		return Cmd{Kind: CmdOpPaste, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpPaste, Num: num},
+		}, true
 	case "P":
-		return Cmd{Kind: CmdOpPasteBefore, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpPasteBefore, Num: num},
+		}, true
 
 	case "x":
-		return Cmd{Kind: CmdOpDelete, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpDelete, Num: num},
+		}, true
 	case "X":
-		return Cmd{Kind: CmdOpDeleteBefore, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpDeleteBefore, Num: num},
+		}, true
 	case "dd":
-		return Cmd{Kind: CmdOpDeleteLine, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpDeleteLine, Num: num},
+		}, true
 	case "dw":
-		return Cmd{Kind: CmdOpDeleteWord, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpDeleteWord, Num: num},
+		}, true
 	case "d$", "D":
-		return Cmd{Kind: CmdOpDeleteToEnd, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpDeleteToEnd, Num: num},
+		}, true
 
 	case "cc":
-		return Cmd{Kind: CmdOpChangeLine, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpChangeLine, Num: num},
+		}, true
 	case "cw":
-		return Cmd{Kind: CmdOpChangeWord, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpChangeWord, Num: num},
+		}, true
 	case "C":
-		return Cmd{Kind: CmdOpChangeToEnd, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpChangeToEnd, Num: num},
+		}, true
 	case "s":
-		return Cmd{Kind: CmdOpSubst, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpSubst, Num: num},
+		}, true
 	case "S":
-		return Cmd{Kind: CmdOpSubstLine, Reg: reg, Num: num}, true
+		return CmdPair{
+			Reg:  reg,
+			Main: Cmd{Kind: CmdOpSubstLine, Num: num},
+		}, true
 
 	}
 
-	return Cmd{}, false
+	return CmdPair{}, false
 }
 
 func (ed *Editor) ParseEdit(
 	num int, op string, noSubnum bool, subnum int, mv string, letter rune,
-) (Cmd, bool) {
+) (CmdPair, bool) {
 	switch op {
 
 	case "J":
-		return Cmd{Kind: CmdEditJoin, Num: num}, true
+		return CmdPair{
+			Main: Cmd{Kind: CmdEditJoin, Num: num},
+		}, true
 
 	case ">>":
-		return Cmd{Kind: CmdEditIndent, Num: num}, true
+		return CmdPair{
+			Main: Cmd{Kind: CmdEditIndent, Num: num},
+		}, true
 	case "<<":
-		return Cmd{Kind: CmdEditOutdent, Num: num}, true
+		return CmdPair{
+			Main: Cmd{Kind: CmdEditOutdent, Num: num},
+		}, true
 
 	case ">":
-		b := ed.Buf()
-		start := b.Loc
 		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
 		if ok {
 			meta, ok := MoveMetas[cmd.Kind]
 			if !ok {
-				return Cmd{}, false
-			}
-			end, ok := ed.RunMove(cmd)
-			if !ok {
-				return Cmd{}, false
+				return CmdPair{}, false
 			}
 			if meta.Linewise {
-				return Cmd{
-					Kind:  CmdEditIndentRegion,
-					Start: start,
-					End:   end,
+				return CmdPair{
+					Main: Cmd{Kind: CmdEditIndentRegion},
+					Sub:  cmd,
 				}, true
 			} else {
-				return Cmd{
-					Kind:      CmdEditIndentRegion,
-					Start:     start,
-					End:       end,
-					Inclusive: meta.Inclusive,
+				return CmdPair{
+					Main: Cmd{Kind: CmdEditIndentRegion},
+					Sub:  cmd,
 				}, true
 			}
 		}
-		return Cmd{}, false
+		return CmdPair{}, false
 	case "<":
-		b := ed.Buf()
-		start := b.Loc
 		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
 		if ok {
 			meta, ok := MoveMetas[cmd.Kind]
 			if !ok {
-				return Cmd{}, false
-			}
-			end, ok := ed.RunMove(cmd)
-			if !ok {
-				return Cmd{}, false
+				return CmdPair{}, false
 			}
 			if meta.Linewise {
-				return Cmd{
-					Kind:  CmdEditOutdentRegion,
-					Start: start,
-					End:   end,
+				return CmdPair{
+					Main: Cmd{Kind: CmdEditOutdentRegion},
+					Sub:  cmd,
 				}, true
 			} else {
-				return Cmd{
-					Kind:      CmdEditOutdentRegion,
-					Start:     start,
-					End:       end,
-					Inclusive: meta.Inclusive,
+				return CmdPair{
+					Main: Cmd{Kind: CmdEditOutdentRegion},
+					Sub:  cmd,
 				}, true
 			}
 		}
-		return Cmd{}, false
+		return CmdPair{}, false
 
 	}
 
-	return Cmd{}, false
+	return CmdPair{}, false
 }

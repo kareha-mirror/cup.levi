@@ -48,35 +48,35 @@ func (ed *Editor) MainCommand(key termi.Key) {
 
 		c, ok := ed.Parse()
 		if ok {
-			if _, ok := InsertCmds[c.Kind]; ok {
+			if _, ok := InsertCmds[c.Main.Kind]; ok {
 				ed.BeginRecordForUndo()
-			} else if _, ok := EditCmds[c.Kind]; ok {
+			} else if _, ok := EditCmds[c.Main.Kind]; ok {
 				ed.BeginRecordForUndo()
 			}
 			if ed.Run(c, false) {
-				if _, ok := InsertCmds[c.Kind]; ok {
+				if _, ok := InsertCmds[c.Main.Kind]; ok {
 					ed.lastCmd = c
-				} else if _, ok := EditCmds[c.Kind]; ok {
+				} else if _, ok := EditCmds[c.Main.Kind]; ok {
 					ed.EndRecordForUndo()
 					ed.lastCmd = c
 				}
 				ed.parser.Reset()
 			} else {
-				if _, ok := InsertCmds[c.Kind]; ok {
+				if _, ok := InsertCmds[c.Main.Kind]; ok {
 					ed.CancelRecordForUndo()
-				} else if _, ok := EditCmds[c.Kind]; ok {
+				} else if _, ok := EditCmds[c.Main.Kind]; ok {
 					ed.CancelRecordForUndo()
 				}
 			}
 		}
 	case termi.KeyUp:
-		ed.Run(Cmd{Kind: CmdMoveUp, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveUp, Num: 1}}, false)
 	case termi.KeyDown:
-		ed.Run(Cmd{Kind: CmdMoveDown, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveDown, Num: 1}}, false)
 	case termi.KeyRight:
-		ed.Run(Cmd{Kind: CmdMoveRight, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveRight, Num: 1}}, false)
 	case termi.KeyLeft:
-		ed.Run(Cmd{Kind: CmdMoveLeft, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveLeft, Num: 1}}, false)
 	default:
 		ed.Ring("unknown key")
 	}
@@ -96,13 +96,13 @@ func (ed *Editor) MainInsert(key termi.Key) {
 			ed.InputWriteRune(key.Rune)
 		}
 	case termi.KeyUp:
-		ed.Run(Cmd{Kind: CmdMoveUp, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveUp, Num: 1}}, false)
 	case termi.KeyDown:
-		ed.Run(Cmd{Kind: CmdMoveDown, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveDown, Num: 1}}, false)
 	case termi.KeyRight:
-		ed.Run(Cmd{Kind: CmdMoveRight, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveRight, Num: 1}}, false)
 	case termi.KeyLeft:
-		ed.Run(Cmd{Kind: CmdMoveLeft, Num: 1}, false)
+		ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveLeft, Num: 1}}, false)
 	default:
 		ed.Error("Unknown key")
 	}
@@ -148,13 +148,13 @@ func (ed *Editor) MainSearch(key termi.Key) {
 		case termi.RuneEnter, termi.RuneNewline:
 			if ed.search.pattern.Len() < 1 {
 				if ed.search.backward {
-					ed.Run(Cmd{
+					ed.Run(CmdPair{Main: Cmd{
 						Kind: CmdMoveSearchRepeatBackward,
-					}, false)
+					}}, false)
 				} else {
-					ed.Run(Cmd{
+					ed.Run(CmdPair{Main: Cmd{
 						Kind: CmdMoveSearchRepeatForward,
-					}, false)
+					}}, false)
 				}
 				return
 			}
@@ -166,9 +166,9 @@ func (ed *Editor) MainSearch(key termi.Key) {
 			ed.search.regexp = re
 			ed.search.pattern.Reset()
 			if ed.search.backward {
-				ed.Run(Cmd{Kind: CmdMoveSearchBackward}, false)
+				ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveSearchBackward}}, false)
 			} else {
-				ed.Run(Cmd{Kind: CmdMoveSearchForward}, false)
+				ed.Run(CmdPair{Main: Cmd{Kind: CmdMoveSearchForward}}, false)
 			}
 		case termi.RuneBackspace, termi.RuneDelete:
 			if !ed.search.pattern.RemoveTail() {

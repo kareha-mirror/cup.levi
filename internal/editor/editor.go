@@ -39,7 +39,7 @@ type Editor struct {
 	search   Search
 	find     Find
 	regs     Regs
-	lastCmd  Cmd
+	lastCmd  CmdPair
 
 	// screen
 	w, h     int
@@ -209,9 +209,10 @@ func (ed *Editor) Commit() {
 		ed.mode = ModeCommand
 
 		// if number prefix is supplied, repeat insertion
-		if _, ok := MultiInsertCmds[ed.lastCmd.Kind]; ok && ed.lastCmd.Num > 1 {
+		if _, ok :=
+			MultiInsertCmds[ed.lastCmd.Main.Kind]; ok && ed.lastCmd.Main.Num > 1 {
 			cmd := ed.lastCmd
-			cmd.Num--
+			cmd.Main.Num--
 			ed.Run(cmd, true) // replay
 		} else {
 			// or finish insertion
