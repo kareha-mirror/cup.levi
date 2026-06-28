@@ -34,7 +34,7 @@ func (ed *Editor) OpCopyRegion(
 ) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
-	lines := b.RegionLines(start, end)
+	lines := b.RegionRunewise(start, end)
 	ed.regs.ApplyRunes(reg, lines)
 	b.Loc = start
 }
@@ -123,9 +123,8 @@ func (ed *Editor) OpPaste(reg string, n int) {
 			lines = append(lines, string(rs))
 
 			if len(killed) > 2 {
-				lines = append(lines, killed[1:len(killed)-2]...)
+				lines = append(lines, killed[1:len(killed)-1]...)
 			}
-
 			rs = []rune(killed[len(killed)-1])
 			if b.Loc.Col+1 < len(runes) {
 				rs = append(rs, runes[b.Loc.Col+1:]...)
@@ -197,7 +196,7 @@ func (ed *Editor) OpPasteBefore(reg string, n int) {
 
 			if len(killed) > 2 {
 				lines = append(
-					lines, killed[1:len(killed)-2]...,
+					lines, killed[1:len(killed)-1]...,
 				)
 			}
 
@@ -297,7 +296,7 @@ func (ed *Editor) OpDeleteRegion(
 ) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
-	lines := b.RegionLines(start, end)
+	lines := b.RegionRunewise(start, end)
 	ed.regs.ApplyRunes(reg, lines)
 
 	lines = append([]string{}, b.Lines[:start.Row]...)

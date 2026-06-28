@@ -6,7 +6,8 @@ import (
 	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
-func (b *Buf) SkipBlankLines(loc Loc) (Loc, bool) {
+// not inclusive
+func (b *Buf) SkipBlanks(loc Loc) (Loc, bool) {
 	numLines := b.NumLines()
 	for loc.Row < numLines {
 		col := 0
@@ -20,32 +21,44 @@ func (b *Buf) SkipBlankLines(loc Loc) (Loc, bool) {
 		loc.Row++
 		loc.Col = 0
 	}
+	// confine row inclusive
 	loc.Row = max(numLines-1, 0)
 	loc.Col = utf8.RuneCountInString(b.Line(loc.Row))
 	return loc, false
 }
 
-func (b *Buf) SkipBackwardBlankLines(loc Loc) (Loc, bool) {
+// row is inclusive
+// col is not inclusive
+func (b *Buf) SkipBackwardBlanks(loc Loc) (Loc, bool) {
+	first := true
 	for loc.Row >= 0 {
-		rs := []rune(b.Line(loc.Row))
-		if len(rs) > 0 {
-			for col := loc.Col; col >= 0; col-- {
-				r := rs[col]
-				if !rkind.IsBlank(r) {
-					loc.Col = col
-					return loc, true
-				}
+		line := b.Line(loc.Row)
+		col := utf8.RuneCountInString(line)
+		if !first {
+			loc.Col = col
+		}
+		for len(line) > 0 {
+			col--
+			r, size := utf8.DecodeLastRuneInString(line)
+			line = line[:len(line)-size]
+			if col > loc.Col {
+				continue
+			}
+			if !rkind.IsBlank(r) {
+				loc.Col = col
+				return loc, true
 			}
 		}
 		loc.Row--
-		rc := utf8.RuneCountInString(b.Line(loc.Row))
-		loc.Col = max(rc-1, 0)
+		first = false
 	}
 	loc.Row = 0
 	loc.Col = 0
 	return loc, false
 }
 
+// input is inclusive
+// output is not inclusive
 func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
 	rs := []rune(b.Line(loc.Row))
 	if len(rs) < 1 {
@@ -76,9 +89,11 @@ func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
 	return loc, loc.Col < len(rs)
 }
 
+// input is inclusive
+// output is not inclusive
 func (b *Buf) MoveByWordEx(loc Loc) (Loc, bool) {
 	rs := []rune(b.Line(loc.Row))
-	if len(rs) < 1 {
+	if len(rs) < 1 || loc.Col >= len(rs) {
 		return loc, false
 	}
 	kind := rkind.Kind(rs[loc.Col])
@@ -93,6 +108,7 @@ func (b *Buf) MoveByWordEx(loc Loc) (Loc, bool) {
 	return loc, loc.Col < len(rs)
 }
 
+// inclusive
 func (b *Buf) MoveBackwardByWord(loc Loc) (Loc, bool) {
 	rs := []rune(b.Line(loc.Row))
 	if len(rs) < 1 {

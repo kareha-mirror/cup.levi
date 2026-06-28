@@ -171,6 +171,9 @@ func (ed *Editor) ParseOp(
 			b := ed.Buf()
 			start := b.Loc
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+			if cmd.Kind == CmdMoveByWord {
+				cmd.Kind = CmdMoveByWordEx
+			}
 			if ok {
 				meta, ok := MoveMetas[cmd.Kind]
 				if !ok {

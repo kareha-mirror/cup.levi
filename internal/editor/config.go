@@ -13,11 +13,12 @@ type Config struct {
 	AutoIndent bool `yaml:"auto-indent"`
 	TabStop    int  `yaml:"tab-stop"`
 
+	CRLF   bool   `yaml:"crlf"`
 	Colors string `yaml:"colors"`
 	Silent bool   `yaml:"silent"`
 	Shared string `yaml:"shared"`
 
-	EscTimeout int `yaml:"esc-timeout"`
+	EscapeTimeout int `yaml:"escape-timeout"`
 }
 
 func DefaultConfig() *Config {
@@ -25,11 +26,12 @@ func DefaultConfig() *Config {
 		AutoIndent: true,
 		TabStop:    4,
 
+		CRLF:   false,
 		Colors: "standard",
 		Silent: false,
 		Shared: "xyz",
 
-		EscTimeout: 100,
+		EscapeTimeout: 100,
 	}
 }
 

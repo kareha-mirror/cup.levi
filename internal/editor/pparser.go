@@ -118,6 +118,12 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		)
 		return Pcmd{Kind: PcmdInvalid}, false
 
+	case "nl", "newline":
+		if len(parts) > 1 {
+			return Pcmd{Kind: PcmdNewline, Name: parts[1]}, true
+		} else {
+			return Pcmd{Kind: PcmdNewline}, true
+		}
 	case "col", "colors", "colorscheme":
 		if len(parts) > 1 {
 			return Pcmd{Kind: PcmdColors, Name: parts[1]}, true

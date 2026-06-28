@@ -74,9 +74,7 @@ func (ed *Editor) PromptSaveAndQuit() {
 		return
 	}
 	if b.Modified && b.Path != "" {
-		err := ed.Save(false)
-		if err != nil {
-			ed.Error("%v", err)
+		if !ed.Save(false) {
 			return
 		}
 	}
@@ -87,16 +85,12 @@ func (ed *Editor) PromptSaveAndQuit() {
 // :w Enter : Save current file.
 func (ed *Editor) PromptSave(name string) {
 	if name == "" {
-		err := ed.Save(false)
-		if err != nil {
-			ed.Error("%v", err)
+		if !ed.Save(false) {
 			return
 		}
 		return
 	}
-	err := ed.SaveAs(name, false)
-	if err != nil {
-		ed.Error("%v", err)
+	if !ed.SaveAs(name, false) {
 		return
 	}
 }
@@ -104,16 +98,12 @@ func (ed *Editor) PromptSave(name string) {
 // :w! Enter : Force save current file.
 func (ed *Editor) PromptForceSave(name string) {
 	if name == "" {
-		err := ed.Save(true)
-		if err != nil {
-			ed.Error("%v", err)
+		if !ed.Save(true) {
 			return
 		}
 		return
 	}
-	err := ed.SaveAs(name, true)
-	if err != nil {
-		ed.Error("%v", err)
+	if !ed.SaveAs(name, true) {
 		return
 	}
 }
@@ -141,9 +131,7 @@ func (ed *Editor) PromptForceQuit() {
 
 // :e Enter : Open file.
 func (ed *Editor) PromptOpen(name string) {
-	err := ed.Load(name, false)
-	if err != nil {
-		ed.Error("%v", err)
+	if !ed.Load(name, false) {
 		return
 	}
 	ed.ShowFileInfo()
@@ -151,9 +139,7 @@ func (ed *Editor) PromptOpen(name string) {
 
 // :e! Enter : Force open file.
 func (ed *Editor) PromptForceOpen(name string) {
-	err := ed.Load(name, true)
-	if err != nil {
-		ed.Error("%v", err)
+	if !ed.Load(name, true) {
 		return
 	}
 	ed.ShowFileInfo()
@@ -227,10 +213,31 @@ func (ed *Editor) PromptNoAutoIndent() {
 	ed.cfg.AutoIndent = false
 }
 
+// :newline Enter
+func (ed *Editor) PromptNewline(name string) {
+	switch name {
+	case "":
+		if ed.Buf().CRLF {
+			ed.Message("Newline is CRLF (Windows)")
+		} else {
+			ed.Message("Newline is LF (Unix)")
+		}
+	case "unix", "u", "linux", "lin", "l", "bsd", "b", "mac", "m":
+		ed.Buf().CRLF = false
+		ed.PromptNewline("")
+	case "windows", "win", "w", "dos", "d":
+		ed.Buf().CRLF = true
+		ed.PromptNewline("")
+	default:
+		ed.Error("Please specify unix or windows")
+	}
+}
+
 // :colors Enter
 func (ed *Editor) PromptColors(name string) {
+	// colors . : parse and load colorscheme from current buffer
 	if name == "." {
-		colors, err := colors.Parse(ed.Buf().Text())
+		colors, err := colors.Parse(ed.Buf().Text(false))
 		if err != nil {
 			ed.Error("%v", err)
 			return
@@ -246,11 +253,13 @@ func (ed *Editor) PromptColors(name string) {
 		return
 	}
 
+	// colors : list registered colorschemes
 	if name == "" {
 		ed.Message(strings.Join(list.Names, " "))
 		return
 	}
 
+	// colors <name> : locad colorscheme from list
 	colors, err := list.Load(name)
 	if err != nil {
 		ed.Error("%v", err)
@@ -260,12 +269,15 @@ func (ed *Editor) PromptColors(name string) {
 	ed.redraw = true
 }
 
-// :colors Enter
+// :hello Enter
 func (ed *Editor) PromptHello(n int) {
+	// hello : show Hello, World!
 	if n < 1 {
 		ed.Message("Hello, World!")
 		return
 	}
+
+	// hello <num> : show list of numbers
 	for i := 1; i <= n; i++ {
 		ed.Message("%d", i)
 	}

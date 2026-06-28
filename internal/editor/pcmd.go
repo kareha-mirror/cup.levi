@@ -36,6 +36,7 @@ const (
 	PcmdAutoIndent
 	PcmdNoAutoIndent
 
+	PcmdNewline
 	PcmdColors
 
 	PcmdHello // XXX debug

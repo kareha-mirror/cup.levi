@@ -89,7 +89,8 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	ed.regs.SyncWithConfig(ed.cfg)
 
 	// preferences
-	termi.EscapeTimeout = time.Duration(ed.cfg.EscTimeout) * time.Millisecond
+	termi.EscapeTimeout =
+		time.Duration(ed.cfg.EscapeTimeout) * time.Millisecond
 	termi.TabWidth = ed.cfg.TabStop
 
 	// init terminal framework and terminal state
@@ -115,9 +116,7 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	// load files if supplied
 	for _, path := range paths {
 		ed.NewBuf()
-		err := ed.Load(path, true)
-		if err != nil {
-			ed.Error("%v", err)
+		if !ed.Load(path, true) {
 			ed.Close(true)
 			continue
 		}

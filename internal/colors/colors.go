@@ -13,6 +13,8 @@ import (
 	"tea.kareha.org/cup/termi"
 )
 
+const dotYAML = ".yaml"
+
 //go:embed custom.yaml
 var CustomConfig string
 
@@ -81,8 +83,8 @@ func ListCustoms(cfgDir string) ([]string, error) {
 			continue
 		}
 		name := e.Name()
-		if strings.HasSuffix(name, ".yaml") {
-			name = name[:len(name)-5]
+		if strings.HasSuffix(name, dotYAML) {
+			name = name[:len(name)-len(dotYAML)]
 		}
 		names = append(names, name)
 	}
@@ -101,8 +103,8 @@ func ListBuiltins() ([]string, error) {
 			continue
 		}
 		name := e.Name()
-		if strings.HasSuffix(name, ".yaml") {
-			name = name[:len(name)-5]
+		if strings.HasSuffix(name, dotYAML) {
+			name = name[:len(name)-len(dotYAML)]
 		}
 		names = append(names, name)
 	}
@@ -161,7 +163,7 @@ func ParseConfig(b []byte) (*Config, error) {
 }
 
 func LoadCustom(cfgDir string, name string) (*Config, error) {
-	path := filepath.Join(cfgDir, "colors", name+".yaml")
+	path := filepath.Join(cfgDir, "colors", name+dotYAML)
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -170,7 +172,7 @@ func LoadCustom(cfgDir string, name string) (*Config, error) {
 }
 
 func LoadBuiltin(name string) (*Config, error) {
-	path := filepath.Join("colors", name+".yaml")
+	path := filepath.Join("colors", name+dotYAML)
 	b, err := fs.ReadFile(BuiltinsFS, path)
 	if err != nil {
 		return nil, err

@@ -1,5 +1,10 @@
 package buf
 
+import (
+	"unicode/utf8"
+)
+
+// not care if inclusive or not
 func OrderRegion(start, end Loc) (Loc, Loc) {
 	if start.Row < end.Row {
 		return start, end
@@ -14,16 +19,23 @@ func OrderRegion(start, end Loc) (Loc, Loc) {
 	return end, start
 }
 
+// inclusive or not selectable
 func (b *Buf) ConfineRegion(start, end Loc, inclusive bool) (Loc, Loc) {
 	start, end = OrderRegion(start, end)
 	if inclusive {
 		return b.ConfineInclusive(start), b.ConfineInclusive(end)
-	} else {
-		return b.ConfineInclusive(start), b.Confine(end)
 	}
+	// XXX start should be inclusive or not?
+	start, end = b.Confine(start), b.Confine(end)
+	if start.Row < end.Row && end.Col < 1 {
+		end.Row--
+		end.Col = utf8.RuneCountInString(b.Line(end.Row))
+	}
+	return start, end
 }
 
-func (b *Buf) RegionLines(start, end Loc) []string {
+// not inclusive
+func (b *Buf) RegionRunewise(start, end Loc) []string {
 	if start.Row == end.Row {
 		rs := []rune(b.Line(start.Row))
 		return []string{string(rs[start.Col:end.Col])}

@@ -136,6 +136,10 @@ func (ed *Editor) ShowStatOfInserted() {
 	numLines := len(ed.inserted)
 	numBytes := numLines - 1
 	numRunes := numLines - 1
+	if ed.Buf().CRLF {
+		numBytes *= 2
+		numRunes *= 2
+	}
 	for _, line := range ed.inserted {
 		numBytes += len(line)
 		numRunes += utf8.RuneCountInString(line)

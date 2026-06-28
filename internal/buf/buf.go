@@ -23,15 +23,19 @@ type Stamp struct {
 }
 
 type Buf struct {
-	Loc      Loc
-	ViewLoc  Loc
-	VirtCol  int // 0-based
-	Pos      Pos
+	Loc     Loc
+	ViewLoc Loc
+	VirtCol int // 0-based
+	Pos     Pos
+
 	Lines    []string
-	Path     string
 	Modified bool
-	Stamp    Stamp
-	NewFile  bool
+
+	Path    string
+	Stamp   Stamp
+	NewFile bool
+	CRLF    bool
+
 	Marks    map[rune]Loc
 	Snapshot []string
 }
@@ -41,16 +45,20 @@ func (b *Buf) NumLines() int {
 }
 
 func (b *Buf) Line(row int) string {
+	// empty case
 	if len(b.Lines) < 1 {
 		return ""
 	}
+
 	return b.Lines[row]
 }
 
 func (b *Buf) SetLine(row int, line string) {
+	// lazy init on empty case
 	if len(b.Lines) < 1 {
 		b.Lines = append(b.Lines, "")
 	}
+
 	b.Lines[row] = line
 }
 
@@ -62,28 +70,51 @@ func (b *Buf) SetCurrentLine(line string) {
 	b.SetLine(b.Loc.Row, line)
 }
 
-func (b *Buf) Text() string {
+func lineSep(crlf bool) string {
+	if crlf {
+		return "\r\n"
+	} else {
+		return "\n"
+	}
+}
+
+func (b *Buf) Text(crlf bool) string {
+	// empty case
 	if len(b.Lines) < 1 {
 		return ""
 	}
-	return strings.Join(b.Lines, "\n") + "\n"
+
+	sep := lineSep(crlf)
+	return strings.Join(b.Lines, sep) + sep
 }
 
 func (b *Buf) SetText(text string) {
+	// empty case
 	if len(text) < 1 {
 		b.Lines = b.Lines[:0]
-	} else {
-		// should also support CRLF or not?
-		if text[len(text)-1] == '\n' {
-			text = text[:len(text)-1]
-		}
-		b.Lines = strings.Split(text, "\n")
+		return
 	}
+
+	// clip last newline if exists
+	if text[len(text)-1] == '\n' {
+		text = text[:len(text)-1]
+		b.CRLF = false
+		if len(text) > 0 && text[len(text)-1] == '\r' {
+			text = text[:len(text)-1]
+			b.CRLF = true
+		}
+	} else if strings.Index(text, "\r\n") >= 0 {
+		b.CRLF = true
+	}
+
+	b.Lines = strings.Split(text, lineSep(b.CRLF))
 }
 
 func (b *Buf) Mark(r rune) {
+	// lazy init
 	if b.Marks == nil {
 		b.Marks = map[rune]Loc{}
 	}
+
 	b.Marks[r] = b.Loc
 }

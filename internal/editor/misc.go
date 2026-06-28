@@ -27,6 +27,10 @@ func (ed *Editor) MiscShowInfo() {
 	if numLines > 0 {
 		numBytes := numLines
 		numRunes := numLines
+		if b.CRLF {
+			numBytes *= 2
+			numRunes *= 2
+		}
 		for _, line := range b.Lines {
 			numBytes += len(line)
 			numRunes += utf8.RuneCountInString(line)
@@ -88,9 +92,7 @@ func (ed *Editor) MiscSaveAndQuit() {
 			ed.Ring("File is a temporary; exit will discard modifications")
 			return
 		} else {
-			err := ed.Save(false)
-			if err != nil {
-				ed.Error("%v", err)
+			if !ed.Save(false) {
 				return
 			}
 		}

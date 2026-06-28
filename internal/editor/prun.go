@@ -63,6 +63,9 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 		ed.PromptNoAutoIndent()
 		return true
 
+	case PcmdNewline:
+		ed.PromptNewline(c.Name)
+		return true
 	case PcmdColors:
 		ed.PromptColors(c.Name)
 		return true

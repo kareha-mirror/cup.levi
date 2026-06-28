@@ -134,7 +134,7 @@ func (ed *Editor) MoveByWord(n int) (buf.Loc, bool) {
 		}
 		loc.Row++
 		loc.Col = 0
-		if loc, found = b.SkipBlankLines(loc); !found {
+		if loc, found = b.SkipBlanks(loc); !found {
 			return loc, true
 		}
 	}
@@ -154,7 +154,12 @@ func (ed *Editor) MoveByWordEx(n int) (buf.Loc, bool) {
 		if loc, found = b.MoveByWordEx(loc); found {
 			continue
 		}
-		return loc, true
+		if n < 2 {
+			return loc, true
+		}
+		loc.Row++
+		loc.Col = 0
+		loc, _ = b.SkipBlanks(loc)
 	}
 	return loc, true
 }
@@ -180,7 +185,7 @@ func (ed *Editor) MoveBackwardByWord(n int) (buf.Loc, bool) {
 			rc := utf8.RuneCountInString(line)
 			loc.Col = max(rc-1, 0)
 		}
-		if loc, found = b.SkipBackwardBlankLines(loc); !found {
+		if loc, found = b.SkipBackwardBlanks(loc); !found {
 			return loc, true
 		}
 		if loc, found = b.MoveBackwardByWord(loc); !found {

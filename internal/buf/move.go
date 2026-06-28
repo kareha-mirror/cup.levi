@@ -20,6 +20,7 @@ func (b *Buf) CheckRowInclusive(row int) bool {
 	return false
 }
 
+// not inclusive
 func (b *Buf) ConfineRow(row int) int {
 	if row < 0 {
 		return 0
@@ -31,6 +32,7 @@ func (b *Buf) ConfineRow(row int) int {
 	return row
 }
 
+// not inclusive
 func (b *Buf) ConfineCol(loc Loc) int {
 	if loc.Col < 0 {
 		return 0
@@ -42,6 +44,7 @@ func (b *Buf) ConfineCol(loc Loc) int {
 	return loc.Col
 }
 
+// not inclusive
 func (b *Buf) Confine(loc Loc) Loc {
 	loc.Row = b.ConfineRow(loc.Row)
 	loc.Col = b.ConfineCol(loc)

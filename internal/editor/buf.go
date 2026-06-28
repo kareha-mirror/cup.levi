@@ -1,7 +1,6 @@
 package editor
 
 import (
-	"fmt"
 	"os"
 	"unicode/utf8"
 
@@ -9,13 +8,18 @@ import (
 )
 
 func (ed *Editor) NewBuf() {
-	b := &buf.Buf{NewFile: true}
+	b := &buf.Buf{
+		NewFile: true,
+		CRLF:    ed.cfg.CRLF,
+	}
+
 	if ed.bufIdx < len(ed.bufs) {
 		ed.bufs[ed.bufIdx] = b
 	} else {
 		ed.bufs = append(ed.bufs, b)
 		ed.bufIdx = len(ed.bufs) - 1
 	}
+
 	ed.redraw = true
 }
 
@@ -33,42 +37,47 @@ func (ed *Editor) CheckQuit() {
 	}
 }
 
-func (ed *Editor) Close(force bool) {
+func (ed *Editor) Close(force bool) bool {
 	if !force && ed.Buf().Modified {
 		ed.Ring(
 			"File modified since last complete write;" +
 				" write or use ! to override.",
 		)
-		return
+		return false
 	}
+
 	bufs := append([]*buf.Buf{}, ed.bufs[:ed.bufIdx]...)
 	if ed.bufIdx+1 < len(ed.bufs) {
 		bufs = append(bufs, ed.bufs[ed.bufIdx+1:]...)
 	}
 	ed.bufs = bufs
-	n := len(ed.bufs)
-	if ed.bufIdx >= n {
-		ed.bufIdx = max(n-1, 0)
+
+	numBufs := len(ed.bufs)
+	if ed.bufIdx >= numBufs {
+		ed.bufIdx = max(numBufs-1, 0)
 	}
+
+	return true
 }
 
-func (ed *Editor) Load(path string, force bool) error {
+func (ed *Editor) Load(path string, force bool) bool {
 	if !force && ed.Buf().Modified {
 		ed.Ring(
 			"File modified since last complete write;" +
 				" write or use ! to override.",
 		)
-		return fmt.Errorf("file modified")
+		return false
 	}
+
 	ed.NewBuf()
 	b := ed.Buf()
 	b.Path = path
 	if path == "" {
-		return nil
+		return true
 	}
 	info, err := os.Stat(path)
 	if err != nil {
-		return nil
+		return true
 	}
 	stamp := buf.Stamp{
 		Time: info.ModTime(),
@@ -77,19 +86,21 @@ func (ed *Editor) Load(path string, force bool) error {
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		ed.Error("%v", err)
+		return false
 	}
 	b.SetText(string(data))
 	b.Stamp = stamp
 	b.NewFile = false
 	b.Modified = false
-	return nil
+	b.Snapshot = nil
+	return true
 }
 
-func (ed *Editor) SaveAs(path string, force bool) error {
+func (ed *Editor) SaveAs(path string, force bool) bool {
 	if path == "" {
 		ed.Ring("No filename specified")
-		return fmt.Errorf("no filename specified")
+		return false
 	}
 	info, err := os.Stat(path)
 	newFile := ""
@@ -109,17 +120,19 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 				" use ! to override.",
 			path,
 		)
-		return fmt.Errorf("file modified more recently")
+		return false
 	}
 
-	text := b.Text()
+	text := b.Text(b.CRLF)
 	err = os.WriteFile(path, []byte(text), 0666)
 	if err != nil {
-		return err
+		ed.Error("%v", err)
+		return false
 	}
 	info, err = os.Stat(path)
 	if err != nil {
-		return err
+		ed.Error("%v", err)
+		return false
 	}
 	stamp = buf.Stamp{
 		Time: info.ModTime(),
@@ -139,9 +152,10 @@ func (ed *Editor) SaveAs(path string, force bool) error {
 	}
 	b.NewFile = false
 	b.Modified = false
-	return nil
+	b.Snapshot = nil
+	return true
 }
 
-func (ed *Editor) Save(force bool) error {
+func (ed *Editor) Save(force bool) bool {
 	return ed.SaveAs(ed.Buf().Path, force)
 }
