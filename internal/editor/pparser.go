@@ -129,6 +129,8 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 			return Pcmd{Kind: PcmdColors}, true
 		}
 
+	case "mem":
+		return Pcmd{Kind: PcmdMem}, true
 	case "hello":
 		if len(parts) > 1 {
 			n, err := strconv.ParseUint(parts[1], 10, 16)

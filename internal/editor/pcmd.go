@@ -39,5 +39,6 @@ const (
 	PcmdNewline
 	PcmdColors
 
+	PcmdMem   // XXX debug
 	PcmdHello // XXX debug
 )

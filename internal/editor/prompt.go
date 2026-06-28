@@ -1,6 +1,8 @@
 package editor
 
 import (
+	"fmt"
+	"runtime"
 	"strings"
 
 	"tea.kareha.org/cup/termi"
@@ -267,6 +269,22 @@ func (ed *Editor) PromptColors(name string) {
 	}
 	ed.colors = colors
 	ed.redraw = true
+}
+
+// :mem Enter
+func (ed *Editor) PromptMem() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	sb := strings.Builder{}
+
+	sb.WriteString(fmt.Sprintf("Alloc     = % 8d KiB\n", m.Alloc/1024))
+	sb.WriteString(fmt.Sprintf("HeapAlloc = % 8d KiB\n", m.HeapAlloc/1024))
+	sb.WriteString(fmt.Sprintf("HeapSys   = % 8d KiB\n", m.HeapSys/1024))
+	sb.WriteString(fmt.Sprintf("Sys       = % 8d KiB\n", m.Sys/1024))
+	sb.WriteRune('\n')
+	sb.WriteString(fmt.Sprintf("NumGC = %d\n", m.NumGC))
+
+	ed.Message(sb.String())
 }
 
 // :hello Enter

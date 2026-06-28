@@ -70,6 +70,9 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 		ed.PromptColors(c.Name)
 		return true
 
+	case PcmdMem:
+		ed.PromptMem()
+		return true
 	case PcmdHello:
 		ed.PromptHello(c.Num)
 		return true
