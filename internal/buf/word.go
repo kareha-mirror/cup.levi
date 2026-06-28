@@ -57,73 +57,114 @@ func (b *Buf) SkipBackwardBlanks(loc Loc) (Loc, bool) {
 	return loc, false
 }
 
-// input is inclusive
+// input row is inclusive
 // output is not inclusive
 func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
-	rs := []rune(b.Line(loc.Row))
-	if len(rs) < 1 {
+	line := b.Line(loc.Row)
+	if line == "" {
 		return loc, false
 	}
-	kind := rkind.Kind(rs[loc.Col])
+	for col := 0; line != ""; col++ {
+		if col >= loc.Col {
+			break
+		}
+		_, size := utf8.DecodeRuneInString(line)
+		line = line[size:]
+	}
+	r, size := utf8.DecodeRuneInString(line)
+	line = line[size:]
+	kind := rkind.Kind(r)
 	loc.Col++
 	k := kind
-	for ; loc.Col < len(rs); loc.Col++ {
-		k = rkind.Kind(rs[loc.Col])
+	for ; line != ""; loc.Col++ {
+		r, size = utf8.DecodeRuneInString(line)
+		k = rkind.Kind(r)
 		if k != kind {
 			break
 		}
+		line = line[size:]
 	}
-	if loc.Col >= len(rs) {
+	if line == "" {
 		return loc, false
 	}
 	if kind == rkind.Blank || k != rkind.Blank {
 		return loc, true
 	}
+	line = line[size:]
 	loc.Col++
-	for ; loc.Col < len(rs); loc.Col++ {
-		k = rkind.Kind(rs[loc.Col])
+	for ; line != ""; loc.Col++ {
+		r, size = utf8.DecodeRuneInString(line)
+		k = rkind.Kind(r)
 		if k != rkind.Blank {
 			break
 		}
+		line = line[size:]
 	}
-	return loc, loc.Col < len(rs)
+	return loc, line != ""
 }
 
-// input is inclusive
+// input row is inclusive
 // output is not inclusive
 func (b *Buf) MoveByWordEx(loc Loc) (Loc, bool) {
-	rs := []rune(b.Line(loc.Row))
-	if len(rs) < 1 || loc.Col >= len(rs) {
+	line := b.Line(loc.Row)
+	if line == "" {
 		return loc, false
 	}
-	kind := rkind.Kind(rs[loc.Col])
+	for col := 0; line != ""; col++ {
+		if col >= loc.Col {
+			break
+		}
+		_, size := utf8.DecodeRuneInString(line)
+		line = line[size:]
+	}
+	if line == "" {
+		return loc, false
+	}
+	r, size := utf8.DecodeRuneInString(line)
+	line = line[size:]
+	kind := rkind.Kind(r)
 	loc.Col++
 	k := kind
-	for ; loc.Col < len(rs); loc.Col++ {
-		k = rkind.Kind(rs[loc.Col])
+	for ; line != ""; loc.Col++ {
+		r, size = utf8.DecodeRuneInString(line)
+		k = rkind.Kind(r)
 		if k != kind {
 			break
 		}
+		line = line[size:]
 	}
-	return loc, loc.Col < len(rs)
+	return loc, line != ""
 }
 
-// inclusive
+// input row inclusive
+// output is not inclusive
 func (b *Buf) MoveBackwardByWord(loc Loc) (Loc, bool) {
-	rs := []rune(b.Line(loc.Row))
-	if len(rs) < 1 {
+	line := b.Line(loc.Row)
+	if line == "" {
 		return loc, false
 	}
-	kind := rkind.Kind(rs[loc.Col])
+	col := utf8.RuneCountInString(line)
+	for line != "" {
+		col--
+		if loc.Col >= col {
+			break
+		}
+		_, size := utf8.DecodeLastRuneInString(line)
+		line = line[:len(line)-size]
+	}
+	r, size := utf8.DecodeLastRuneInString(line)
+	line = line[:len(line)-size]
+	kind := rkind.Kind(r)
 	if kind == rkind.Blank {
 		return loc, false
 	}
-	for ; loc.Col >= 0; loc.Col-- {
-		k := rkind.Kind(rs[loc.Col])
+	for ; line != ""; loc.Col-- {
+		r, size = utf8.DecodeLastRuneInString(line)
+		k := rkind.Kind(r)
 		if k != kind {
 			break
 		}
+		line = line[:len(line)-size]
 	}
-	loc.Col++
 	return loc, true
 }
