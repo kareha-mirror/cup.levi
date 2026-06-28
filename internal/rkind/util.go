@@ -31,20 +31,18 @@ func IndentOf(line string) string {
 	return line
 }
 
-func EscapeRune(r rune) string {
-	if r < 0x20 {
-		return string([]rune{'^', r + '@'})
-	} else if r == 0x7f {
-		return "^?"
-	} else {
-		return string(r)
-	}
-}
-
 func Escape(s string) string {
 	b := strings.Builder{}
 	for _, r := range s {
-		b.WriteString(EscapeRune(r))
+		if r < 0x20 {
+			b.WriteRune('^')
+			b.WriteRune(r + '@')
+		} else if r == 0x7f {
+			b.WriteRune('^')
+			b.WriteRune('?')
+		} else {
+			b.WriteRune(r)
+		}
 	}
 	return b.String()
 }

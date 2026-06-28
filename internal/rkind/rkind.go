@@ -40,6 +40,7 @@ const (
 
 func Kind(r rune) RuneKind {
 	// not optimized
+	// don't optimize yet
 	switch {
 	case IsBlank(r):
 		return Blank
