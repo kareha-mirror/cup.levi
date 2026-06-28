@@ -76,3 +76,13 @@ func (b *Buf) NonBlankColOfLine(row int) int {
 	}
 	return col
 }
+
+// inclusive
+func (b *Buf) ConfineColVirtInclusive(row int) int {
+	rc := utf8.RuneCountInString(b.Line(row))
+	if b.VirtCol < rc {
+		return b.VirtCol
+	} else {
+		return max(rc-1, 0)
+	}
+}

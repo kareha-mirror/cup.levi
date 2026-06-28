@@ -1,9 +1,5 @@
 package editor
 
-import (
-	"unicode/utf8"
-)
-
 func (ed *Editor) Run(cp CmdPair, replay bool) bool {
 	ed.Commit()
 
@@ -18,13 +14,7 @@ func (ed *Editor) Run(cp CmdPair, replay bool) bool {
 			b := ed.Buf()
 			if meta.Linewise {
 				if meta.FreeCol {
-					line := b.Line(loc.Row)
-					rc := utf8.RuneCountInString(line)
-					if b.VirtCol < rc {
-						loc.Col = b.VirtCol
-					} else {
-						loc.Col = max(rc-1, 0)
-					}
+					loc.Col = b.ConfineColVirtInclusive(loc.Row)
 				}
 			} else {
 				loc = b.ConfineInclusive(loc)

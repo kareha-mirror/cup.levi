@@ -75,12 +75,44 @@ func (ed *Editor) ViewUpHalf(n int) {
 
 // Ctrl-Y : Scroll down by line.
 func (ed *Editor) ViewDownLine(n int) {
-	ed.Unimplemented("ViewDownLine")
+	ed.Commit()
+
+	b := ed.Buf()
+	if b.ViewLoc.Row < 1 {
+		return
+	}
+	b.ViewLoc.Row--
+	b.ViewLoc.Col = 0
+
+	if len(ed.viewMeta) < 1 {
+		return
+	}
+	meta := ed.viewMeta[len(ed.viewMeta)-1]
+	if b.Loc.Row >= meta.Loc.Row {
+		b.Loc.Row = max(b.Loc.Row-1, 0)
+		b.Loc.Col = b.ConfineColVirtInclusive(b.Loc.Row)
+	}
 }
 
 // Ctrl-E : Scroll up by line.
 func (ed *Editor) ViewUpLine(n int) {
-	ed.Unimplemented("ViewUpLine")
+	ed.Commit()
+
+	if len(ed.viewMeta) < 1 {
+		return
+	}
+	meta := ed.viewMeta[len(ed.viewMeta)-1]
+	b := ed.Buf()
+	if meta.Loc.Row >= b.NumLines()-1 {
+		return
+	}
+	b.ViewLoc.Row++
+	b.ViewLoc.Col = 0
+
+	if b.Loc.Row < b.ViewLoc.Row {
+		b.Loc.Row = b.ViewLoc.Row
+		b.Loc.Col = b.ConfineColVirtInclusive(b.Loc.Row)
+	}
 }
 
 //
