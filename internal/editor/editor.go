@@ -122,7 +122,6 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 			ed.Close(true)
 			continue
 		}
-		ed.Buf().TakeSnapshot()
 		ed.bufIdx++
 	}
 	// select first buffer
@@ -131,7 +130,6 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	if ed.NumBufs() < 1 {
 		ed.NewBuf()
 		ed.Load("", true)
-		ed.Buf().TakeSnapshot()
 	}
 	ed.ShowFileInfo()
 

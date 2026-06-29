@@ -67,6 +67,7 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				}
 				ed.parser.Reset()
 			} else {
+				ed.Error("Failed to run")
 				if _, ok := InsertCmds[c.Main.Kind]; ok {
 					ed.CancelRecordForUndo()
 				} else if _, ok := EditCmds[c.Main.Kind]; ok {
