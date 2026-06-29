@@ -7,6 +7,7 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 type Search struct {
@@ -47,12 +48,7 @@ func (ed *Editor) SearchForward() (buf.Loc, bool) {
 	for row := b.Loc.Row; row < b.NumLines(); row++ {
 		line := b.Line(row)
 		if row == b.Loc.Row {
-			rs := []rune(line)
-			if b.Loc.Col+1 < len(rs) {
-				line = string(rs[b.Loc.Col+1:])
-			} else {
-				line = ""
-			}
+			line = rutil.Tail(line, b.Loc.Col+1)
 		}
 		loc := ed.search.regexp.FindStringIndex(line)
 		if loc == nil {
@@ -85,8 +81,7 @@ func (ed *Editor) SearchBackward() (buf.Loc, bool) {
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
-	rs := []rune(b.CurrentLine())
-	end := len(string(rs[:b.Loc.Col]))
+	end := len(rutil.Head(b.CurrentLine(), b.Loc.Col))
 	for row := b.Loc.Row; row >= 0; row-- {
 		line := b.Line(row)
 		subLine := line

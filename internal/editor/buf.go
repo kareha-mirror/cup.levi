@@ -93,6 +93,7 @@ func (ed *Editor) Load(path string, force bool) bool {
 	b.SetText(string(data))
 	b.Stamp = stamp
 	b.NewFile = false
+	b.Marks = nil
 	b.Modified = false
 	return true
 }

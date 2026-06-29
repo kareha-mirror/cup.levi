@@ -2,8 +2,11 @@ package editor
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"golang.design/x/clipboard"
+
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
 type KillMode int
@@ -84,7 +87,8 @@ func (regs *Regs) SetShared(name string, shared bool) {
 }
 
 func IsValidRegName(name string) bool {
-	if len(name) != 1 {
+	rc := utf8.RuneCountInString(name)
+	if rc != 1 {
 		return false
 	}
 	rs := []rune(name)
@@ -284,13 +288,7 @@ func (ed *Editor) ApplyRegRunes(name string, killed []string) {
 			ed.Error("%v", err)
 			return
 		}
-		var newline string
-		if ed.Buf().CRLF {
-			newline = "\r\n"
-		} else {
-			newline = "\n"
-		}
-		text := strings.Join(killed, newline)
+		text := strings.Join(killed, buf.LineSep(ed.Buf().CRLF))
 		clipboard.Write(clipboard.FmtText, []byte(text))
 		return
 	}

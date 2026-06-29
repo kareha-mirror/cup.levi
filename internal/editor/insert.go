@@ -4,6 +4,7 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/levi/internal/rkind"
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 ////////////////////////
@@ -17,12 +18,8 @@ import (
 func (ed *Editor) replayInsert() {
 	inserted := append([]string{}, ed.inserted...)
 	b := ed.Buf()
-	rs := []rune(b.CurrentLine())
-	head := string(rs[:b.Loc.Col])
-	tail := ""
-	if b.Loc.Col < len(rs) {
-		tail = string(rs[b.Loc.Col:])
-	}
+	line := b.CurrentLine()
+	head, tail := rutil.Split(line, b.Loc.Col)
 	inserted[0] = head + inserted[0]
 	inserted[len(inserted)-1] = inserted[len(inserted)-1] + tail
 	if ed.cfg.AutoIndent {

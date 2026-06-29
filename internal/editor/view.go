@@ -90,7 +90,7 @@ func (ed *Editor) ViewDownLine(n int) {
 	meta := ed.viewMeta[len(ed.viewMeta)-1]
 	if b.Loc.Row >= meta.Loc.Row {
 		b.Loc.Row = max(b.Loc.Row-1, 0)
-		b.Loc.Col = b.ConfineColVirtInclusive(b.Loc.Row)
+		b.Loc.Col = b.ConfineFreeColInclusive(b.Loc.Row)
 	}
 }
 
@@ -111,7 +111,7 @@ func (ed *Editor) ViewUpLine(n int) {
 
 	if b.Loc.Row < b.ViewLoc.Row {
 		b.Loc.Row = b.ViewLoc.Row
-		b.Loc.Col = b.ConfineColVirtInclusive(b.Loc.Row)
+		b.Loc.Col = b.ConfineFreeColInclusive(b.Loc.Row)
 	}
 }
 

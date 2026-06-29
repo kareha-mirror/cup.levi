@@ -1,6 +1,8 @@
 package editor
 
 import (
+	"unicode/utf8"
+
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
@@ -26,11 +28,19 @@ func findRuneCol(line string, start int, r rune) int {
 }
 
 func findBackwardRuneCol(line string, start int, r rune) int {
-	rs := []rune(line)
-	for col := start; col >= 0; col-- {
-		if rs[col] == r {
+	col := utf8.RuneCountInString(line)
+	for start < col {
+		_, size := utf8.DecodeLastRuneInString(line)
+		col--
+		line = line[:len(line)-size]
+	}
+	for col >= 0 {
+		rn, size := utf8.DecodeLastRuneInString(line)
+		col--
+		if rn == r {
 			return col
 		}
+		line = line[:len(line)-size]
 	}
 	return -1
 }

@@ -2,6 +2,8 @@ package buf
 
 import (
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 // not care if inclusive or not
@@ -24,28 +26,31 @@ func (b *Buf) ConfineRegion(start, end Loc, inclusive bool) (Loc, Loc) {
 	start, end = OrderRegion(start, end)
 	if inclusive {
 		return b.ConfineInclusive(start), b.ConfineInclusive(end)
+		// caller may adjust as end.Col++ to use as if not inclusive
 	}
-	// XXX start should be inclusive or not?
+	// start is virtually inclusive
 	start, end = b.Confine(start), b.Confine(end)
-	if start.Row < end.Row && end.Col < 1 {
+	// make row inclusive
+	if start.Row < end.Row && end.Col == 0 {
 		end.Row--
 		end.Col = utf8.RuneCountInString(b.Line(end.Row))
 	}
 	return start, end
 }
 
-// not inclusive
+// row is inclusive
+// col is not inclusive
 func (b *Buf) RegionRunewise(start, end Loc) []string {
 	if start.Row == end.Row {
-		rs := []rune(b.Line(start.Row))
-		return []string{string(rs[start.Col:end.Col])}
+		s := rutil.Body(b.Line(start.Row), start.Col, end.Col)
+		return []string{s}
 	}
-	rs := []rune(b.Line(start.Row))
-	lines := append([]string{}, string(rs[start.Col:]))
+	s := rutil.Tail(b.Line(start.Row), start.Col)
+	lines := append([]string{}, s)
 	for row := start.Row + 1; row < end.Row; row++ {
 		lines = append(lines, b.Line(row))
 	}
-	rs = []rune(b.Line(end.Row))
-	lines = append(lines, string(rs[:end.Col]))
+	s = rutil.Head(b.Line(end.Row), end.Col)
+	lines = append(lines, s)
 	return lines
 }

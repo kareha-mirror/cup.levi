@@ -6,6 +6,7 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/rkind"
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 type Input struct {
@@ -23,11 +24,7 @@ func (inp *Input) Reset() {
 
 func (inp *Input) Init(line string, col int, ai bool) {
 	inp.Reset()
-	rs := []rune(line)
-	inp.head = string(rs[:col])
-	if col < len(rs) {
-		inp.tail = string(rs[col:])
-	}
+	inp.head, inp.tail = rutil.Split(line, col)
 	if ai && rkind.IsBlankLine(inp.head) {
 		inp.bodies[0].WriteString(inp.head)
 		inp.offset = len(inp.head)

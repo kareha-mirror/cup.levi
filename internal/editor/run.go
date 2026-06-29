@@ -9,7 +9,7 @@ func (ed *Editor) Run(cp CmdPair, replay bool) bool {
 				b := ed.Buf()
 				if meta.Linewise {
 					if meta.FreeCol {
-						loc.Col = b.ConfineColVirtInclusive(loc.Row)
+						loc.Col = b.ConfineFreeColInclusive(loc.Row)
 					}
 				} else {
 					loc = b.ConfineInclusive(loc)

@@ -14,6 +14,7 @@ func (b *Buf) CheckRowInclusive(row int) bool {
 	if row < numLines {
 		return true
 	}
+	// empty case
 	if numLines == 0 && row == 0 {
 		return true
 	}
@@ -78,11 +79,10 @@ func (b *Buf) NonBlankColOfLine(row int) int {
 }
 
 // inclusive
-func (b *Buf) ConfineColVirtInclusive(row int) int {
+func (b *Buf) ConfineFreeColInclusive(row int) int {
 	rc := utf8.RuneCountInString(b.Line(row))
 	if b.VirtCol < rc {
 		return b.VirtCol
-	} else {
-		return max(rc-1, 0)
 	}
+	return max(rc-1, 0)
 }

@@ -45,18 +45,20 @@ func (b *Buf) NumLines() int {
 	return len(b.Lines)
 }
 
+// panics if row is out of range
 func (b *Buf) Line(row int) string {
 	// empty case
-	if len(b.Lines) < 1 {
+	if len(b.Lines) == 0 && row == 0 {
 		return ""
 	}
 
 	return b.Lines[row]
 }
 
+// panics if row is out of range
 func (b *Buf) SetLine(row int, line string) {
 	// lazy init on empty case
-	if len(b.Lines) < 1 {
+	if len(b.Lines) == 0 && row == 0 {
 		b.Lines = append(b.Lines, "")
 	}
 
@@ -71,7 +73,7 @@ func (b *Buf) SetCurrentLine(line string) {
 	b.SetLine(b.Loc.Row, line)
 }
 
-func lineSep(crlf bool) string {
+func LineSep(crlf bool) string {
 	if crlf {
 		return "\r\n"
 	} else {
@@ -81,17 +83,17 @@ func lineSep(crlf bool) string {
 
 func (b *Buf) Text(crlf bool) string {
 	// empty case
-	if len(b.Lines) < 1 {
+	if len(b.Lines) == 0 {
 		return ""
 	}
 
-	sep := lineSep(crlf)
+	sep := LineSep(crlf)
 	return strings.Join(b.Lines, sep) + sep
 }
 
 func (b *Buf) SetText(text string) {
 	// empty case
-	if len(text) < 1 {
+	if text == "" {
 		b.Lines = b.Lines[:0]
 		return
 	}
@@ -100,15 +102,15 @@ func (b *Buf) SetText(text string) {
 	if text[len(text)-1] == '\n' {
 		text = text[:len(text)-1]
 		b.CRLF = false
-		if len(text) > 0 && text[len(text)-1] == '\r' {
+		if text != "" && text[len(text)-1] == '\r' {
 			text = text[:len(text)-1]
 			b.CRLF = true
 		}
-	} else if strings.Index(text, "\r\n") >= 0 {
+	} else if strings.Index(text, "\r\n") != -1 {
 		b.CRLF = true
 	}
 
-	b.Lines = strings.Split(text, lineSep(b.CRLF))
+	b.Lines = strings.Split(text, LineSep(b.CRLF))
 }
 
 func (b *Buf) Mark(r rune) {

@@ -85,6 +85,7 @@ func (ed *Editor) Undo(n int, replay bool) {
 		}
 	}
 	b.Loc = b.ConfineInclusive(b.Loc)
+	b.Modified = true
 }
 
 // U : Restore current line to previous state.

@@ -1,9 +1,11 @@
 package editor
 
 import (
+	"strings"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 ///////////////////////////////////////////////
@@ -94,19 +96,16 @@ func (ed *Editor) Paste(reg string, n int) {
 	switch ed.RegMode(reg) {
 	case KillRunes:
 		if len(killed) < 2 {
-			runes := []rune(b.CurrentLine())
-			rs := []rune{}
-			if b.Loc.Col+1 <= len(runes) {
-				rs = append(rs, runes[:b.Loc.Col+1]...)
-			}
+			line := b.CurrentLine()
+			sb := strings.Builder{}
+			head, tail := rutil.Split(line, b.Loc.Col+1)
+			sb.WriteString(head)
 			for i := 0; i < n; i++ {
-				rs = append(rs, []rune(killed[0])...)
+				sb.WriteString(killed[0])
 			}
-			if b.Loc.Col+1 < len(runes) {
-				rs = append(rs, runes[b.Loc.Col+1:]...)
-			}
-			b.SetCurrentLine(string(rs))
-			if len(runes) > 0 {
+			sb.WriteString(tail)
+			b.SetCurrentLine(sb.String())
+			if len(line) > 0 {
 				b.Loc.Col++
 				b.VirtCol = b.Loc.Col
 			}
@@ -114,22 +113,12 @@ func (ed *Editor) Paste(reg string, n int) {
 			lines := []string{}
 			lines = append(lines, b.Lines[:b.Loc.Row]...)
 
-			runes := []rune(b.CurrentLine())
-			rs := []rune{}
-			if b.Loc.Col+1 <= len(runes) {
-				rs = append(rs, runes[:b.Loc.Col+1]...)
-			}
-			rs = append(rs, []rune(killed[0])...)
-			lines = append(lines, string(rs))
-
+			head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col+1)
+			lines = append(lines, head+killed[0])
 			if len(killed) > 2 {
 				lines = append(lines, killed[1:len(killed)-1]...)
 			}
-			rs = []rune(killed[len(killed)-1])
-			if b.Loc.Col+1 < len(runes) {
-				rs = append(rs, runes[b.Loc.Col+1:]...)
-			}
-			lines = append(lines, string(rs))
+			lines = append(lines, killed[len(killed)-1]+tail)
 
 			if b.Loc.Row+1 <= b.NumLines()-1 {
 				lines = append(lines, b.Lines[b.Loc.Row+1:]...)
@@ -179,20 +168,19 @@ func (ed *Editor) PasteBefore(reg string, n int) {
 	switch ed.RegMode(reg) {
 	case KillRunes:
 		if len(killed) < 2 {
-			runes := []rune(b.CurrentLine())
-			rs := append([]rune{}, runes[:b.Loc.Col]...)
+			sb := strings.Builder{}
+			head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
+			sb.WriteString(head)
 			for i := 0; i < n; i++ {
-				rs = append(rs, []rune(killed[0])...)
+				sb.WriteString(killed[0])
 			}
-			rs = append(rs, runes[b.Loc.Col:]...)
-			b.SetCurrentLine(string(rs))
+			sb.WriteString(tail)
+			b.SetCurrentLine(sb.String())
 		} else {
 			lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 
-			runes := []rune(b.CurrentLine())
-			rs := append([]rune{}, runes[:b.Loc.Col]...)
-			rs = append(rs, []rune(killed[0])...)
-			lines = append(lines, string(rs))
+			head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
+			lines = append(lines, head+killed[0])
 
 			if len(killed) > 2 {
 				lines = append(
@@ -200,9 +188,7 @@ func (ed *Editor) PasteBefore(reg string, n int) {
 				)
 			}
 
-			rs = []rune(killed[len(killed)-1])
-			rs = append(rs, runes[b.Loc.Col:]...)
-			lines = append(lines, string(rs))
+			lines = append(lines, killed[len(killed)-1]+tail)
 
 			if b.Loc.Row+1 < b.NumLines() {
 				lines = append(lines, b.Lines[b.Loc.Row+1:]...)
@@ -232,16 +218,12 @@ func (ed *Editor) internalDelete(reg string, n int) bool {
 	if len(b.CurrentLine()) < 1 {
 		return false
 	}
-	rs := []rune(b.CurrentLine())
-	n = min(n, len(rs)-b.Loc.Col)
-	ed.ApplyRegRunes(reg, []string{string(rs[b.Loc.Col : b.Loc.Col+n])})
-	if b.Loc.Col < 1 {
-		b.SetCurrentLine(string(rs[n:]))
-	} else {
-		head := string(rs[:b.Loc.Col])
-		tail := string(rs[b.Loc.Col+n:])
-		b.SetCurrentLine(head + tail)
-	}
+	line := b.CurrentLine()
+	rc := utf8.RuneCountInString(line)
+	n = min(n, rc-b.Loc.Col)
+	head, body, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
+	ed.ApplyRegRunes(reg, []string{body})
+	b.SetCurrentLine(head + tail)
 	return true
 }
 
@@ -304,11 +286,9 @@ func (ed *Editor) DeleteRegion(
 
 	lines = append([]string{}, b.Lines[:start.Row]...)
 
-	runes := []rune(b.Line(start.Row))
-	rs := append([]rune{}, runes[:start.Col]...)
-	runes = []rune(b.Line(end.Row))
-	rs = append(rs, runes[end.Col:]...)
-	lines = append(lines, string(rs))
+	head := rutil.Head(b.Line(start.Row), start.Col)
+	tail := rutil.Tail(b.Line(end.Row), end.Col)
+	lines = append(lines, head+tail)
 
 	if end.Row+1 < b.NumLines() {
 		lines = append(lines, b.Lines[end.Row+1:]...)
@@ -364,11 +344,9 @@ func (ed *Editor) DeleteToEnd(reg string, n int) {
 		return
 	}
 	b := ed.Buf()
-	rs := []rune(b.CurrentLine())
-	if b.Loc.Col < len(rs) {
-		ed.ApplyRegRunes(reg, []string{string(rs[b.Loc.Col:])})
-	}
-	b.SetCurrentLine(string(rs[:b.Loc.Col]))
+	head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
+	ed.ApplyRegRunes(reg, []string{tail})
+	b.SetCurrentLine(head)
 	b.Loc = b.ConfineInclusive(b.Loc)
 	b.Modified = true
 	// TODO n
@@ -451,13 +429,10 @@ func (ed *Editor) ChangeToEnd(reg string, n int, replay bool) {
 		return
 	}
 	b := ed.Buf()
-	rs := []rune(b.CurrentLine())
-	if b.Loc.Col < len(rs) {
-		ed.ApplyRegRunes(reg, []string{string(rs[b.Loc.Col:])})
-	}
-	line := string(rs[:b.Loc.Col])
-	b.SetCurrentLine(line)
-	ed.inp.Init(line, b.Loc.Col, ed.cfg.AutoIndent)
+	head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
+	ed.ApplyRegRunes(reg, []string{tail})
+	b.SetCurrentLine(head)
+	ed.inp.Init(head, b.Loc.Col, ed.cfg.AutoIndent)
 	ed.inpRow = b.Loc.Row
 	ed.mode = ModeInsert
 	// TODO n
