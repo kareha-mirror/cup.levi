@@ -134,22 +134,24 @@ func (ed *Editor) PromptForceQuit() {
 // :e Enter : Open file.
 func (ed *Editor) PromptOpen(name string) {
 	b := ed.Buf()
-	b.TakeSnapshot()
+	b.BeginSnapshot()
 	if !ed.Load(name, false) {
 		b.CancelSnapshot()
 		return
 	}
+	b.EndSnapshot()
 	ed.ShowFileInfo()
 }
 
 // :e! Enter : Force open file.
 func (ed *Editor) PromptForceOpen(name string) {
 	b := ed.Buf()
-	b.TakeSnapshot()
+	b.BeginSnapshot()
 	if !ed.Load(name, true) {
 		b.CancelSnapshot()
 		return
 	}
+	b.EndSnapshot()
 	ed.ShowFileInfo()
 }
 

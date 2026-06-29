@@ -1,11 +1,11 @@
 package editor
 
 func (ed *Editor) BeginRecordForUndo() {
-	ed.Buf().TakeSnapshot()
+	ed.Buf().BeginSnapshot()
 }
 
 func (ed *Editor) EndRecordForUndo() {
-	// do nothing
+	ed.Buf().EndSnapshot()
 }
 
 func (ed *Editor) CancelRecordForUndo() {
