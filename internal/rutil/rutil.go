@@ -1,36 +1,53 @@
 package rutil
 
-import (
-	"unicode/utf8"
-)
-
-func Tail(s string, start int) string {
-	for start > 0 && s != "" {
-		_, size := utf8.DecodeRuneInString(s)
-		s = s[size:]
-		start--
+func Index(s string, col int) int {
+	for i, _ := range s {
+		if col < 1 {
+			return i
+		}
+		col--
 	}
-	return s
+	return len(s)
 }
 
 func Head(s string, end int) string {
-	tail := Tail(s, end)
-	return s[:len(s)-len(tail)]
+	return s[:Index(s, end)]
+}
+
+func Tail(s string, start int) string {
+	i := Index(s, start)
+	if i >= len(s) {
+		return ""
+	}
+	return s[i:]
 }
 
 func Body(s string, start, end int) string {
-	s = Tail(s, start)
-	return Head(s, end-start)
+	i := Index(s, start)
+	if i >= len(s) {
+		return ""
+	}
+	j := Index(s[i:], end-start)
+	return s[i : i+j]
 }
 
 func Split(s string, col int) (string, string) {
-	tail := Tail(s, col)
-	head := s[:len(s)-len(tail)]
-	return head, tail
+	i := Index(s, col)
+	if i >= len(s) {
+		return s, ""
+	}
+	return s[:i], s[i:]
 }
 
 func SplitBody(s string, start, end int) (string, string, string) {
-	head, tail := Split(s, start)
-	body, tail := Split(tail, end-start)
-	return head, body, tail
+	i := Index(s, start)
+	if i >= len(s) {
+		return s, "", ""
+	}
+	body := s[i:]
+	j := Index(body, end-start)
+	if j >= len(body) {
+		return s[:i], body, ""
+	}
+	return s[:i], body[:j], body[j:]
 }
