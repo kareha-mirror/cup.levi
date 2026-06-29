@@ -296,6 +296,9 @@ func (ed *Editor) DeleteRegion(
 ) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
+	if inclusive {
+		end.Col++
+	}
 	lines := b.RegionRunewise(start, end)
 	ed.ApplyRegRunes(reg, lines)
 
