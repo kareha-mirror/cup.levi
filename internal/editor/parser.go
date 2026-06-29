@@ -118,7 +118,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		t.Mv = string(p.buf[0])
 		p.Ok = true
 		return CmdPair{
-			Main: Cmd{Kind: CmdMoveToStart},
+			Mv: Cmd{Kind: MoveToStart},
 		}, true
 	}
 
@@ -160,7 +160,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 			cmd, ok := ed.ParseLetter(t.Num, t.Op, t.Letter)
 			if ok {
 				p.Ok = true
-				return CmdPair{Main: cmd}, true
+				return CmdPair{Op: cmd}, true
 			}
 		}
 		_, ok = letterMoveSet[p.buf[i]]
@@ -173,13 +173,13 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 			cmd, ok := ed.ParseMoveLetter(t.Num, t.Mv, t.Letter)
 			if ok {
 				p.Ok = true
-				return CmdPair{Main: cmd}, true
+				return CmdPair{Mv: cmd}, true
 			}
 		}
 		if t.Letter != 0 {
 			p.Ok = true
 			return CmdPair{
-				Main: Cmd{Kind: CmdInvalid},
+				Op: Cmd{Kind: InvalidCmd},
 			}, true
 		}
 	}
@@ -206,7 +206,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	cmd, ok := ed.ParseMove(t.NoNum, t.Num, t.Mv, 0)
 	if ok {
 		p.Ok = true
-		return CmdPair{Main: cmd}, true
+		return CmdPair{Mv: cmd}, true
 	}
 	if t.Mv == "/" || t.Mv == "?" {
 		// XXX input pat
@@ -218,17 +218,17 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	cmd, ok = ed.ParseView(t.Num, t.Op)
 	if ok {
 		p.Ok = true
-		return CmdPair{Main: cmd}, true
+		return CmdPair{Op: cmd}, true
 	}
 	cmd, ok = ed.ParseInsert(t.Num, t.Op)
 	if ok {
 		p.Ok = true
-		return CmdPair{Main: cmd}, true
+		return CmdPair{Op: cmd}, true
 	}
 	cmd, ok = ed.ParseMisc(t.Num, t.Op)
 	if ok {
 		p.Ok = true
-		return CmdPair{Main: cmd}, true
+		return CmdPair{Op: cmd}, true
 	}
 
 	iPrev = i
@@ -286,6 +286,6 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	}
 	p.Ok = true
 	return CmdPair{
-		Main: Cmd{Kind: CmdInvalid},
+		Op: Cmd{Kind: InvalidCmd},
 	}, true
 }

@@ -8,107 +8,107 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 	ed.Commit()
 	switch c.Kind {
 
-	case CmdMoveLeft:
+	case MoveLeft:
 		return ed.MoveLeft(c.Num)
-	case CmdMoveDown:
+	case MoveDown:
 		return ed.MoveDown(c.Num)
-	case CmdMoveUp:
+	case MoveUp:
 		return ed.MoveUp(c.Num)
-	case CmdMoveRight:
+	case MoveRight:
 		return ed.MoveRight(c.Num)
 
-	case CmdMoveToStart:
+	case MoveToStart:
 		return ed.MoveToStart()
-	case CmdMoveToEnd:
+	case MoveToEnd:
 		return ed.MoveToEnd()
-	case CmdMoveToNonBlank:
+	case MoveToNonBlank:
 		return ed.MoveToNonBlank()
-	case CmdMoveToColumn:
+	case MoveToColumn:
 		return ed.MoveToColumn(c.Num)
 
-	case CmdMoveByWord:
+	case MoveByWord:
 		return ed.MoveByWord(c.Num)
-	case CmdMoveByWordEx: // XXX debug
-		return ed.MoveByWordEx(c.Num)
-	case CmdMoveBackwardByWord:
+	case MoveByChangeWord:
+		return ed.MoveByChangeWord(c.Num)
+	case MoveBackwardByWord:
 		return ed.MoveBackwardByWord(c.Num)
-	case CmdMoveToEndOfWord:
+	case MoveToEndOfWord:
 		return ed.MoveToEndOfWord(c.Num)
-	case CmdMoveByLooseWord:
+	case MoveByLooseWord:
 		return ed.MoveByLooseWord(c.Num)
-	case CmdMoveBackwardByLooseWord:
+	case MoveBackwardByLooseWord:
 		return ed.MoveBackwardByLooseWord(c.Num)
-	case CmdMoveToEndOfLooseWord:
+	case MoveToEndOfLooseWord:
 		return ed.MoveToEndOfLooseWord(c.Num)
 
-	case CmdMoveByLine:
+	case MoveByLine:
 		return ed.MoveByLine(c.Num)
-	case CmdMoveBackwardByLine:
+	case MoveBackwardByLine:
 		return ed.MoveBackwardByLine(c.Num)
-	case CmdMoveToLastLine:
+	case MoveToLastLine:
 		return ed.MoveToLastLine()
-	case CmdMoveToLine:
+	case MoveToLine:
 		return ed.MoveToLine(c.Num)
 
-	case CmdMoveBySentence:
+	case MoveBySentence:
 		return ed.MoveBySentence(c.Num)
-	case CmdMoveBackwardBySentence:
+	case MoveBackwardBySentence:
 		return ed.MoveBackwardBySentence(c.Num)
-	case CmdMoveByParagraph:
+	case MoveByParagraph:
 		return ed.MoveByParagraph(c.Num)
-	case CmdMoveBackwardByParagraph:
+	case MoveBackwardByParagraph:
 		return ed.MoveBackwardByParagraph(c.Num)
-	case CmdMoveBySection:
+	case MoveBySection:
 		return ed.MoveBySection(c.Num)
-	case CmdMoveBackwardBySection:
+	case MoveBackwardBySection:
 		return ed.MoveBackwardBySection(c.Num)
 
-	case CmdMoveToTopOfView:
+	case MoveToTopOfView:
 		return ed.MoveToTopOfView()
-	case CmdMoveToMiddleOfView:
+	case MoveToMiddleOfView:
 		return ed.MoveToMiddleOfView()
-	case CmdMoveToBottomOfView:
+	case MoveToBottomOfView:
 		return ed.MoveToBottomOfView()
-	case CmdMoveToBelowTopOfView:
+	case MoveToBelowTopOfView:
 		return ed.MoveToBelowTopOfView(c.Num)
-	case CmdMoveToAboveBottomOfView:
+	case MoveToAboveBottomOfView:
 		return ed.MoveToAboveBottomOfView(c.Num)
 
-	case CmdMoveToMark:
-		return ed.MoveToMark(c.Letter)
-	case CmdMoveToMarkLine:
-		return ed.MoveToMarkLine(c.Letter)
+	case MoveToMark:
+		return ed.MoveToMark(c.Ltr)
+	case MoveToMarkLine:
+		return ed.MoveToMarkLine(c.Ltr)
 
-	case CmdMoveBackToMark:
-		return ed.MoveBackToMark()
-	case CmdMoveBackToMarkLine:
-		return ed.MoveBackToMarkLine()
+	case BackToMark:
+		return ed.BackToMark()
+	case BackToMarkLine:
+		return ed.BackToMarkLine()
 
-	case CmdMoveSearchForward:
-		return ed.MoveSearchForward()
-	case CmdMoveSearchBackward:
-		return ed.MoveSearchBackward()
-	case CmdMoveSearchNextMatch:
-		return ed.MoveSearchNextMatch()
-	case CmdMoveSearchPrevMatch:
-		return ed.MoveSearchPrevMatch()
-	case CmdMoveSearchRepeatForward:
-		return ed.MoveSearchRepeatForward()
-	case CmdMoveSearchRepeatBackward:
-		return ed.MoveSearchRepeatBackward()
+	case SearchForward:
+		return ed.SearchForward()
+	case SearchBackward:
+		return ed.SearchBackward()
+	case SearchNextMatch:
+		return ed.SearchNextMatch()
+	case SearchPrevMatch:
+		return ed.SearchPrevMatch()
+	case SearchRepeatForward:
+		return ed.SearchRepeatForward()
+	case SearchRepeatBackward:
+		return ed.SearchRepeatBackward()
 
-	case CmdMoveFindForward:
-		return ed.MoveFindForward(c.Letter, c.Num)
-	case CmdMoveFindBackward:
-		return ed.MoveFindBackward(c.Letter, c.Num)
-	case CmdMoveFindBeforeForward:
-		return ed.MoveFindBeforeForward(c.Letter, c.Num)
-	case CmdMoveFindBeforeBackward:
-		return ed.MoveFindBeforeBackward(c.Letter, c.Num)
-	case CmdMoveFindNextMatch:
-		return ed.MoveFindNextMatch(c.Num)
-	case CmdMoveFindPrevMatch:
-		return ed.MoveFindPrevMatch(c.Num)
+	case FindForward:
+		return ed.FindForward(c.Ltr, c.Num)
+	case FindBackward:
+		return ed.FindBackward(c.Ltr, c.Num)
+	case FindBeforeForward:
+		return ed.FindBeforeForward(c.Ltr, c.Num)
+	case FindBeforeBackward:
+		return ed.FindBeforeBackward(c.Ltr, c.Num)
+	case FindNextMatch:
+		return ed.FindNextMatch(c.Num)
+	case FindPrevMatch:
+		return ed.FindPrevMatch(c.Num)
 
 	}
 	return buf.Loc{}, false

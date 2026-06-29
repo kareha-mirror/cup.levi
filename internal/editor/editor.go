@@ -212,9 +212,10 @@ func (ed *Editor) Commit() {
 
 		// if number prefix is supplied, repeat insertion
 		if _, ok :=
-			MultiInsertCmds[ed.lastCmd.Main.Kind]; ok && ed.lastCmd.Main.Num > 1 {
+			IsMultiInsertCmd[ed.lastCmd.Op.Kind]; ok &&
+			ed.lastCmd.Op.Num > 1 {
 			cmd := ed.lastCmd
-			cmd.Main.Num--
+			cmd.Op.Num--
 			ed.Run(cmd, true) // replay
 		} else {
 			// or finish insertion

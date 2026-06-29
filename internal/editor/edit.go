@@ -13,18 +13,18 @@ import (
 //////////////////////
 
 // r : Replace single character under cursor.
-func (ed *Editor) EditReplace(letter rune, n int, replay bool) {
+func (ed *Editor) Replace(letter rune, n int, replay bool) {
 	if n < 1 {
-		ed.Error("EditReplace: n < 1")
+		ed.Error("Replace: n < 1")
 		return
 	}
-	ed.Unimplemented("EditReplace")
+	ed.Unimplemented("Replace")
 }
 
 // J : Join current line with next line.
-func (ed *Editor) EditJoin(n int) {
+func (ed *Editor) Join(n int) {
 	if n < 1 {
-		ed.Error("EditJoin: n < 1")
+		ed.Error("Join: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -65,9 +65,9 @@ func (ed *Editor) EditJoin(n int) {
 }
 
 // >> : Indent current line.
-func (ed *Editor) EditIndent(n int) {
+func (ed *Editor) Indent(n int) {
 	if n < 1 {
-		ed.Error("EditIndent: n < 1")
+		ed.Error("Indent: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -85,9 +85,9 @@ func (ed *Editor) EditIndent(n int) {
 }
 
 // << : Outdent current line.
-func (ed *Editor) EditOutdent(n int) {
+func (ed *Editor) Outdent(n int) {
 	if n < 1 {
-		ed.Error("EditOutdent: n < 1")
+		ed.Error("Outdent: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -113,7 +113,7 @@ func (ed *Editor) EditOutdent(n int) {
 }
 
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
-func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
+func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
 	indented := false
@@ -132,7 +132,7 @@ func (ed *Editor) EditIndentRegion(start buf.Loc, end buf.Loc) {
 }
 
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
-func (ed *Editor) EditOutdentRegion(start buf.Loc, end buf.Loc) {
+func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
 	outdented := false

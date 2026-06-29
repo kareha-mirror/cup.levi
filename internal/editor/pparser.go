@@ -97,8 +97,7 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 			ns := parts[1][3:]
 			n, err := strconv.ParseUint(ns, 10, 16)
 			if err != nil {
-				// XXX
-				//ed.Ring("set: %s option: %s is an illegal number.", ns, ns)
+				ed.Ring("set: %s option: %s is an illegal number.", ns, ns)
 				return Pcmd{Kind: PcmdInvalid}, false
 			}
 			return Pcmd{Kind: PcmdTabStop, Num: int(n)}, true

@@ -136,12 +136,12 @@ func (ed *Editor) InsertAfterEnd(n int, replay bool) {
 }
 
 // R : Switch to replace (overwrite) mode.
-func (ed *Editor) InsertOverwrite(n int, replay bool) {
+func (ed *Editor) Overwrite(n int, replay bool) {
 	if n < 1 {
-		ed.Error("InsertOverwrite: n < 1")
+		ed.Error("Overwrite: n < 1")
 		return
 	}
-	ed.Unimplemented("InsertOverwrite")
+	ed.Unimplemented("Overwrite")
 }
 
 //
@@ -149,9 +149,9 @@ func (ed *Editor) InsertOverwrite(n int, replay bool) {
 //
 
 // o : Open a new line below and switch to insert mode.
-func (ed *Editor) InsertOpenBelow(n int, replay bool) {
+func (ed *Editor) OpenBelow(n int, replay bool) {
 	if n < 1 {
-		ed.Error("InsertOpenBelow: n < 1")
+		ed.Error("OpenBelow: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -178,9 +178,9 @@ func (ed *Editor) InsertOpenBelow(n int, replay bool) {
 }
 
 // O : Open a new line above and switch to insert mode.
-func (ed *Editor) InsertOpenAbove(n int, replay bool) {
+func (ed *Editor) OpenAbove(n int, replay bool) {
 	if n < 1 {
-		ed.Error("InsertOpenAbove: n < 1")
+		ed.Error("OpenAbove: n < 1")
 		return
 	}
 	indent := ""

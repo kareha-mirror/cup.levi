@@ -15,9 +15,9 @@ import (
 //
 
 // "<reg>yy, "<reg>Y : Copy current line into register <reg>.
-func (ed *Editor) OpCopyLine(reg string, n int) {
+func (ed *Editor) CopyLine(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpCopyLine: n < 1")
+		ed.Error("CopyLine: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -29,7 +29,7 @@ func (ed *Editor) OpCopyLine(reg string, n int) {
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpCopyRegion(
+func (ed *Editor) CopyRegion(
 	reg string, start buf.Loc, end buf.Loc, inclusive bool,
 ) {
 	b := ed.Buf()
@@ -40,7 +40,7 @@ func (ed *Editor) OpCopyRegion(
 }
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpCopyLineRegion(
+func (ed *Editor) CopyLineRegion(
 	reg string, start buf.Loc, end buf.Loc,
 ) {
 	b := ed.Buf()
@@ -54,21 +54,21 @@ func (ed *Editor) OpCopyLineRegion(
 }
 
 // yw : Copy word.
-func (ed *Editor) OpCopyWord(reg string, n int) {
+func (ed *Editor) CopyWord(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpCopyWord: n < 1")
+		ed.Error("CopyWord: n < 1")
 		return
 	}
-	ed.Unimplemented("OpCopyWord")
+	ed.Unimplemented("CopyWord")
 }
 
 // y$ : Copy to end of current line.
-func (ed *Editor) OpCopyToEnd(reg string, n int) {
+func (ed *Editor) CopyToEnd(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpCopyToEnd: n < 1")
+		ed.Error("CopyToEnd: n < 1")
 		return
 	}
-	ed.Unimplemented("OpCopyToEnd")
+	ed.Unimplemented("CopyToEnd")
 }
 
 //
@@ -76,9 +76,9 @@ func (ed *Editor) OpCopyToEnd(reg string, n int) {
 //
 
 // "<reg>p : Paste after cursor from register <reg>.
-func (ed *Editor) OpPaste(reg string, n int) {
+func (ed *Editor) Paste(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpPaste: n < 1")
+		ed.Error("Paste: n < 1")
 		return
 	}
 	if ed.RegMode(reg) == KillNone {
@@ -161,9 +161,9 @@ func (ed *Editor) OpPaste(reg string, n int) {
 }
 
 // "<reg>p : Paste before cursor from register <reg>.
-func (ed *Editor) OpPasteBefore(reg string, n int) {
+func (ed *Editor) PasteBefore(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpPasteBefore: n < 1")
+		ed.Error("PasteBefore: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -227,7 +227,7 @@ func (ed *Editor) OpPasteBefore(reg string, n int) {
 // Delete
 //
 
-func (ed *Editor) internalOpDelete(reg string, n int) bool {
+func (ed *Editor) internalDelete(reg string, n int) bool {
 	b := ed.Buf()
 	if len(b.CurrentLine()) < 1 {
 		return false
@@ -246,12 +246,12 @@ func (ed *Editor) internalOpDelete(reg string, n int) bool {
 }
 
 // x : Delete character under cursor.
-func (ed *Editor) OpDelete(reg string, n int) {
+func (ed *Editor) Delete(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpDelete: n < 1")
+		ed.Error("Delete: n < 1")
 		return
 	}
-	if !ed.internalOpDelete(reg, n) {
+	if !ed.internalDelete(reg, n) {
 		ed.Notice("Nothing to delete")
 		return
 	}
@@ -261,18 +261,18 @@ func (ed *Editor) OpDelete(reg string, n int) {
 }
 
 // X : Delete character before cursor.
-func (ed *Editor) OpDeleteBefore(reg string, n int) {
+func (ed *Editor) DeleteBefore(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpDeleteBefore: n < 1")
+		ed.Error("DeleteBefore: n < 1")
 		return
 	}
-	ed.Unimplemented("OpDeleteBefore")
+	ed.Unimplemented("DeleteBefore")
 }
 
 // dd : Delete current line.
-func (ed *Editor) OpDeleteLine(reg string, n int) {
+func (ed *Editor) DeleteLine(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpDeleteLine: n < 1")
+		ed.Error("DeleteLine: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -291,7 +291,7 @@ func (ed *Editor) OpDeleteLine(reg string, n int) {
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpDeleteRegion(
+func (ed *Editor) DeleteRegion(
 	reg string, start buf.Loc, end buf.Loc, inclusive bool,
 ) {
 	b := ed.Buf()
@@ -317,7 +317,7 @@ func (ed *Editor) OpDeleteRegion(
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpDeleteLineRegion(
+func (ed *Editor) DeleteLineRegion(
 	reg string, start buf.Loc, end buf.Loc,
 ) {
 	b := ed.Buf()
@@ -338,9 +338,9 @@ func (ed *Editor) OpDeleteLineRegion(
 }
 
 // dw : Delete word.
-func (ed *Editor) OpDeleteWord(reg string, n int) {
+func (ed *Editor) DeleteWord(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpDeleteWord: n < 1")
+		ed.Error("DeleteWord: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -350,14 +350,14 @@ func (ed *Editor) OpDeleteWord(reg string, n int) {
 		ed.Error("Failed to move")
 		return
 	}
-	ed.OpDeleteRegion(reg, start, end, false)
+	ed.DeleteRegion(reg, start, end, false)
 	// TODO n
 }
 
 // d$, D : Delete to end of current line.
-func (ed *Editor) OpDeleteToEnd(reg string, n int) {
+func (ed *Editor) DeleteToEnd(reg string, n int) {
 	if n < 1 {
-		ed.Error("OpDeleteToEnd: n < 1")
+		ed.Error("DeleteToEnd: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -376,16 +376,16 @@ func (ed *Editor) OpDeleteToEnd(reg string, n int) {
 //
 
 // cc : Change current line.
-func (ed *Editor) OpChangeLine(reg string, n int, replay bool) {
+func (ed *Editor) ChangeLine(reg string, n int, replay bool) {
 	if n < 1 {
-		ed.Error("OpChangeLine: n < 1")
+		ed.Error("ChangeLine: n < 1")
 		return
 	}
-	ed.Unimplemented("OpChangeLine")
+	ed.Unimplemented("ChangeLine")
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpChangeRegion(
+func (ed *Editor) ChangeRegion(
 	reg string, start buf.Loc, end buf.Loc, inclusive bool, replay bool,
 ) {
 	b := ed.Buf()
@@ -397,7 +397,7 @@ func (ed *Editor) OpChangeRegion(
 			after = true
 		}
 	}
-	ed.OpDeleteRegion(reg, start, end, inclusive)
+	ed.DeleteRegion(reg, start, end, inclusive)
 	if after {
 		b.Loc.Col++
 	}
@@ -419,32 +419,32 @@ func (ed *Editor) OpChangeRegion(
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) OpChangeLineRegion(
+func (ed *Editor) ChangeLineRegion(
 	reg string, start buf.Loc, end buf.Loc, replay bool,
 ) {
-	ed.Unimplemented("OpChangeLineRegion")
+	ed.Unimplemented("ChangeLineRegion")
 }
 
 // cw : Change word.
-func (ed *Editor) OpChangeWord(reg string, n int, replay bool) {
+func (ed *Editor) ChangeWord(reg string, n int, replay bool) {
 	if n < 1 {
-		ed.Error("OpChangeWord: n < 1")
+		ed.Error("ChangeWord: n < 1")
 		return
 	}
 	start := ed.Buf().Loc
-	end, ok := ed.MoveByWordEx(n)
+	end, ok := ed.MoveByChangeWord(n)
 	if !ok {
 		ed.Error("Failed to move")
 		return
 	}
-	ed.OpChangeRegion(reg, start, end, false, replay)
+	ed.ChangeRegion(reg, start, end, false, replay)
 	// TODO n
 }
 
 // C : Change to end of current line.
-func (ed *Editor) OpChangeToEnd(reg string, n int, replay bool) {
+func (ed *Editor) ChangeToEnd(reg string, n int, replay bool) {
 	if n < 1 {
-		ed.Error("OpChangeToEnd: n < 1")
+		ed.Error("ChangeToEnd: n < 1")
 		return
 	}
 	b := ed.Buf()
@@ -461,12 +461,12 @@ func (ed *Editor) OpChangeToEnd(reg string, n int, replay bool) {
 }
 
 // s : Substitute one character under cursor.
-func (ed *Editor) OpSubst(reg string, n int, replay bool) {
+func (ed *Editor) Subst(reg string, n int, replay bool) {
 	if n < 1 {
-		ed.Error("OpSubst: n < 1")
+		ed.Error("Subst: n < 1")
 		return
 	}
-	ed.internalOpDelete(reg, n)
+	ed.internalDelete(reg, n)
 	b := ed.Buf()
 	if replay {
 		if len(ed.inserted) < 0 {
@@ -486,10 +486,10 @@ func (ed *Editor) OpSubst(reg string, n int, replay bool) {
 }
 
 // S : Substtute current line (equals cc).
-func (ed *Editor) OpSubstLine(reg string, n int, replay bool) {
+func (ed *Editor) SubstLine(reg string, n int, replay bool) {
 	if n < 1 {
-		ed.Error("OpSubstLine: n < 1")
+		ed.Error("SubstLine: n < 1")
 		return
 	}
-	ed.OpChangeLine(reg, n, replay)
+	ed.ChangeLine(reg, n, replay)
 }

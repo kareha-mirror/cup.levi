@@ -39,7 +39,7 @@ func findBackwardRuneCol(line string, start int, r rune) int {
 // Character Finding Commands //
 ////////////////////////////////
 
-func (ed *Editor) internalMoveFindForward(
+func (ed *Editor) internalFindForward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
 	col := findRuneCol(ed.Buf().Line(loc.Row), loc.Col+1, letter)
@@ -50,16 +50,16 @@ func (ed *Editor) internalMoveFindForward(
 }
 
 // f<letter> : Find character <letter> forward in current line.
-func (ed *Editor) MoveFindForward(letter rune, n int) (buf.Loc, bool) {
+func (ed *Editor) FindForward(letter rune, n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveFindForward: n < 1")
+		ed.Error("FindForward: n < 1")
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, false, false}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
-		loc, ok = ed.internalMoveFindForward(loc, letter)
+		loc, ok = ed.internalFindForward(loc, letter)
 		if !ok {
 			if i == 0 {
 				ed.Notice("Not found")
@@ -71,7 +71,7 @@ func (ed *Editor) MoveFindForward(letter rune, n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-func (ed *Editor) internalMoveFindBackward(
+func (ed *Editor) internalFindBackward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
 	col := findBackwardRuneCol(ed.Buf().Line(loc.Row), loc.Col-1, letter)
@@ -82,16 +82,16 @@ func (ed *Editor) internalMoveFindBackward(
 }
 
 // F<letter> : Find character <letter> backward in current line.
-func (ed *Editor) MoveFindBackward(letter rune, n int) (buf.Loc, bool) {
+func (ed *Editor) FindBackward(letter rune, n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveFindBackward: n < 1")
+		ed.Error("FindBackward: n < 1")
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, true, false}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
-		loc, ok = ed.internalMoveFindBackward(loc, letter)
+		loc, ok = ed.internalFindBackward(loc, letter)
 		if !ok {
 			if i == 0 {
 				ed.Notice("Not found")
@@ -103,7 +103,7 @@ func (ed *Editor) MoveFindBackward(letter rune, n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-func (ed *Editor) internalMoveFindBeforeForward(
+func (ed *Editor) internalFindBeforeForward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
 	col := findRuneCol(ed.Buf().Line(loc.Row), loc.Col+1, letter)
@@ -115,16 +115,16 @@ func (ed *Editor) internalMoveFindBeforeForward(
 }
 
 // t<letter> : Find before character <letter> forward in current line.
-func (ed *Editor) MoveFindBeforeForward(letter rune, n int) (buf.Loc, bool) {
+func (ed *Editor) FindBeforeForward(letter rune, n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveFindBeforeForward: n < 1")
+		ed.Error("FindBeforeForward: n < 1")
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, false, true}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
-		loc, ok = ed.internalMoveFindBeforeForward(loc, letter)
+		loc, ok = ed.internalFindBeforeForward(loc, letter)
 		if !ok {
 			if i == 0 {
 				ed.Notice("Not found")
@@ -136,7 +136,7 @@ func (ed *Editor) MoveFindBeforeForward(letter rune, n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-func (ed *Editor) internalMoveFindBeforeBackward(
+func (ed *Editor) internalFindBeforeBackward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
 	col := findBackwardRuneCol(ed.Buf().Line(loc.Row), loc.Col-1, letter)
@@ -148,16 +148,16 @@ func (ed *Editor) internalMoveFindBeforeBackward(
 }
 
 // T<letter> : Find before character <letter> backward in current line.
-func (ed *Editor) MoveFindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
+func (ed *Editor) FindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveFindBeforeBackward: n < 1")
+		ed.Error("FindBeforeBackward: n < 1")
 		return buf.Loc{}, false
 	}
 	ed.find = Find{letter, true, true}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
-		loc, ok = ed.internalMoveFindBeforeBackward(loc, letter)
+		loc, ok = ed.internalFindBeforeBackward(loc, letter)
 		if !ok {
 			if i == 0 {
 				ed.Notice("Not found")
@@ -170,9 +170,9 @@ func (ed *Editor) MoveFindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
 }
 
 // ; : Find next match.
-func (ed *Editor) MoveFindNextMatch(n int) (buf.Loc, bool) {
+func (ed *Editor) FindNextMatch(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveFindNextMatch: n < 1")
+		ed.Error("FindNextMatch: n < 1")
 		return buf.Loc{}, false
 	}
 	if ed.find.Letter == 0 {
@@ -183,21 +183,21 @@ func (ed *Editor) MoveFindNextMatch(n int) (buf.Loc, bool) {
 	for i := 0; i < n; i++ {
 		if ed.find.Backward {
 			if ed.find.Before {
-				loc, ok = ed.internalMoveFindBeforeBackward(
+				loc, ok = ed.internalFindBeforeBackward(
 					loc, ed.find.Letter,
 				)
 			} else {
-				loc, ok = ed.internalMoveFindBackward(
+				loc, ok = ed.internalFindBackward(
 					loc, ed.find.Letter,
 				)
 			}
 		} else {
 			if ed.find.Before {
-				loc, ok = ed.internalMoveFindBeforeForward(
+				loc, ok = ed.internalFindBeforeForward(
 					loc, ed.find.Letter,
 				)
 			} else {
-				loc, ok = ed.internalMoveFindForward(
+				loc, ok = ed.internalFindForward(
 					loc, ed.find.Letter,
 				)
 			}
@@ -214,9 +214,9 @@ func (ed *Editor) MoveFindNextMatch(n int) (buf.Loc, bool) {
 }
 
 // , : Find previous match.
-func (ed *Editor) MoveFindPrevMatch(n int) (buf.Loc, bool) {
+func (ed *Editor) FindPrevMatch(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveFindPrevMatch: n < 1")
+		ed.Error("FindPrevMatch: n < 1")
 		return buf.Loc{}, false
 	}
 	if ed.find.Letter == 0 {
@@ -227,21 +227,21 @@ func (ed *Editor) MoveFindPrevMatch(n int) (buf.Loc, bool) {
 	for i := 0; i < n; i++ {
 		if ed.find.Backward {
 			if ed.find.Before {
-				loc, ok = ed.internalMoveFindBeforeForward(
+				loc, ok = ed.internalFindBeforeForward(
 					loc, ed.find.Letter,
 				)
 			} else {
-				loc, ok = ed.internalMoveFindForward(
+				loc, ok = ed.internalFindForward(
 					loc, ed.find.Letter,
 				)
 			}
 		} else {
 			if ed.find.Before {
-				loc, ok = ed.internalMoveFindBeforeBackward(
+				loc, ok = ed.internalFindBeforeBackward(
 					loc, ed.find.Letter,
 				)
 			} else {
-				loc, ok = ed.internalMoveFindBackward(
+				loc, ok = ed.internalFindBackward(
 					loc, ed.find.Letter,
 				)
 			}

@@ -3,182 +3,235 @@ package editor
 type CmdKind int
 
 type Cmd struct {
-	Kind   CmdKind
-	Num    int
-	Letter rune
-	Pat    string
+	Kind CmdKind
+	Num  int
+	Ltr  rune
+	Pat  string
 }
 
 type CmdPair struct {
-	Reg  string
-	Main Cmd
-	Sub  Cmd
+	Reg string
+	Op  Cmd
+	Mv  Cmd
 }
 
 const (
-	CmdInvalid CmdKind = iota
+	InvalidCmd CmdKind = iota
 
-	CmdMoveLeft
-	CmdMoveDown
-	CmdMoveUp
-	CmdMoveRight
+	//
+	// Motion Commands
+	//
 
-	CmdMoveToStart
-	CmdMoveToEnd
-	CmdMoveToNonBlank
-	CmdMoveToColumn
+	// Motion commands move cursor.
+	// They themself don't change text content of buffer.
 
-	CmdMoveByWord
-	CmdMoveByWordEx // XXX debug
-	CmdMoveBackwardByWord
-	CmdMoveToEndOfWord
-	CmdMoveByLooseWord
-	CmdMoveBackwardByLooseWord
-	CmdMoveToEndOfLooseWord
+	MoveLeft
+	MoveDown
+	MoveUp
+	MoveRight
 
-	CmdMoveByLine
-	CmdMoveBackwardByLine
-	CmdMoveToLastLine
-	CmdMoveToLine
+	MoveToStart
+	MoveToEnd
+	MoveToNonBlank
+	MoveToColumn
 
-	CmdMoveBySentence
-	CmdMoveBackwardBySentence
-	CmdMoveByParagraph
-	CmdMoveBackwardByParagraph
-	CmdMoveBySection
-	CmdMoveBackwardBySection
+	MoveByWord
+	MoveByChangeWord
+	MoveBackwardByWord
+	MoveToEndOfWord
+	MoveByLooseWord
+	MoveBackwardByLooseWord
+	MoveToEndOfLooseWord
 
-	CmdMoveToTopOfView
-	CmdMoveToMiddleOfView
-	CmdMoveToBottomOfView
-	CmdMoveToBelowTopOfView
-	CmdMoveToAboveBottomOfView
+	MoveByLine
+	MoveBackwardByLine
+	MoveToLastLine
+	MoveToLine
 
-	CmdMarkSet
-	CmdMoveToMark
-	CmdMoveToMarkLine
+	MoveBySentence
+	MoveBackwardBySentence
+	MoveByParagraph
+	MoveBackwardByParagraph
+	MoveBySection
+	MoveBackwardBySection
 
-	CmdMoveBackToMark
-	CmdMoveBackToMarkLine
+	MoveToTopOfView
+	MoveToMiddleOfView
+	MoveToBottomOfView
+	MoveToBelowTopOfView
+	MoveToAboveBottomOfView
 
-	CmdViewDown
-	CmdViewUp
-	CmdViewDownHalf
-	CmdViewUpHalf
-	CmdViewDownLine
-	CmdViewUpLine
+	MoveToMark
+	MoveToMarkLine
 
-	CmdViewToTop
-	CmdViewToMiddle
-	CmdViewToBottom
+	BackToMark
+	BackToMarkLine
 
-	CmdViewRedraw
+	SearchForward
+	SearchBackward
+	SearchNextMatch
+	SearchPrevMatch
+	SearchRepeatForward
+	SearchRepeatBackward
 
-	CmdMoveSearchForward
-	CmdMoveSearchBackward
-	CmdMoveSearchNextMatch
-	CmdMoveSearchPrevMatch
-	CmdMoveSearchRepeatForward
-	CmdMoveSearchRepeatBackward
+	FindForward
+	FindBackward
+	FindBeforeForward
+	FindBeforeBackward
+	FindNextMatch
+	FindPrevMatch
 
-	CmdMoveFindForward
-	CmdMoveFindBackward
-	CmdMoveFindBeforeForward
-	CmdMoveFindBeforeBackward
-	CmdMoveFindNextMatch
-	CmdMoveFindPrevMatch
+	//
+	// Insert Commands
+	//
 
-	CmdInsertBefore
-	CmdInsertAfter
-	CmdInsertBeforeNonBlank
-	CmdInsertAfterEnd
-	CmdInsertOverwrite
+	// Insert commands are commands which transit to insert mode.
+	// They are identified by IsInsertCmd.
+	// Insert commands which can have multiplexer number
+	// are identified by IsMultiInsertCmd.
 
-	CmdInsertOpenBelow
-	CmdInsertOpenAbove
+	InsertBefore
+	InsertAfter
+	InsertBeforeNonBlank
+	InsertAfterEnd
+	Overwrite
 
-	CmdOpCopyLine
-	CmdOpCopyRegion
-	CmdOpCopyWord
-	CmdOpCopyToEnd
+	OpenBelow
+	OpenAbove
 
-	CmdOpPaste
-	CmdOpPasteBefore
+	ChangeLine
+	ChangeRegion
+	ChangeWord
+	ChangeToEnd
+	Subst
+	SubstLine
 
-	CmdOpDelete
-	CmdOpDeleteBefore
-	CmdOpDeleteLine
-	CmdOpDeleteRegion
-	CmdOpDeleteWord
-	CmdOpDeleteToEnd
+	//
+	// Edit Commands
+	//
 
-	CmdOpChangeLine
-	CmdOpChangeRegion
-	CmdOpChangeWord
-	CmdOpChangeToEnd
-	CmdOpSubst
-	CmdOpSubstLine
+	// Edit commands are commands which change text content of buffer.
+	// They are identified by IsEditCmd set.
 
-	CmdEditReplace
-	CmdEditJoin
-	CmdEditIndent
-	CmdEditOutdent
-	CmdEditIndentRegion
-	CmdEditOutdentRegion
+	Paste
+	PasteBefore
 
-	CmdMiscShowInfo
-	CmdMiscRepeat
-	CmdMiscUndo
-	CmdMiscRestore
-	CmdMiscSaveAndQuit
-	CmdMiscSuspend
+	Delete
+	DeleteBefore
+	DeleteLine
+	DeleteRegion
+	DeleteWord
+	DeleteToEnd
+
+	Join
+	Indent
+	Outdent
+	IndentRegion
+	OutdentRegion
+
+	Replace
+
+	Restore
+
+	//
+	// Mark Commands
+	//
+
+	// Here is only mark set command.
+	// Most other mark commands are categorized to motion commands.
+
+	MarkSet
+
+	//
+	// Copy Commands
+	//
+
+	// These commands copy lines or runes into registers.
+	// They don't change text content of buffer.
+
+	CopyLine
+	CopyRegion
+	CopyWord
+	CopyToEnd
+
+	//
+	// View Commands
+	//
+
+	// View commands scroll screen.
+	// They possibly move cursor, but are not used as motion commands.
+
+	ViewDown
+	ViewUp
+	ViewDownHalf
+	ViewUpHalf
+	ViewDownLine
+	ViewUpLine
+
+	ViewToTop
+	ViewToMiddle
+	ViewToBottom
+
+	Redraw
+
+	//
+	// Miscellaneous commands
+	//
+
+	ShowInfo
+	Repeat
+	Undo
+	SaveAndQuit
+	Suspend
 )
 
-var InsertCmds = map[CmdKind]struct{}{
-	CmdInsertBefore:         {},
-	CmdInsertAfter:          {},
-	CmdInsertBeforeNonBlank: {},
-	CmdInsertAfterEnd:       {},
-	CmdInsertOverwrite:      {},
+var IsInsertCmd = map[CmdKind]struct{}{
+	InsertBefore:         {},
+	InsertAfter:          {},
+	InsertBeforeNonBlank: {},
+	InsertAfterEnd:       {},
+	Overwrite:            {},
 
-	CmdInsertOpenBelow: {},
-	CmdInsertOpenAbove: {},
+	OpenBelow: {},
+	OpenAbove: {},
 
-	CmdOpChangeLine:   {},
-	CmdOpChangeRegion: {},
-	CmdOpChangeWord:   {},
-	CmdOpChangeToEnd:  {},
-	CmdOpSubst:        {},
-	CmdOpSubstLine:    {},
-
-	//CmdEditReplace: {},
+	ChangeLine:   {},
+	ChangeRegion: {},
+	ChangeWord:   {},
+	ChangeToEnd:  {},
+	Subst:        {},
+	SubstLine:    {},
 }
 
-var EditCmds = map[CmdKind]struct{}{
-	CmdOpPaste:       {},
-	CmdOpPasteBefore: {},
+var IsMultiInsertCmd = map[CmdKind]struct{}{
+	InsertBefore:         {},
+	InsertAfter:          {},
+	InsertBeforeNonBlank: {},
+	InsertAfterEnd:       {},
+	Overwrite:            {},
 
-	CmdOpDelete:       {},
-	CmdOpDeleteBefore: {},
-	CmdOpDeleteLine:   {},
-	CmdOpDeleteRegion: {},
-	CmdOpDeleteWord:   {},
-	CmdOpDeleteToEnd:  {},
-
-	CmdEditJoin:          {},
-	CmdEditIndent:        {},
-	CmdEditOutdent:       {},
-	CmdEditIndentRegion:  {},
-	CmdEditOutdentRegion: {},
+	OpenBelow: {},
+	OpenAbove: {},
 }
 
-var MultiInsertCmds = map[CmdKind]struct{}{
-	CmdInsertBefore:         {},
-	CmdInsertAfter:          {},
-	CmdInsertBeforeNonBlank: {},
-	CmdInsertAfterEnd:       {},
-	CmdInsertOverwrite:      {},
+var IsEditCmd = map[CmdKind]struct{}{
+	Paste:       {},
+	PasteBefore: {},
 
-	CmdInsertOpenBelow: {},
-	CmdInsertOpenAbove: {},
+	Delete:       {},
+	DeleteBefore: {},
+	DeleteLine:   {},
+	DeleteRegion: {},
+	DeleteWord:   {},
+	DeleteToEnd:  {},
+
+	Join:          {},
+	Indent:        {},
+	Outdent:       {},
+	IndentRegion:  {},
+	OutdentRegion: {},
+
+	Replace: {},
+
+	Restore: {},
 }

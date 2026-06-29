@@ -54,7 +54,8 @@ func (ed *Editor) UpdateCursor() {
 				b.Pos.X = termi.StringWidth(line, col)
 				r := runeAt(line, col)
 				if r == '\t' {
-					b.Pos.X += termi.TabWidth - (b.Pos.X % termi.TabWidth) - 1
+					b.Pos.X +=
+						termi.TabWidth - (b.Pos.X % termi.TabWidth) - 1
 				}
 				if ed.mode == ModeInsert && b.Loc.Col > 0 {
 					if r == '\t' {

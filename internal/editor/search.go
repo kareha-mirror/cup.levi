@@ -38,7 +38,7 @@ func (ed *Editor) Locate() {
 /////////////////////
 
 // /<pattern> Enter : Search <pattern> forward.
-func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
+func (ed *Editor) SearchForward() (buf.Loc, bool) {
 	if ed.search.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
@@ -79,7 +79,7 @@ func (ed *Editor) MoveSearchForward() (buf.Loc, bool) {
 }
 
 // ?<pattern> Enter : Search <pattern> backward.
-func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
+func (ed *Editor) SearchBackward() (buf.Loc, bool) {
 	if ed.search.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
@@ -143,29 +143,29 @@ func (ed *Editor) MoveSearchBackward() (buf.Loc, bool) {
 }
 
 // n : Search next match.
-func (ed *Editor) MoveSearchNextMatch() (buf.Loc, bool) {
+func (ed *Editor) SearchNextMatch() (buf.Loc, bool) {
 	if ed.search.backward {
-		return ed.MoveSearchRepeatBackward()
+		return ed.SearchRepeatBackward()
 	} else {
-		return ed.MoveSearchRepeatForward()
+		return ed.SearchRepeatForward()
 	}
 }
 
 // N : Search previous match.
-func (ed *Editor) MoveSearchPrevMatch() (buf.Loc, bool) {
+func (ed *Editor) SearchPrevMatch() (buf.Loc, bool) {
 	if ed.search.backward {
-		return ed.MoveSearchRepeatForward()
+		return ed.SearchRepeatForward()
 	} else {
-		return ed.MoveSearchRepeatBackward()
+		return ed.SearchRepeatBackward()
 	}
 }
 
 // / Enter : Repeat last search forward.
-func (ed *Editor) MoveSearchRepeatForward() (buf.Loc, bool) {
-	return ed.MoveSearchForward()
+func (ed *Editor) SearchRepeatForward() (buf.Loc, bool) {
+	return ed.SearchForward()
 }
 
 // ? Enter : Repeat last search backward.
-func (ed *Editor) MoveSearchRepeatBackward() (buf.Loc, bool) {
-	return ed.MoveSearchBackward()
+func (ed *Editor) SearchRepeatBackward() (buf.Loc, bool) {
+	return ed.SearchBackward()
 }

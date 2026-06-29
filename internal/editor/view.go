@@ -139,6 +139,6 @@ func (ed *Editor) ViewToBottom() {
 //
 
 // Ctrl-L : Redraw view.
-func (ed *Editor) ViewRedraw() {
+func (ed *Editor) Redraw() {
 	ed.redraw = true
 }

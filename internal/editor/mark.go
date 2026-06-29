@@ -47,13 +47,13 @@ func (ed *Editor) MoveToMarkLine(letter rune) (buf.Loc, bool) {
 //
 
 // “ : Move cursor to previous position in context.
-func (ed *Editor) MoveBackToMark() (buf.Loc, bool) {
+func (ed *Editor) BackToMark() (buf.Loc, bool) {
 	ed.Unimplemented("MoveBackToMark")
 	return buf.Loc{}, false
 }
 
 // ” : Move cursor to previous line in context.
-func (ed *Editor) MoveBackToMarkLine() (buf.Loc, bool) {
+func (ed *Editor) BackToMarkLine() (buf.Loc, bool) {
 	ed.Unimplemented("MarkBackToLine")
 	return buf.Loc{}, false
 }
