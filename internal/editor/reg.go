@@ -272,25 +272,42 @@ func (ed *Editor) RegKilled(name string) []string {
 	return ed.regs.Killed(name)
 }
 
-func (ed *Editor) ApplyRegLines(name string, killed []string) {
+func (ed *Editor) ApplyRegLines(name string, killed []string) bool {
 	if name == "+" {
 		lines := append([]string{}, killed...)
 		lines = append(lines, "")
-		ed.ApplyRegRunes(name, lines)
-		return
+		if !ed.ApplyRegRunes(name, lines) {
+			return false
+		}
+	} else {
+		ed.regs.ApplyLines(name, killed)
 	}
-	ed.regs.ApplyLines(name, killed)
+	numLines := len(killed)
+	if numLines >= 5 {
+		ed.Message("%d lines yanked", numLines)
+	}
+	return true
 }
 
-func (ed *Editor) ApplyRegRunes(name string, killed []string) {
+func (ed *Editor) ApplyRegRunes(name string, killed []string) bool {
 	if name == "+" {
 		if err := ed.EnsureClipboard(); err != nil {
 			ed.Error("%v", err)
-			return
+			return false
 		}
 		text := strings.Join(killed, buf.LineSep(ed.Buf().CRLF))
 		clipboard.Write(clipboard.FmtText, []byte(text))
-		return
+	} else {
+		ed.regs.ApplyRunes(name, killed)
 	}
-	ed.regs.ApplyRunes(name, killed)
+	numLines := len(killed)
+	if numLines >= 5 {
+		ed.Message("%d lines yanked", numLines)
+	} else if numLines == 1 {
+		rc := utf8.RuneCountInString(killed[0])
+		if rc >= 25 {
+			ed.Message("%d bytes, %d runes yanked", len(killed[0]), rc)
+		}
+	}
+	return true
 }

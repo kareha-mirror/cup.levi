@@ -69,12 +69,12 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		ed.Redraw()
 		return false, true
 
-	case InsertBefore:
-		return ed.InsertBefore(c.Op.Num, replay), true
+	case Insert:
+		return ed.Insert(c.Op.Num, replay), true
 	case InsertAfter:
 		return ed.InsertAfter(c.Op.Num, replay), true
-	case InsertBeforeNonBlank:
-		return ed.InsertBeforeNonBlank(c.Op.Num, replay), true
+	case InsertAfterIndent:
+		return ed.InsertAfterIndent(c.Op.Num, replay), true
 	case InsertAfterEnd:
 		return ed.InsertAfterEnd(c.Op.Num, replay), true
 	case Overwrite:
@@ -90,12 +90,14 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return false, true
 	case CopyRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(c.Mv)
+		mv := c.Mv
+		mv.Num *= c.Op.Num
+		end, ok := ed.RunMove(mv)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[c.Mv.Kind]
+		attr, ok := MoveAttrs[mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false
@@ -126,12 +128,14 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.DeleteLine(c.Reg, c.Op.Num), true
 	case DeleteRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(c.Mv)
+		mv := c.Mv
+		mv.Num *= c.Op.Num
+		end, ok := ed.RunMove(mv)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[c.Mv.Kind]
+		attr, ok := MoveAttrs[mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false
@@ -150,16 +154,17 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.ChangeLine(c.Reg, c.Op.Num, replay), true
 	case ChangeRegion:
 		start := ed.Buf().Loc
-		cmd := c.Mv
-		if cmd.Kind == MoveByWord {
-			cmd.Kind = MoveByChangeWord
+		mv := c.Mv
+		if mv.Kind == MoveByWord {
+			mv.Kind = MoveByChangeWord
 		}
-		end, ok := ed.RunMove(cmd)
+		mv.Num *= c.Op.Num
+		end, ok := ed.RunMove(mv)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[cmd.Kind]
+		attr, ok := MoveAttrs[mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false

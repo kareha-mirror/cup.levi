@@ -32,7 +32,7 @@ const (
 
 	MoveToStart
 	MoveToEnd
-	MoveToNonBlank
+	MoveToAfterIndent
 	MoveToColumn
 
 	MoveByWord
@@ -90,9 +90,9 @@ const (
 	// Insert commands which can have multiplexer number
 	// are identified by IsMultiInsertCmd.
 
-	InsertBefore
+	Insert
 	InsertAfter
-	InsertBeforeNonBlank
+	InsertAfterIndent
 	InsertAfterEnd
 	Overwrite
 
@@ -184,11 +184,11 @@ const (
 )
 
 var IsInsertCmd = map[CmdKind]struct{}{
-	InsertBefore:         {},
-	InsertAfter:          {},
-	InsertBeforeNonBlank: {},
-	InsertAfterEnd:       {},
-	Overwrite:            {},
+	Insert:            {},
+	InsertAfter:       {},
+	InsertAfterIndent: {},
+	InsertAfterEnd:    {},
+	Overwrite:         {},
 
 	OpenBelow: {},
 	OpenAbove: {},
@@ -202,11 +202,11 @@ var IsInsertCmd = map[CmdKind]struct{}{
 }
 
 var IsMultiInsertCmd = map[CmdKind]struct{}{
-	InsertBefore:         {},
-	InsertAfter:          {},
-	InsertBeforeNonBlank: {},
-	InsertAfterEnd:       {},
-	Overwrite:            {},
+	Insert:            {},
+	InsertAfter:       {},
+	InsertAfterIndent: {},
+	InsertAfterEnd:    {},
+	Overwrite:         {},
 
 	OpenBelow: {},
 	OpenAbove: {},

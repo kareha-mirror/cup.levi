@@ -21,8 +21,8 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.MoveToStart()
 	case MoveToEnd:
 		return ed.MoveToEnd()
-	case MoveToNonBlank:
-		return ed.MoveToNonBlank()
+	case MoveToAfterIndent:
+		return ed.MoveToAfterIndent()
 	case MoveToColumn:
 		return ed.MoveToColumn(c.Num)
 

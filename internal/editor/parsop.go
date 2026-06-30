@@ -57,11 +57,11 @@ func (ed *Editor) ParseInsert(num int, op string) (Cmd, bool) {
 	switch op {
 
 	case "i":
-		return Cmd{Kind: InsertBefore, Num: num}, true
+		return Cmd{Kind: Insert, Num: num}, true
 	case "a":
 		return Cmd{Kind: InsertAfter, Num: num}, true
 	case "I":
-		return Cmd{Kind: InsertBeforeNonBlank, Num: num}, true
+		return Cmd{Kind: InsertAfterIndent, Num: num}, true
 	case "A":
 		return Cmd{Kind: InsertAfterEnd, Num: num}, true
 	case "R":
@@ -110,7 +110,7 @@ func (ed *Editor) ParseOp(
 			if ok {
 				return CmdPair{
 					Reg: reg,
-					Op:  Cmd{Kind: CopyRegion},
+					Op:  Cmd{Kind: CopyRegion, Num: num},
 					Mv:  cmd,
 				}, true
 			}
@@ -120,7 +120,7 @@ func (ed *Editor) ParseOp(
 			if ok {
 				return CmdPair{
 					Reg: reg,
-					Op:  Cmd{Kind: DeleteRegion},
+					Op:  Cmd{Kind: DeleteRegion, Num: num},
 					Mv:  cmd,
 				}, true
 			}
@@ -133,7 +133,7 @@ func (ed *Editor) ParseOp(
 			if ok {
 				return CmdPair{
 					Reg: reg,
-					Op:  Cmd{Kind: ChangeRegion},
+					Op:  Cmd{Kind: ChangeRegion, Num: num},
 					Mv:  cmd,
 				}, true
 			}

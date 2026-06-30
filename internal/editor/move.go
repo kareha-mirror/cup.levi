@@ -94,7 +94,7 @@ func (ed *Editor) MoveToEnd() (buf.Loc, bool) {
 }
 
 // ^ : Move cursor to first non-blank character of current line.
-func (ed *Editor) MoveToNonBlank() (buf.Loc, bool) {
+func (ed *Editor) MoveToAfterIndent() (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col = b.NonBlankColOfLine(loc.Row)
@@ -150,17 +150,25 @@ func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
-	for i := 0; i < n; i++ {
-		if loc, found = b.MoveByChangeWord(loc); found {
+	for i := 1; i < n; i++ {
+		if loc, found = b.MoveByWord(loc); found {
 			continue
-		}
-		if n < 2 {
-			return loc, true
 		}
 		loc.Row++
 		loc.Col = 0
-		loc, _ = b.SkipBlanks(loc)
+		if loc, found = b.SkipBlanks(loc); !found {
+			return loc, true
+		}
 	}
+	if loc, found = b.MoveByChangeWord(loc); found {
+		return loc, true
+	}
+	if n < 2 {
+		return loc, true
+	}
+	loc.Row++
+	loc.Col = 0
+	loc, _ = b.SkipBlanks(loc)
 	return loc, true
 }
 

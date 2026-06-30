@@ -60,13 +60,15 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				if ed.alive && ed.Buf() == b && b.Loc.Row != prevRow {
 					b.StoreLine()
 				}
-				if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
+				if _, ok := IsInsertCmd[c.Op.Kind]; ok {
+					ed.lastCmd = c
+				} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
 					if modified {
 						ed.EndUndoRecord()
+						ed.lastCmd = c
 					} else {
 						ed.CancelUndoRecord()
 					}
-					ed.lastCmd = c
 				} else if c.Op.Kind == Undo {
 					// undo is not included in modifying commands
 					// it is not usual edit or insert but repeatable

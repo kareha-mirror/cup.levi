@@ -127,7 +127,7 @@ func (ed *Editor) ParseMove(
 	case "$":
 		return Cmd{Kind: MoveToEnd}, true
 	case "^":
-		return Cmd{Kind: MoveToNonBlank}, true
+		return Cmd{Kind: MoveToAfterIndent}, true
 	case "|":
 		return Cmd{Kind: MoveToColumn, Num: num}, true
 

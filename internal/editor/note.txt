@@ -2,9 +2,18 @@ finished
 * find.go
 * misc.go
 
+nearly finished
+* change.go see note
+
+note
+* nvi search commands have no number prefixes
+  this can be enhanced or used for other purposes
+* cc (ChangeLine) and S (SubstLine) are identical.
+  one can be omitted
+* cw (ChangeWord) can be omitted since <num>c<subnum>w works
+
 problems
 * search.go
-  note that nvi search commands have no number prefix
   * Locate does not care about col
   * search pattern should be provided by Cmd
     currently it is provided directry from main.go

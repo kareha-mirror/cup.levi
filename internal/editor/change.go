@@ -4,8 +4,13 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/rkind"
 	"tea.kareha.org/cup/levi/internal/rutil"
 )
+
+////////////////////////////////
+// Operator Commands (Change) //
+////////////////////////////////
 
 //
 // Change / Substitute
@@ -17,8 +22,32 @@ func (ed *Editor) ChangeLine(reg string, n int, replay bool) bool {
 		ed.Error("ChangeLine: n < 1")
 		return false
 	}
-	ed.Unimplemented("ChangeLine")
-	return false
+	b := ed.Buf()
+	// empty case
+	if b.NumLines() == 0 && n == 1 {
+		return ed.Insert(1, replay)
+	}
+	if b.Loc.Row+n > b.NumLines() {
+		ed.Notice("Out of range")
+		return false
+	}
+	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
+
+	// above
+	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
+	// current
+	if ed.cfg.AutoIndent {
+		lines = append(lines, rkind.IndentOf(b.Lines[b.Loc.Row]))
+	} else {
+		lines = append(lines, "")
+	}
+	// below
+	if b.Loc.Row+n < b.NumLines() {
+		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
+	}
+	b.Lines = lines
+
+	return ed.InsertAfterEnd(1, replay)
 }
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
@@ -59,8 +88,11 @@ func (ed *Editor) ChangeRegion(
 func (ed *Editor) ChangeLineRegion(
 	reg string, start buf.Loc, end buf.Loc, replay bool,
 ) bool {
-	ed.Unimplemented("ChangeLineRegion")
-	return false
+	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, true)
+	n := end.Row - start.Row + 1
+	b.Loc = start
+	return ed.ChangeLine(reg, n, replay)
 }
 
 // cw : Change word.
@@ -76,7 +108,6 @@ func (ed *Editor) ChangeWord(reg string, n int, replay bool) bool {
 		return false
 	}
 	return ed.ChangeRegion(reg, start, end, false, replay)
-	// TODO n
 }
 
 // C : Change to end of current line.
@@ -86,14 +117,38 @@ func (ed *Editor) ChangeToEnd(reg string, n int, replay bool) bool {
 		return false
 	}
 	b := ed.Buf()
+	// empty case
+	if b.NumLines() == 0 && n == 1 {
+		return ed.Insert(1, replay)
+	}
+	if b.Loc.Row+n > b.NumLines() {
+		ed.Notice("Out of range")
+		return false
+	}
 	head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
-	ed.ApplyRegRunes(reg, []string{tail})
-	b.SetCurrentLine(head)
-	ed.inp.Init(head, b.Loc.Col, ed.cfg.AutoIndent)
-	ed.inpRow = b.Loc.Row
-	ed.mode = ModeInsert
-	return false
-	// TODO n
+	killed := []string{tail}
+	killed = append(killed, b.Lines[b.Loc.Row+1:b.Loc.Row+n]...)
+	ed.ApplyRegRunes(reg, killed)
+
+	// above
+	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
+	// current
+	if rkind.IsBlankLine(head) {
+		if ed.cfg.AutoIndent {
+			lines = append(lines, rkind.IndentOf(b.Lines[b.Loc.Row]))
+		} else {
+			lines = append(lines, "")
+		}
+	} else {
+		lines = append(lines, head)
+	}
+	// below
+	if b.Loc.Row+n < b.NumLines() {
+		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
+	}
+	b.Lines = lines
+
+	return ed.InsertAfterEnd(1, replay)
 }
 
 // s : Substitute one character under cursor.

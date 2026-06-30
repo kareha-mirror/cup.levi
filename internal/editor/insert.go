@@ -44,9 +44,9 @@ func (ed *Editor) replayInsert() {
 }
 
 // i : Switch to insert mode before cursor.
-func (ed *Editor) InsertBefore(n int, replay bool) bool {
+func (ed *Editor) Insert(n int, replay bool) bool {
 	if n < 1 {
-		ed.Error("InsertBefore: n < 1")
+		ed.Error("Insert: n < 1")
 		return false
 	}
 	if replay {
@@ -110,14 +110,14 @@ func (ed *Editor) InsertAfter(n int, replay bool) bool {
 }
 
 // I : Switch to insert mode before first non-blank character of current line.
-func (ed *Editor) InsertBeforeNonBlank(n int, replay bool) bool {
+func (ed *Editor) InsertAfterIndent(n int, replay bool) bool {
 	if n < 1 {
-		ed.Error("InsertBeforeNonBlank: n < 1")
+		ed.Error("InsertAfterIndent: n < 1")
 		return false
 	}
 	b := ed.Buf()
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
-	return ed.InsertBefore(n, replay)
+	return ed.Insert(n, replay)
 }
 
 // A : Switch to insert mode after end of current line.

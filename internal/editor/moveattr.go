@@ -13,10 +13,10 @@ var MoveAttrs = map[CmdKind]MoveAttr{
 	MoveUp:    {Linewise: true, FreeCol: true},
 	MoveRight: {},
 
-	MoveToStart:    {},
-	MoveToEnd:      {},
-	MoveToNonBlank: {},
-	MoveToColumn:   {},
+	MoveToStart:       {},
+	MoveToEnd:         {},
+	MoveToAfterIndent: {},
+	MoveToColumn:      {},
 
 	MoveByWord:              {},
 	MoveByChangeWord:        {},
