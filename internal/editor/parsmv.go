@@ -147,9 +147,9 @@ func (ed *Editor) ParseMove(
 		return Cmd{Kind: MoveToEndOfLooseWord, Num: num}, true
 
 	case ";":
-		return Cmd{Kind: FindNextMatch, Num: num}, true
+		return Cmd{Kind: FindNext, Num: num}, true
 	case ",":
-		return Cmd{Kind: FindPrevMatch, Num: num}, true
+		return Cmd{Kind: FindPrev, Num: num}, true
 
 	}
 
@@ -169,21 +169,21 @@ func (ed *Editor) ParseSearch(op string, pat string) (Cmd, bool) {
 
 	case "/":
 		if pat == "" {
-			return Cmd{Kind: SearchRepeatForward}, true
+			return Cmd{Kind: RepeatSearchForward}, true
 		} else {
 			return Cmd{Kind: SearchForward, Pat: pat}, true
 		}
 	case "?":
 		if pat == "" {
-			return Cmd{Kind: SearchRepeatBackward}, true
+			return Cmd{Kind: RepeatSearchBackward}, true
 		} else {
 			return Cmd{Kind: SearchBackward, Pat: pat}, true
 		}
 
 	case "n":
-		return Cmd{Kind: SearchNextMatch}, true
+		return Cmd{Kind: SearchNext}, true
 	case "N":
-		return Cmd{Kind: SearchPrevMatch}, true
+		return Cmd{Kind: SearchPrev}, true
 
 	}
 

@@ -13,7 +13,7 @@ import (
 //
 
 // m<letter> : Mark current cursor position labelled by <letter>.
-func (ed *Editor) MarkSet(letter rune) {
+func (ed *Editor) Mark(letter rune) {
 	ed.Buf().Mark(letter)
 }
 

@@ -44,15 +44,15 @@ func (ed *Editor) replayInsert() {
 }
 
 // i : Switch to insert mode before cursor.
-func (ed *Editor) InsertBefore(n int, replay bool) {
+func (ed *Editor) InsertBefore(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("InsertBefore: n < 1")
-		return
+		return false
 	}
 	if replay {
 		if len(ed.inserted) < 0 {
 			ed.Notice("Not inserted yet")
-			return
+			return false
 		}
 		for i := 0; i < n; i++ {
 			ed.replayInsert()
@@ -61,25 +61,25 @@ func (ed *Editor) InsertBefore(n int, replay bool) {
 		b.Loc.Col--
 		b.Loc = b.ConfineInclusive(b.Loc)
 		b.VirtCol = b.Loc.Col
-		b.Modified = true
-	} else {
-		b := ed.Buf()
-		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
-		ed.inpRow = b.Loc.Row
-		ed.mode = ModeInsert
+		return true
 	}
+	b := ed.Buf()
+	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
+	ed.inpRow = b.Loc.Row
+	ed.mode = ModeInsert
+	return false
 }
 
 // a : Switch to insert mode after cursor.
-func (ed *Editor) InsertAfter(n int, replay bool) {
+func (ed *Editor) InsertAfter(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("InsertAfter: n < 1")
-		return
+		return false
 	}
 	if replay {
 		if len(ed.inserted) < 0 {
 			ed.Notice("Not inserted yet")
-			return
+			return false
 		}
 		b := ed.Buf()
 		rc := utf8.RuneCountInString(b.CurrentLine())
@@ -94,51 +94,52 @@ func (ed *Editor) InsertAfter(n int, replay bool) {
 		b.Loc.Col--
 		b.Loc = b.ConfineInclusive(b.Loc)
 		b.VirtCol = b.Loc.Col
-		b.Modified = true
-	} else {
-		b := ed.Buf()
-		rc := utf8.RuneCountInString(b.CurrentLine())
-		if b.Loc.Col >= rc-1 {
-			b.Loc.Col = rc
-		} else {
-			b.Loc.Col++
-		}
-		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
-		ed.inpRow = b.Loc.Row
-		ed.mode = ModeInsert
+		return true
 	}
+	b := ed.Buf()
+	rc := utf8.RuneCountInString(b.CurrentLine())
+	if b.Loc.Col >= rc-1 {
+		b.Loc.Col = rc
+	} else {
+		b.Loc.Col++
+	}
+	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
+	ed.inpRow = b.Loc.Row
+	ed.mode = ModeInsert
+	return false
 }
 
 // I : Switch to insert mode before first non-blank character of current line.
-func (ed *Editor) InsertBeforeNonBlank(n int, replay bool) {
+func (ed *Editor) InsertBeforeNonBlank(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("InsertBeforeNonBlank: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
-	ed.InsertBefore(n, replay)
+	return ed.InsertBefore(n, replay)
 }
 
 // A : Switch to insert mode after end of current line.
-func (ed *Editor) InsertAfterEnd(n int, replay bool) {
+func (ed *Editor) InsertAfterEnd(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("InsertAfterEnd: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	rc := utf8.RuneCountInString(b.CurrentLine())
 	b.Loc.Col = max(rc-1, 0)
-	ed.InsertAfter(n, replay)
+	return ed.InsertAfter(n, replay)
 }
 
 // R : Switch to replace (overwrite) mode.
-func (ed *Editor) Overwrite(n int, replay bool) {
+func (ed *Editor) Overwrite(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("Overwrite: n < 1")
-		return
+		return false
 	}
 	ed.Unimplemented("Overwrite")
+	return false
 }
 
 //
@@ -146,15 +147,14 @@ func (ed *Editor) Overwrite(n int, replay bool) {
 //
 
 // o : Open a new line below and switch to insert mode.
-func (ed *Editor) OpenBelow(n int, replay bool) {
+func (ed *Editor) OpenBelow(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("OpenBelow: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	if b.NumLines() < 1 {
-		ed.InsertAfter(n, replay)
-		return
+		return ed.InsertAfter(n, replay)
 	}
 	indent := ""
 	if ed.cfg.AutoIndent {
@@ -171,14 +171,14 @@ func (ed *Editor) OpenBelow(n int, replay bool) {
 	b.Lines = lines
 	b.Loc.Row++
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
-	ed.InsertAfter(n, replay)
+	return ed.InsertAfter(n, replay)
 }
 
 // O : Open a new line above and switch to insert mode.
-func (ed *Editor) OpenAbove(n int, replay bool) {
+func (ed *Editor) OpenAbove(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("OpenAbove: n < 1")
-		return
+		return false
 	}
 	indent := ""
 	b := ed.Buf()
@@ -195,5 +195,5 @@ func (ed *Editor) OpenAbove(n int, replay bool) {
 	}
 	b.Lines = lines
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
-	ed.InsertAfter(n, replay)
+	return ed.InsertAfter(n, replay)
 }

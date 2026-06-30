@@ -48,16 +48,28 @@ func (ed *Editor) MainCommand(key termi.Key) {
 
 		c, ok := ed.Parse()
 		if ok {
+			b := ed.Buf()
+			prevRow := b.Loc.Row
 			if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-				ed.BeginRecordForUndo()
+				ed.BeginUndoRecord()
 			} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
-				ed.BeginRecordForUndo()
+				ed.BeginUndoRecord()
 			}
-			if ed.Run(c, false) {
+			if modified, ok := ed.Run(c, false); ok {
+				if modified {
+					b.Modified = true
+				}
+				if ed.alive && ed.Buf() == b && b.Loc.Row != prevRow {
+					b.StoreLine()
+				}
 				if _, ok := IsInsertCmd[c.Op.Kind]; ok {
 					ed.lastCmd = c
 				} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
-					ed.EndRecordForUndo()
+					if modified {
+						ed.EndUndoRecord()
+					} else {
+						ed.CancelUndoRecord()
+					}
 					ed.lastCmd = c
 				} else if c.Op.Kind == Undo {
 					ed.lastCmd = c
@@ -69,9 +81,9 @@ func (ed *Editor) MainCommand(key termi.Key) {
 			} else {
 				ed.Error("Failed to run")
 				if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-					ed.CancelRecordForUndo()
+					ed.CancelUndoRecord()
 				} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
-					ed.CancelRecordForUndo()
+					ed.CancelUndoRecord()
 				}
 			}
 		}
@@ -155,11 +167,11 @@ func (ed *Editor) MainSearch(key termi.Key) {
 			if ed.search.pattern.Len() < 1 {
 				if ed.search.backward {
 					ed.Run(CmdPair{Mv: Cmd{
-						Kind: SearchRepeatBackward,
+						Kind: RepeatSearchBackward,
 					}}, false)
 				} else {
 					ed.Run(CmdPair{Mv: Cmd{
-						Kind: SearchRepeatForward,
+						Kind: RepeatSearchForward,
 					}}, false)
 				}
 				return

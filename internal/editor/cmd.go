@@ -69,17 +69,17 @@ const (
 
 	SearchForward
 	SearchBackward
-	SearchNextMatch
-	SearchPrevMatch
-	SearchRepeatForward
-	SearchRepeatBackward
+	SearchNext
+	SearchPrev
+	RepeatSearchForward
+	RepeatSearchBackward
 
 	FindForward
 	FindBackward
 	FindBeforeForward
 	FindBeforeBackward
-	FindNextMatch
-	FindPrevMatch
+	FindNext
+	FindPrev
 
 	//
 	// Insert Commands
@@ -123,13 +123,12 @@ const (
 	DeleteWord
 	DeleteToEnd
 
+	Replace
 	Join
 	Indent
 	Outdent
 	IndentRegion
 	OutdentRegion
-
-	Replace
 
 	Restore
 
@@ -137,10 +136,9 @@ const (
 	// Mark Commands
 	//
 
-	// Here is only mark set command.
 	// Most other mark commands are categorized to motion commands.
 
-	MarkSet
+	Mark
 
 	//
 	// Copy Commands

@@ -8,7 +8,7 @@ func (ed *Editor) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
 	switch op {
 
 	case "m":
-		return Cmd{Kind: MarkSet, Ltr: letter}, true
+		return Cmd{Kind: Mark, Ltr: letter}, true
 
 	case "r":
 		return Cmd{
@@ -250,11 +250,11 @@ func (ed *Editor) ParseEdit(
 	case ">":
 		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
 		if ok {
-			meta, ok := MoveAttrs[cmd.Kind]
+			attr, ok := MoveAttrs[cmd.Kind]
 			if !ok {
 				return CmdPair{}, false
 			}
-			if meta.Linewise {
+			if attr.Linewise {
 				return CmdPair{
 					Op: Cmd{Kind: IndentRegion},
 					Mv: cmd,
@@ -270,11 +270,11 @@ func (ed *Editor) ParseEdit(
 	case "<":
 		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
 		if ok {
-			meta, ok := MoveAttrs[cmd.Kind]
+			attr, ok := MoveAttrs[cmd.Kind]
 			if !ok {
 				return CmdPair{}, false
 			}
-			if meta.Linewise {
+			if attr.Linewise {
 				return CmdPair{
 					Op: Cmd{Kind: OutdentRegion},
 					Mv: cmd,

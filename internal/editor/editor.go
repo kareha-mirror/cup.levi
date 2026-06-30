@@ -225,7 +225,7 @@ func (ed *Editor) Commit() {
 			b.Modified = true
 		}
 
-		ed.EndRecordForUndo()
+		ed.EndUndoRecord()
 		ed.Reset()
 
 		if !ed.cfg.Silent {

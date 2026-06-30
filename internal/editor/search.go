@@ -138,29 +138,29 @@ func (ed *Editor) SearchBackward() (buf.Loc, bool) {
 }
 
 // n : Search next match.
-func (ed *Editor) SearchNextMatch() (buf.Loc, bool) {
+func (ed *Editor) SearchNext() (buf.Loc, bool) {
 	if ed.search.backward {
-		return ed.SearchRepeatBackward()
+		return ed.RepeatSearchBackward()
 	} else {
-		return ed.SearchRepeatForward()
+		return ed.RepeatSearchForward()
 	}
 }
 
 // N : Search previous match.
-func (ed *Editor) SearchPrevMatch() (buf.Loc, bool) {
+func (ed *Editor) SearchPrev() (buf.Loc, bool) {
 	if ed.search.backward {
-		return ed.SearchRepeatForward()
+		return ed.RepeatSearchForward()
 	} else {
-		return ed.SearchRepeatBackward()
+		return ed.RepeatSearchBackward()
 	}
 }
 
 // / Enter : Repeat last search forward.
-func (ed *Editor) SearchRepeatForward() (buf.Loc, bool) {
+func (ed *Editor) RepeatSearchForward() (buf.Loc, bool) {
 	return ed.SearchForward()
 }
 
 // ? Enter : Repeat last search backward.
-func (ed *Editor) SearchRepeatBackward() (buf.Loc, bool) {
+func (ed *Editor) RepeatSearchBackward() (buf.Loc, bool) {
 	return ed.SearchBackward()
 }

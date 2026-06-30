@@ -265,17 +265,17 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		}
 	}
 
-	cp, ok := ed.ParseOp(
+	c, ok := ed.ParseOp(
 		t.Reg, t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter,
 	)
 	if ok {
 		p.Ok = true
-		return cp, true
+		return c, true
 	}
-	cp, ok = ed.ParseEdit(t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter)
+	c, ok = ed.ParseEdit(t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter)
 	if ok {
 		p.Ok = true
-		return cp, true
+		return c, true
 	}
 
 	if len(t.Op) < 2 {

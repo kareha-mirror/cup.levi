@@ -88,14 +88,14 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.SearchForward()
 	case SearchBackward:
 		return ed.SearchBackward()
-	case SearchNextMatch:
-		return ed.SearchNextMatch()
-	case SearchPrevMatch:
-		return ed.SearchPrevMatch()
-	case SearchRepeatForward:
-		return ed.SearchRepeatForward()
-	case SearchRepeatBackward:
-		return ed.SearchRepeatBackward()
+	case SearchNext:
+		return ed.SearchNext()
+	case SearchPrev:
+		return ed.SearchPrev()
+	case RepeatSearchForward:
+		return ed.RepeatSearchForward()
+	case RepeatSearchBackward:
+		return ed.RepeatSearchBackward()
 
 	case FindForward:
 		return ed.FindForward(c.Ltr, c.Num)
@@ -105,10 +105,10 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.FindBeforeForward(c.Ltr, c.Num)
 	case FindBeforeBackward:
 		return ed.FindBeforeBackward(c.Ltr, c.Num)
-	case FindNextMatch:
-		return ed.FindNextMatch(c.Num)
-	case FindPrevMatch:
-		return ed.FindPrevMatch(c.Num)
+	case FindNext:
+		return ed.FindNext(c.Num)
+	case FindPrev:
+		return ed.FindPrev(c.Num)
 
 	}
 	return buf.Loc{}, false

@@ -95,6 +95,7 @@ func (ed *Editor) Load(path string, force bool) bool {
 	b.NewFile = false
 	b.Marks = nil
 	b.Modified = false
+	b.StoreLine()
 	return true
 }
 

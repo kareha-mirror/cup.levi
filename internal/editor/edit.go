@@ -13,24 +13,25 @@ import (
 //////////////////////
 
 // r : Replace single character under cursor.
-func (ed *Editor) Replace(letter rune, n int, replay bool) {
+func (ed *Editor) Replace(letter rune, n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("Replace: n < 1")
-		return
+		return false
 	}
 	ed.Unimplemented("Replace")
+	return false
 }
 
 // J : Join current line with next line.
-func (ed *Editor) Join(n int) {
+func (ed *Editor) Join(n int) bool {
 	if n < 1 {
 		ed.Error("Join: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	if b.Loc.Row+1 >= b.NumLines() {
 		ed.Ring("No following lines to join")
-		return
+		return false
 	}
 	if n > 1 {
 		n--
@@ -61,19 +62,19 @@ func (ed *Editor) Join(n int) {
 	b.Lines = lines
 
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 }
 
 // >> : Indent current line.
-func (ed *Editor) Indent(n int) {
+func (ed *Editor) Indent(n int) bool {
 	if n < 1 {
 		ed.Error("Indent: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
 		ed.Notice("Out of range")
-		return
+		return false
 	}
 	for row := b.Loc.Row; row < b.Loc.Row+n; row++ {
 		line := b.Line(row)
@@ -81,19 +82,19 @@ func (ed *Editor) Indent(n int) {
 	}
 	b.Loc.Col++
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 }
 
 // << : Outdent current line.
-func (ed *Editor) Outdent(n int) {
+func (ed *Editor) Outdent(n int) bool {
 	if n < 1 {
 		ed.Error("Outdent: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
 		ed.Notice("Out of range")
-		return
+		return false
 	}
 	outdented := false
 	for row := b.Loc.Row; row < b.Loc.Row+n; row++ {
@@ -109,11 +110,11 @@ func (ed *Editor) Outdent(n int) {
 		b.Loc.Col--
 		b.Loc = b.ConfineInclusive(b.Loc)
 	}
-	b.Modified = true
+	return true
 }
 
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
-func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) {
+func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
 	indented := false
@@ -128,11 +129,11 @@ func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) {
 		b.Loc.Col++
 	}
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 }
 
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
-func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) {
+func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
 	outdented := false
@@ -149,5 +150,5 @@ func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) {
 		b.Loc.Col--
 		b.Loc = b.ConfineInclusive(b.Loc)
 	}
-	b.Modified = true
+	return true
 }

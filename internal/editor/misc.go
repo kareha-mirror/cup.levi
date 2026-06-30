@@ -47,22 +47,38 @@ func (ed *Editor) ShowInfo() {
 // . : Repeat last edit.
 func (ed *Editor) Repeat(n int) {
 	c := ed.lastCmd
+	b := ed.Buf()
+	prevRow := b.Loc.Row
 	if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-		ed.BeginRecordForUndo()
+		ed.BeginUndoRecord()
 	} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
-		ed.BeginRecordForUndo()
+		ed.BeginUndoRecord()
 	}
-	if ed.Run(c, true) {
+	if modified, ok := ed.Run(c, true); ok { // replay
+		if modified {
+			b.Modified = true
+		}
+		if ed.alive && ed.Buf() == b && b.Loc.Row != prevRow {
+			b.StoreLine()
+		}
 		if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-			ed.EndRecordForUndo()
+			if modified {
+				ed.EndUndoRecord()
+			} else {
+				ed.CancelUndoRecord()
+			}
 		} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
-			ed.EndRecordForUndo()
+			if modified {
+				ed.EndUndoRecord()
+			} else {
+				ed.CancelUndoRecord()
+			}
 		}
 	} else {
 		if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-			ed.CancelRecordForUndo()
+			ed.CancelUndoRecord()
 		} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
-			ed.CancelRecordForUndo()
+			ed.CancelUndoRecord()
 		}
 	}
 }
@@ -89,8 +105,8 @@ func (ed *Editor) Undo(n int, replay bool) {
 }
 
 // U : Restore current line to previous state.
-func (ed *Editor) Restore() {
-	ed.Unimplemented("Restore")
+func (ed *Editor) Restore() bool {
+	return ed.Buf().RestoreLine()
 }
 
 // ZZ : Save and quit.

@@ -39,6 +39,8 @@ type Buf struct {
 	Marks map[rune]Loc
 	ss    snaps
 	Depth int
+
+	current string
 }
 
 func (b *Buf) NumLines() int {
@@ -71,6 +73,10 @@ func (b *Buf) CurrentLine() string {
 
 func (b *Buf) SetCurrentLine(line string) {
 	b.SetLine(b.Loc.Row, line)
+	// empty case
+	if b.NumLines() == 1 && b.Line(0) == "" {
+		b.Lines = b.Lines[:0]
+	}
 }
 
 func LineSep(crlf bool) string {

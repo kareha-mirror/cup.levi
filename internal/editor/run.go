@@ -1,14 +1,14 @@
 package editor
 
-func (ed *Editor) Run(cp CmdPair, replay bool) bool {
+func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	ed.Commit()
 
-	if cp.Op.Kind == InvalidCmd {
-		if meta, ok := MoveAttrs[cp.Mv.Kind]; ok {
-			if loc, ok := ed.RunMove(cp.Mv); ok {
+	if c.Op.Kind == InvalidCmd {
+		if attr, ok := MoveAttrs[c.Mv.Kind]; ok {
+			if loc, ok := ed.RunMove(c.Mv); ok {
 				b := ed.Buf()
-				if meta.Linewise {
-					if meta.FreeCol {
+				if attr.Linewise {
+					if attr.FreeCol {
 						loc.Col = b.ConfineFreeColInclusive(loc.Row)
 					}
 				} else {
@@ -19,237 +19,211 @@ func (ed *Editor) Run(cp CmdPair, replay bool) bool {
 				if b.Loc.Col < b.ViewLoc.Col {
 					b.ViewLoc.Col = 0
 				}
-				if meta.Locate {
+				if attr.Locate {
 					ed.Locate()
 				}
 			}
-			return true
+			return false, true
 		}
 
 		ed.Notice("Not a levi command [%s]", ed.parser.String())
-		return true
+		return false, true
 	}
 
-	switch cp.Op.Kind {
+	switch c.Op.Kind {
 
-	case MarkSet:
-		ed.MarkSet(cp.Op.Ltr)
-		return true
+	case Mark:
+		ed.Mark(c.Op.Ltr)
+		return false, true
 
 	case ViewDown:
-		ed.ViewDown(cp.Op.Num)
-		return true
+		ed.ViewDown(c.Op.Num)
+		return false, true
 	case ViewUp:
-		ed.ViewUp(cp.Op.Num)
-		return true
+		ed.ViewUp(c.Op.Num)
+		return false, true
 	case ViewDownHalf:
-		ed.ViewDownHalf(cp.Op.Num)
-		return true
+		ed.ViewDownHalf(c.Op.Num)
+		return false, true
 	case ViewUpHalf:
-		ed.ViewUpHalf(cp.Op.Num)
-		return true
+		ed.ViewUpHalf(c.Op.Num)
+		return false, true
 	case ViewDownLine:
-		ed.ViewDownLine(cp.Op.Num)
-		return true
+		ed.ViewDownLine(c.Op.Num)
+		return false, true
 	case ViewUpLine:
-		ed.ViewUpLine(cp.Op.Num)
-		return true
+		ed.ViewUpLine(c.Op.Num)
+		return false, true
 
 	case ViewToTop:
 		ed.ViewToTop()
-		return true
+		return false, true
 	case ViewToMiddle:
 		ed.ViewToMiddle()
-		return true
+		return false, true
 	case ViewToBottom:
 		ed.ViewToBottom()
-		return true
+		return false, true
 
 	case Redraw:
 		ed.Redraw()
-		return true
+		return false, true
 
 	case InsertBefore:
-		ed.InsertBefore(cp.Op.Num, replay)
-		return true
+		return ed.InsertBefore(c.Op.Num, replay), true
 	case InsertAfter:
-		ed.InsertAfter(cp.Op.Num, replay)
-		return true
+		return ed.InsertAfter(c.Op.Num, replay), true
 	case InsertBeforeNonBlank:
-		ed.InsertBeforeNonBlank(cp.Op.Num, replay)
-		return true
+		return ed.InsertBeforeNonBlank(c.Op.Num, replay), true
 	case InsertAfterEnd:
-		ed.InsertAfterEnd(cp.Op.Num, replay)
-		return true
+		return ed.InsertAfterEnd(c.Op.Num, replay), true
 	case Overwrite:
-		ed.Overwrite(cp.Op.Num, replay)
-		return true
+		return ed.Overwrite(c.Op.Num, replay), true
 
 	case OpenBelow:
-		ed.OpenBelow(cp.Op.Num, replay)
-		return true
+		return ed.OpenBelow(c.Op.Num, replay), true
 	case OpenAbove:
-		ed.OpenAbove(cp.Op.Num, replay)
-		return true
+		return ed.OpenAbove(c.Op.Num, replay), true
 
 	case CopyLine:
-		ed.CopyLine(cp.Reg, cp.Op.Num)
-		return true
+		ed.CopyLine(c.Reg, c.Op.Num)
+		return false, true
 	case CopyRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(cp.Mv)
+		end, ok := ed.RunMove(c.Mv)
 		if !ok {
 			ed.Error("Failed to move")
-			return false
+			return false, false
 		}
-		meta, ok := MoveAttrs[cp.Mv.Kind]
+		attr, ok := MoveAttrs[c.Mv.Kind]
 		if !ok {
-			ed.Error("Failed to retrieve move meta")
-			return false
+			ed.Error("Failed to retrieve move attr")
+			return false, false
 		}
-		if meta.Linewise {
-			ed.CopyLineRegion(cp.Reg, start, end)
+		if attr.Linewise {
+			ed.CopyLineRegion(c.Reg, start, end)
 		} else {
-			ed.CopyRegion(cp.Reg, start, end, meta.Inclusive)
+			ed.CopyRegion(c.Reg, start, end, attr.Inclusive)
 		}
-		return true
+		return false, true
 	case CopyWord:
-		ed.CopyWord(cp.Reg, cp.Op.Num)
-		return true
+		ed.CopyWord(c.Reg, c.Op.Num)
+		return false, true
 	case CopyToEnd:
-		ed.CopyToEnd(cp.Reg, cp.Op.Num)
-		return true
+		ed.CopyToEnd(c.Reg, c.Op.Num)
+		return false, true
 
 	case Paste:
-		ed.Paste(cp.Reg, cp.Op.Num)
-		return true
+		return ed.Paste(c.Reg, c.Op.Num), true
 	case PasteBefore:
-		ed.PasteBefore(cp.Reg, cp.Op.Num)
-		return true
+		return ed.PasteBefore(c.Reg, c.Op.Num), true
 
 	case Delete:
-		ed.Delete(cp.Reg, cp.Op.Num)
-		return true
+		return ed.Delete(c.Reg, c.Op.Num), true
 	case DeleteBefore:
-		ed.DeleteBefore(cp.Reg, cp.Op.Num)
-		return true
+		return ed.DeleteBefore(c.Reg, c.Op.Num), true
 	case DeleteLine:
-		ed.DeleteLine(cp.Reg, cp.Op.Num)
-		return true
+		return ed.DeleteLine(c.Reg, c.Op.Num), true
 	case DeleteRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(cp.Mv)
+		end, ok := ed.RunMove(c.Mv)
 		if !ok {
 			ed.Error("Failed to move")
-			return false
+			return false, false
 		}
-		meta, ok := MoveAttrs[cp.Mv.Kind]
+		attr, ok := MoveAttrs[c.Mv.Kind]
 		if !ok {
-			ed.Error("Failed to retrieve move meta")
-			return false
+			ed.Error("Failed to retrieve move attr")
+			return false, false
 		}
-		if meta.Linewise {
-			ed.DeleteLineRegion(cp.Reg, start, end)
+		if attr.Linewise {
+			return ed.DeleteLineRegion(c.Reg, start, end), true
 		} else {
-			ed.DeleteRegion(cp.Reg, start, end, meta.Inclusive)
+			return ed.DeleteRegion(c.Reg, start, end, attr.Inclusive), true
 		}
-		return true
 	case DeleteWord:
-		ed.DeleteWord(cp.Reg, cp.Op.Num)
-		return true
+		return ed.DeleteWord(c.Reg, c.Op.Num), true
 	case DeleteToEnd:
-		ed.DeleteToEnd(cp.Reg, cp.Op.Num)
-		return true
+		return ed.DeleteToEnd(c.Reg, c.Op.Num), true
 
 	case ChangeLine:
-		ed.ChangeLine(cp.Reg, cp.Op.Num, replay)
-		return true
+		return ed.ChangeLine(c.Reg, c.Op.Num, replay), true
 	case ChangeRegion:
 		start := ed.Buf().Loc
-		cmd := cp.Mv
+		cmd := c.Mv
 		if cmd.Kind == MoveByWord {
 			cmd.Kind = MoveByChangeWord
 		}
 		end, ok := ed.RunMove(cmd)
 		if !ok {
 			ed.Error("Failed to move")
-			return false
+			return false, false
 		}
-		meta, ok := MoveAttrs[cmd.Kind]
+		attr, ok := MoveAttrs[cmd.Kind]
 		if !ok {
-			ed.Error("Failed to retrieve move meta")
-			return false
+			ed.Error("Failed to retrieve move attr")
+			return false, false
 		}
-		if meta.Linewise {
-			ed.ChangeLineRegion(cp.Reg, start, end, replay)
+		if attr.Linewise {
+			return ed.ChangeLineRegion(c.Reg, start, end, replay), true
 		} else {
-			ed.ChangeRegion(cp.Reg, start, end, meta.Inclusive, replay)
+			return ed.ChangeRegion(
+				c.Reg, start, end, attr.Inclusive, replay,
+			), true
 		}
-		return true
 	case ChangeWord:
-		ed.ChangeWord(cp.Reg, cp.Op.Num, replay)
-		return true
+		return ed.ChangeWord(c.Reg, c.Op.Num, replay), true
 	case ChangeToEnd:
-		ed.ChangeToEnd(cp.Reg, cp.Op.Num, replay)
-		return true
+		return ed.ChangeToEnd(c.Reg, c.Op.Num, replay), true
 	case Subst:
-		ed.Subst(cp.Reg, cp.Op.Num, replay)
-		return true
+		return ed.Subst(c.Reg, c.Op.Num, replay), true
 	case SubstLine:
-		ed.SubstLine(cp.Reg, cp.Op.Num, replay)
-		return true
+		return ed.SubstLine(c.Reg, c.Op.Num, replay), true
 
 	case Replace:
-		ed.Replace(cp.Op.Ltr, cp.Op.Num, replay)
-		return true
+		return ed.Replace(c.Op.Ltr, c.Op.Num, replay), true
 	case Join:
-		ed.Join(cp.Op.Num)
-		return true
+		return ed.Join(c.Op.Num), true
 	case Indent:
-		ed.Indent(cp.Op.Num)
-		return true
+		return ed.Indent(c.Op.Num), true
 	case Outdent:
-		ed.Outdent(cp.Op.Num)
-		return true
+		return ed.Outdent(c.Op.Num), true
 	case IndentRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(cp.Mv)
+		end, ok := ed.RunMove(c.Mv)
 		if !ok {
 			ed.Error("Failed to move")
-			return true
+			return false, true
 		}
-		ed.IndentRegion(start, end)
-		return true
+		return ed.IndentRegion(start, end), true
 	case OutdentRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(cp.Mv)
+		end, ok := ed.RunMove(c.Mv)
 		if !ok {
 			ed.Error("Failed to move")
-			return true
+			return false, true
 		}
-		ed.OutdentRegion(start, end)
-		return true
+		return ed.OutdentRegion(start, end), true
 
 	case ShowInfo:
 		ed.ShowInfo()
-		return true
+		return false, true
 	case Repeat:
-		ed.Repeat(cp.Op.Num)
-		return true
+		ed.Repeat(c.Op.Num)
+		return false, true
 	case Undo:
-		ed.Undo(cp.Op.Num, replay)
-		return true
+		ed.Undo(c.Op.Num, replay)
+		return false, true
 	case Restore:
-		ed.Restore()
-		return true
+		return ed.Restore(), true
 	case SaveAndQuit:
 		ed.SaveAndQuit()
-		return true
+		return false, true
 	case Suspend:
 		ed.Suspend()
-		return true
+		return false, true
 
 	}
 
-	return false
+	return false, false
 }

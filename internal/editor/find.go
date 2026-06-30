@@ -1,48 +1,14 @@
 package editor
 
 import (
-	"unicode/utf8"
-
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 type Find struct {
 	Letter   rune
 	Backward bool
 	Before   bool
-}
-
-func findRuneCol(line string, start int, r rune) int {
-	col := 0
-	for _, ru := range line {
-		if col < start {
-			col++
-			continue
-		}
-		if ru == r {
-			return col
-		}
-		col++
-	}
-	return -1
-}
-
-func findBackwardRuneCol(line string, start int, r rune) int {
-	col := utf8.RuneCountInString(line)
-	for start < col {
-		_, size := utf8.DecodeLastRuneInString(line)
-		col--
-		line = line[:len(line)-size]
-	}
-	for col >= 0 {
-		rn, size := utf8.DecodeLastRuneInString(line)
-		col--
-		if rn == r {
-			return col
-		}
-		line = line[:len(line)-size]
-	}
-	return -1
 }
 
 ////////////////////////////////
@@ -52,7 +18,7 @@ func findBackwardRuneCol(line string, start int, r rune) int {
 func (ed *Editor) internalFindForward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	col := findRuneCol(ed.Buf().Line(loc.Row), loc.Col+1, letter)
+	col := rutil.RuneIndex(ed.Buf().Line(loc.Row), loc.Col+1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -84,7 +50,7 @@ func (ed *Editor) FindForward(letter rune, n int) (buf.Loc, bool) {
 func (ed *Editor) internalFindBackward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	col := findBackwardRuneCol(ed.Buf().Line(loc.Row), loc.Col-1, letter)
+	col := rutil.LastRuneIndex(ed.Buf().Line(loc.Row), loc.Col-1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -116,7 +82,7 @@ func (ed *Editor) FindBackward(letter rune, n int) (buf.Loc, bool) {
 func (ed *Editor) internalFindBeforeForward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	col := findRuneCol(ed.Buf().Line(loc.Row), loc.Col+1, letter)
+	col := rutil.RuneIndex(ed.Buf().Line(loc.Row), loc.Col+1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -149,7 +115,7 @@ func (ed *Editor) FindBeforeForward(letter rune, n int) (buf.Loc, bool) {
 func (ed *Editor) internalFindBeforeBackward(
 	loc buf.Loc, letter rune,
 ) (buf.Loc, bool) {
-	col := findBackwardRuneCol(ed.Buf().Line(loc.Row), loc.Col-1, letter)
+	col := rutil.LastRuneIndex(ed.Buf().Line(loc.Row), loc.Col-1, letter)
 	if col < 0 {
 		return loc, false
 	}
@@ -180,9 +146,9 @@ func (ed *Editor) FindBeforeBackward(letter rune, n int) (buf.Loc, bool) {
 }
 
 // ; : Find next match.
-func (ed *Editor) FindNextMatch(n int) (buf.Loc, bool) {
+func (ed *Editor) FindNext(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("FindNextMatch: n < 1")
+		ed.Error("FindNext: n < 1")
 		return buf.Loc{}, false
 	}
 	if ed.find.Letter == 0 {
@@ -224,9 +190,9 @@ func (ed *Editor) FindNextMatch(n int) (buf.Loc, bool) {
 }
 
 // , : Find previous match.
-func (ed *Editor) FindPrevMatch(n int) (buf.Loc, bool) {
+func (ed *Editor) FindPrev(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("FindPrevMatch: n < 1")
+		ed.Error("FindPrev: n < 1")
 		return buf.Loc{}, false
 	}
 	if ed.find.Letter == 0 {

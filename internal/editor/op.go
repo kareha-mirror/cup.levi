@@ -78,10 +78,10 @@ func (ed *Editor) CopyToEnd(reg string, n int) {
 //
 
 // "<reg>p : Paste after cursor from register <reg>.
-func (ed *Editor) Paste(reg string, n int) {
+func (ed *Editor) Paste(reg string, n int) bool {
 	if n < 1 {
 		ed.Error("Paste: n < 1")
-		return
+		return false
 	}
 	if ed.RegMode(reg) == KillNone {
 		if reg == "" {
@@ -89,7 +89,7 @@ func (ed *Editor) Paste(reg string, n int) {
 		} else {
 			ed.Ring("Buffer %s is empty", reg)
 		}
-		return
+		return false
 	}
 	killed := ed.RegKilled(reg)
 	b := ed.Buf()
@@ -146,14 +146,14 @@ func (ed *Editor) Paste(reg string, n int) {
 			b.VirtCol = b.Loc.Col
 		}
 	}
-	b.Modified = true
+	return true
 }
 
 // "<reg>p : Paste before cursor from register <reg>.
-func (ed *Editor) PasteBefore(reg string, n int) {
+func (ed *Editor) PasteBefore(reg string, n int) bool {
 	if n < 1 {
 		ed.Error("PasteBefore: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	if ed.RegMode(reg) == KillNone {
@@ -162,7 +162,7 @@ func (ed *Editor) PasteBefore(reg string, n int) {
 		} else {
 			ed.Ring("Buffer %s is empty", reg)
 		}
-		return
+		return false
 	}
 	killed := ed.RegKilled(reg)
 	switch ed.RegMode(reg) {
@@ -206,7 +206,7 @@ func (ed *Editor) PasteBefore(reg string, n int) {
 		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 		b.VirtCol = b.Loc.Col
 	}
-	b.Modified = true
+	return true
 }
 
 //
@@ -228,39 +228,40 @@ func (ed *Editor) internalDelete(reg string, n int) bool {
 }
 
 // x : Delete character under cursor.
-func (ed *Editor) Delete(reg string, n int) {
+func (ed *Editor) Delete(reg string, n int) bool {
 	if n < 1 {
 		ed.Error("Delete: n < 1")
-		return
+		return false
 	}
 	if !ed.internalDelete(reg, n) {
 		ed.Notice("Nothing to delete")
-		return
+		return false
 	}
 	b := ed.Buf()
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 }
 
 // X : Delete character before cursor.
-func (ed *Editor) DeleteBefore(reg string, n int) {
+func (ed *Editor) DeleteBefore(reg string, n int) bool {
 	if n < 1 {
 		ed.Error("DeleteBefore: n < 1")
-		return
+		return false
 	}
 	ed.Unimplemented("DeleteBefore")
+	return false
 }
 
 // dd : Delete current line.
-func (ed *Editor) DeleteLine(reg string, n int) {
+func (ed *Editor) DeleteLine(reg string, n int) bool {
 	if n < 1 {
 		ed.Error("DeleteLine: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	if b.Loc.Row+n > b.NumLines() {
 		ed.Notice("Out of range")
-		return
+		return false
 	}
 	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
@@ -269,13 +270,13 @@ func (ed *Editor) DeleteLine(reg string, n int) {
 	}
 	b.Lines = lines
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
 func (ed *Editor) DeleteRegion(
 	reg string, start buf.Loc, end buf.Loc, inclusive bool,
-) {
+) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
 	if inclusive {
@@ -296,18 +297,18 @@ func (ed *Editor) DeleteRegion(
 	b.Lines = lines
 	b.Loc = start
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
 func (ed *Editor) DeleteLineRegion(
 	reg string, start buf.Loc, end buf.Loc,
-) {
+) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
 	if end.Row+1 > b.NumLines() {
 		ed.Notice("Out of range")
-		return
+		return false
 	}
 	lines := append([]string{}, b.Lines[:start.Row]...)
 	ed.ApplyRegLines(reg, b.Lines[start.Row:end.Row+1])
@@ -317,157 +318,37 @@ func (ed *Editor) DeleteLineRegion(
 	b.Lines = lines
 	b.Loc = start
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 }
 
 // dw : Delete word.
-func (ed *Editor) DeleteWord(reg string, n int) {
+func (ed *Editor) DeleteWord(reg string, n int) bool {
 	if n < 1 {
 		ed.Error("DeleteWord: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	start := b.Loc
 	end, ok := ed.MoveByWord(n)
 	if !ok {
 		ed.Error("Failed to move")
-		return
+		return false
 	}
-	ed.DeleteRegion(reg, start, end, false)
+	return ed.DeleteRegion(reg, start, end, false)
 	// TODO n
 }
 
 // d$, D : Delete to end of current line.
-func (ed *Editor) DeleteToEnd(reg string, n int) {
+func (ed *Editor) DeleteToEnd(reg string, n int) bool {
 	if n < 1 {
 		ed.Error("DeleteToEnd: n < 1")
-		return
+		return false
 	}
 	b := ed.Buf()
 	head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
 	ed.ApplyRegRunes(reg, []string{tail})
 	b.SetCurrentLine(head)
 	b.Loc = b.ConfineInclusive(b.Loc)
-	b.Modified = true
+	return true
 	// TODO n
-}
-
-//
-// Change / Substitute
-//
-
-// cc : Change current line.
-func (ed *Editor) ChangeLine(reg string, n int, replay bool) {
-	if n < 1 {
-		ed.Error("ChangeLine: n < 1")
-		return
-	}
-	ed.Unimplemented("ChangeLine")
-}
-
-// c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) ChangeRegion(
-	reg string, start buf.Loc, end buf.Loc, inclusive bool, replay bool,
-) {
-	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, inclusive)
-	after := false
-	if end.Row < b.NumLines() {
-		rc := utf8.RuneCountInString(b.Line(end.Row))
-		if end.Col >= rc {
-			after = true
-		}
-	}
-	ed.DeleteRegion(reg, start, end, inclusive)
-	if after {
-		b.Loc.Col++
-	}
-	if replay {
-		if len(ed.inserted) < 0 {
-			ed.Notice("Not inserted yet")
-			return
-		}
-		ed.replayInsert()
-		b.Loc.Col--
-		b.Loc = b.ConfineInclusive(b.Loc)
-		b.VirtCol = b.Loc.Col
-		b.Modified = true
-	} else {
-		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
-		ed.inpRow = b.Loc.Row
-		ed.mode = ModeInsert
-	}
-}
-
-// c<mv> : Change region from current cursor to destination of motion <mv>.
-func (ed *Editor) ChangeLineRegion(
-	reg string, start buf.Loc, end buf.Loc, replay bool,
-) {
-	ed.Unimplemented("ChangeLineRegion")
-}
-
-// cw : Change word.
-func (ed *Editor) ChangeWord(reg string, n int, replay bool) {
-	if n < 1 {
-		ed.Error("ChangeWord: n < 1")
-		return
-	}
-	start := ed.Buf().Loc
-	end, ok := ed.MoveByChangeWord(n)
-	if !ok {
-		ed.Error("Failed to move")
-		return
-	}
-	ed.ChangeRegion(reg, start, end, false, replay)
-	// TODO n
-}
-
-// C : Change to end of current line.
-func (ed *Editor) ChangeToEnd(reg string, n int, replay bool) {
-	if n < 1 {
-		ed.Error("ChangeToEnd: n < 1")
-		return
-	}
-	b := ed.Buf()
-	head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
-	ed.ApplyRegRunes(reg, []string{tail})
-	b.SetCurrentLine(head)
-	ed.inp.Init(head, b.Loc.Col, ed.cfg.AutoIndent)
-	ed.inpRow = b.Loc.Row
-	ed.mode = ModeInsert
-	// TODO n
-}
-
-// s : Substitute one character under cursor.
-func (ed *Editor) Subst(reg string, n int, replay bool) {
-	if n < 1 {
-		ed.Error("Subst: n < 1")
-		return
-	}
-	ed.internalDelete(reg, n)
-	b := ed.Buf()
-	if replay {
-		if len(ed.inserted) < 0 {
-			ed.Notice("Not inserted yet")
-			return
-		}
-		ed.replayInsert()
-		b.Loc.Col--
-		b.Loc = b.ConfineInclusive(b.Loc)
-		b.VirtCol = b.Loc.Col
-		b.Modified = true
-	} else {
-		ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
-		ed.inpRow = b.Loc.Row
-		ed.mode = ModeInsert
-	}
-}
-
-// S : Substtute current line (equals cc).
-func (ed *Editor) SubstLine(reg string, n int, replay bool) {
-	if n < 1 {
-		ed.Error("SubstLine: n < 1")
-		return
-	}
-	ed.ChangeLine(reg, n, replay)
 }
