@@ -233,3 +233,14 @@ var IsEditCmd = map[CmdKind]struct{}{
 
 	Restore: {},
 }
+
+var IsModifyingCmd = map[CmdKind]struct{}{}
+
+func init() {
+	for c := range IsInsertCmd {
+		IsModifyingCmd[c] = struct{}{}
+	}
+	for c := range IsEditCmd {
+		IsModifyingCmd[c] = struct{}{}
+	}
+}

@@ -1,9 +1,6 @@
 package editor
 
 import (
-	"fmt"
-	"unicode/utf8"
-
 	"tea.kareha.org/cup/termi"
 )
 
@@ -13,35 +10,8 @@ import (
 
 // Ctrl-G : Show info such as current cursor position.
 func (ed *Editor) ShowInfo() {
-	b := ed.Buf()
-	path := b.Path
-	if path == "" {
-		path = "(memory)"
-	}
-	modified := "unmodified"
-	if b.Modified {
-		modified = "modified"
-	}
-	info := "empty file"
-	numLines := b.NumLines()
-	if numLines > 0 {
-		numBytes := numLines
-		numRunes := numLines
-		if b.CRLF {
-			numBytes *= 2
-			numRunes *= 2
-		}
-		for _, line := range b.Lines {
-			numBytes += len(line)
-			numRunes += utf8.RuneCountInString(line)
-		}
-		info = fmt.Sprintf(
-			"line %d of %d [%d%%] %d bytes, %d runes.",
-			b.Loc.Row+1, numLines, 100*(b.Loc.Row+1)/numLines,
-			numBytes, numRunes,
-		)
-	}
-	ed.Message("%s: %s: %s", path, modified, info)
+	// don't send info directly as format, which can have % character
+	ed.Message("%s", ed.Buf().Info())
 }
 
 // . : Repeat last edit.
@@ -49,9 +19,7 @@ func (ed *Editor) Repeat(n int) {
 	c := ed.lastCmd
 	b := ed.Buf()
 	prevRow := b.Loc.Row
-	if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-		ed.BeginUndoRecord()
-	} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
+	if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
 		ed.BeginUndoRecord()
 	}
 	if modified, ok := ed.Run(c, true); ok { // replay
@@ -61,13 +29,7 @@ func (ed *Editor) Repeat(n int) {
 		if ed.alive && ed.Buf() == b && b.Loc.Row != prevRow {
 			b.StoreLine()
 		}
-		if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-			if modified {
-				ed.EndUndoRecord()
-			} else {
-				ed.CancelUndoRecord()
-			}
-		} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
+		if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
 			if modified {
 				ed.EndUndoRecord()
 			} else {
@@ -75,9 +37,7 @@ func (ed *Editor) Repeat(n int) {
 			}
 		}
 	} else {
-		if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-			ed.CancelUndoRecord()
-		} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
+		if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
 			ed.CancelUndoRecord()
 		}
 	}

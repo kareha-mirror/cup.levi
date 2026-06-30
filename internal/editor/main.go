@@ -50,9 +50,7 @@ func (ed *Editor) MainCommand(key termi.Key) {
 		if ok {
 			b := ed.Buf()
 			prevRow := b.Loc.Row
-			if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-				ed.BeginUndoRecord()
-			} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
+			if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
 				ed.BeginUndoRecord()
 			}
 			if modified, ok := ed.Run(c, false); ok {
@@ -62,9 +60,7 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				if ed.alive && ed.Buf() == b && b.Loc.Row != prevRow {
 					b.StoreLine()
 				}
-				if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-					ed.lastCmd = c
-				} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
+				if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
 					if modified {
 						ed.EndUndoRecord()
 					} else {
@@ -72,17 +68,18 @@ func (ed *Editor) MainCommand(key termi.Key) {
 					}
 					ed.lastCmd = c
 				} else if c.Op.Kind == Undo {
+					// undo is not included in modifying commands
+					// it is not usual edit or insert but repeatable
 					ed.lastCmd = c
 				}
+				// reset undo/redo toggle if command is not undo/repeat
 				if c.Op.Kind != Undo && c.Op.Kind != Repeat {
 					ed.undo = false
 				}
 				ed.parser.Reset()
 			} else {
 				ed.Error("Failed to run")
-				if _, ok := IsInsertCmd[c.Op.Kind]; ok {
-					ed.CancelUndoRecord()
-				} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
+				if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
 					ed.CancelUndoRecord()
 				}
 			}
