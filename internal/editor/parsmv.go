@@ -134,7 +134,7 @@ func (ed *Editor) ParseMove(
 	case "w":
 		return Cmd{Kind: MoveByWord, Num: num}, true
 	case "g": // XXX debug
-		return Cmd{Kind: MoveByChangeWord, Num: num}, true
+		return Cmd{Kind: MoveByWordAlt, Num: num}, true
 	case "b":
 		return Cmd{Kind: MoveBackwardByWord, Num: num}, true
 	case "e":

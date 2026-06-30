@@ -329,7 +329,7 @@ func (ed *Editor) DeleteWord(reg string, n int) bool {
 	}
 	b := ed.Buf()
 	start := b.Loc
-	end, ok := ed.MoveByWord(n)
+	end, ok := ed.MoveByWordAlt(n)
 	if !ok {
 		ed.Error("Failed to move")
 		return false

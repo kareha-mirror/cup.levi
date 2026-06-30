@@ -36,7 +36,7 @@ const (
 	MoveToColumn
 
 	MoveByWord
-	MoveByChangeWord
+	MoveByWordAlt
 	MoveBackwardByWord
 	MoveToEndOfWord
 	MoveByLooseWord
@@ -173,7 +173,7 @@ const (
 	Redraw
 
 	//
-	// Miscellaneous commands
+	// Miscellaneous Commands
 	//
 
 	ShowInfo

@@ -127,9 +127,6 @@ func (ed *Editor) ParseOp(
 			return CmdPair{}, false
 		case "c":
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
-			if cmd.Kind == MoveByWord {
-				cmd.Kind = MoveByChangeWord
-			}
 			if ok {
 				return CmdPair{
 					Reg: reg,

@@ -8,20 +8,11 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 type ViewMeta struct {
 	Loc buf.Loc
-}
-
-func runeAt(s string, i int) rune {
-	for _, r := range s {
-		if i == 0 {
-			return r
-		}
-		i--
-	}
-	return utf8.RuneError
 }
 
 func (ed *Editor) UpdateCursor() {
@@ -52,7 +43,7 @@ func (ed *Editor) UpdateCursor() {
 			first = false
 			if col < rc {
 				b.Pos.X = termi.StringWidth(line, col)
-				r := runeAt(line, col)
+				r := rutil.RuneAt(line, col)
 				if r == '\t' {
 					b.Pos.X +=
 						termi.TabWidth - (b.Pos.X % termi.TabWidth) - 1

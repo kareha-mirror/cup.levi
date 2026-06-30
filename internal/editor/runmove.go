@@ -4,18 +4,19 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
-func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
+func (ed *Editor) RunMove(c Cmd, num int, alt bool) (buf.Loc, bool) {
 	ed.Commit()
+	num *= c.Num
 	switch c.Kind {
 
 	case MoveLeft:
-		return ed.MoveLeft(c.Num)
+		return ed.MoveLeft(num)
 	case MoveDown:
-		return ed.MoveDown(c.Num)
+		return ed.MoveDown(num)
 	case MoveUp:
-		return ed.MoveUp(c.Num)
+		return ed.MoveUp(num)
 	case MoveRight:
-		return ed.MoveRight(c.Num)
+		return ed.MoveRight(num)
 
 	case MoveToStart:
 		return ed.MoveToStart()
@@ -24,44 +25,46 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 	case MoveToAfterIndent:
 		return ed.MoveToAfterIndent()
 	case MoveToColumn:
-		return ed.MoveToColumn(c.Num)
+		return ed.MoveToColumn(num)
 
 	case MoveByWord:
-		return ed.MoveByWord(c.Num)
-	case MoveByChangeWord:
-		return ed.MoveByChangeWord(c.Num)
+		if alt {
+			return ed.MoveByWordAlt(num)
+		} else {
+			return ed.MoveByWord(num)
+		}
 	case MoveBackwardByWord:
-		return ed.MoveBackwardByWord(c.Num)
+		return ed.MoveBackwardByWord(num)
 	case MoveToEndOfWord:
-		return ed.MoveToEndOfWord(c.Num)
+		return ed.MoveToEndOfWord(num)
 	case MoveByLooseWord:
-		return ed.MoveByLooseWord(c.Num)
+		return ed.MoveByLooseWord(num)
 	case MoveBackwardByLooseWord:
-		return ed.MoveBackwardByLooseWord(c.Num)
+		return ed.MoveBackwardByLooseWord(num)
 	case MoveToEndOfLooseWord:
-		return ed.MoveToEndOfLooseWord(c.Num)
+		return ed.MoveToEndOfLooseWord(num)
 
 	case MoveByLine:
-		return ed.MoveByLine(c.Num)
+		return ed.MoveByLine(num)
 	case MoveBackwardByLine:
-		return ed.MoveBackwardByLine(c.Num)
+		return ed.MoveBackwardByLine(num)
 	case MoveToLastLine:
 		return ed.MoveToLastLine()
 	case MoveToLine:
-		return ed.MoveToLine(c.Num)
+		return ed.MoveToLine(num)
 
 	case MoveBySentence:
-		return ed.MoveBySentence(c.Num)
+		return ed.MoveBySentence(num)
 	case MoveBackwardBySentence:
-		return ed.MoveBackwardBySentence(c.Num)
+		return ed.MoveBackwardBySentence(num)
 	case MoveByParagraph:
-		return ed.MoveByParagraph(c.Num)
+		return ed.MoveByParagraph(num)
 	case MoveBackwardByParagraph:
-		return ed.MoveBackwardByParagraph(c.Num)
+		return ed.MoveBackwardByParagraph(num)
 	case MoveBySection:
-		return ed.MoveBySection(c.Num)
+		return ed.MoveBySection(num)
 	case MoveBackwardBySection:
-		return ed.MoveBackwardBySection(c.Num)
+		return ed.MoveBackwardBySection(num)
 
 	case MoveToTopOfView:
 		return ed.MoveToTopOfView()
@@ -70,9 +73,9 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 	case MoveToBottomOfView:
 		return ed.MoveToBottomOfView()
 	case MoveToBelowTopOfView:
-		return ed.MoveToBelowTopOfView(c.Num)
+		return ed.MoveToBelowTopOfView(num)
 	case MoveToAboveBottomOfView:
-		return ed.MoveToAboveBottomOfView(c.Num)
+		return ed.MoveToAboveBottomOfView(num)
 
 	case MoveToMark:
 		return ed.MoveToMark(c.Rune)
@@ -98,17 +101,17 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.RepeatBackwardSearch()
 
 	case Find:
-		return ed.Find(c.Rune, c.Num)
+		return ed.Find(c.Rune, num)
 	case FindBackward:
-		return ed.FindBackward(c.Rune, c.Num)
+		return ed.FindBackward(c.Rune, num)
 	case FindBefore:
-		return ed.FindBefore(c.Rune, c.Num)
+		return ed.FindBefore(c.Rune, num)
 	case FindBeforeBackward:
-		return ed.FindBeforeBackward(c.Rune, c.Num)
+		return ed.FindBeforeBackward(c.Rune, num)
 	case FindNext:
-		return ed.FindNext(c.Num)
+		return ed.FindNext(num)
 	case FindPrev:
-		return ed.FindPrev(c.Num)
+		return ed.FindPrev(num)
 
 	}
 	return buf.Loc{}, false

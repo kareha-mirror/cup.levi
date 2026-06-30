@@ -105,7 +105,7 @@ func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
 
 // input row is inclusive
 // output is not inclusive
-func (b *Buf) MoveByChangeWord(loc Loc) (Loc, bool) {
+func (b *Buf) MoveByWordAlt(loc Loc) (Loc, bool) {
 	line := b.Line(loc.Row)
 	if line == "" {
 		return loc, false

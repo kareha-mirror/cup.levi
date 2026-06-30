@@ -142,9 +142,9 @@ func (ed *Editor) MoveByWord(n int) (buf.Loc, bool) {
 }
 
 // internal use : Move cursor forward by word used by cw and dw.
-func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveByWordAlt(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveByChangeWord: n < 1")
+		ed.Error("MoveByWordAlt: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
@@ -160,7 +160,7 @@ func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 			return loc, true
 		}
 	}
-	if loc, found = b.MoveByChangeWord(loc); found {
+	if loc, found = b.MoveByWordAlt(loc); found {
 		return loc, true
 	}
 	if n < 2 {

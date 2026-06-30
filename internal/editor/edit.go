@@ -14,7 +14,7 @@ import (
 //////////////////////
 
 // r : Replace single character under cursor.
-func (ed *Editor) Replace(char rune, n int) bool {
+func (ed *Editor) Replace(r rune, n int) bool {
 	if n < 1 {
 		ed.Error("Replace: n < 1")
 		return false
@@ -28,11 +28,11 @@ func (ed *Editor) Replace(char rune, n int) bool {
 	}
 
 	head, _, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
-	body := make([]rune, n)
+	body := strings.Builder{}
 	for i := 0; i < n; i++ {
-		body[i] = char
+		body.WriteRune(r)
 	}
-	b.SetCurrentLine(head + string(body) + tail)
+	b.SetCurrentLine(head + body.String() + tail)
 
 	b.Loc.Col += n - 1
 	b.VirtCol = b.Loc.Col

@@ -102,7 +102,7 @@ func (ed *Editor) ChangeWord(reg string, n int, replay bool) bool {
 		return false
 	}
 	start := ed.Buf().Loc
-	end, ok := ed.MoveByChangeWord(n)
+	end, ok := ed.MoveByWordAlt(n)
 	if !ok {
 		ed.Error("Failed to move")
 		return false
