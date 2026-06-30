@@ -75,9 +75,9 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.MoveToAboveBottomOfView(c.Num)
 
 	case MoveToMark:
-		return ed.MoveToMark(c.Ltr)
+		return ed.MoveToMark(c.Rune)
 	case MoveToMarkLine:
-		return ed.MoveToMarkLine(c.Ltr)
+		return ed.MoveToMarkLine(c.Rune)
 
 	case BackToMark:
 		return ed.BackToMark()
@@ -98,13 +98,13 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.RepeatBackwardSearch()
 
 	case Find:
-		return ed.Find(c.Ltr, c.Num)
+		return ed.Find(c.Rune, c.Num)
 	case FindBackward:
-		return ed.FindBackward(c.Ltr, c.Num)
+		return ed.FindBackward(c.Rune, c.Num)
 	case FindBefore:
-		return ed.FindBefore(c.Ltr, c.Num)
+		return ed.FindBefore(c.Rune, c.Num)
 	case FindBeforeBackward:
-		return ed.FindBeforeBackward(c.Ltr, c.Num)
+		return ed.FindBeforeBackward(c.Rune, c.Num)
 	case FindNext:
 		return ed.FindNext(c.Num)
 	case FindPrev:

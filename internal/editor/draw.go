@@ -281,13 +281,17 @@ func (ed *Editor) DrawStatus() {
 			cursor = "_"
 		}
 		sep := ""
-		code := ed.SeqCode()
+		code := ed.parser.Args.Code()
 		if len(code) > 0 {
 			sep = " : "
 		}
+		end := ""
+		if ed.parser.Ok {
+			end = "."
+		}
 
 		fmt.Print(termi.Render(
-			fmt.Sprintf("(%s)%s%s%s%s", mode, seq, cursor, sep, code),
+			fmt.Sprintf("(%s)%s%s%s%s%s", mode, seq, cursor, sep, code, end),
 		))
 	}
 	fmt.Print(termi.ClearTail)

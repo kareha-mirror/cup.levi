@@ -5,7 +5,7 @@ type CmdKind int
 type Cmd struct {
 	Kind CmdKind
 	Num  int
-	Ltr  rune
+	Rune rune
 	Pat  string
 }
 

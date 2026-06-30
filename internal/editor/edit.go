@@ -6,6 +6,7 @@ import (
 
 	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/rkind"
+	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 //////////////////////
@@ -13,13 +14,29 @@ import (
 //////////////////////
 
 // r : Replace single character under cursor.
-func (ed *Editor) Replace(letter rune, n int, replay bool) bool {
+func (ed *Editor) Replace(char rune, n int) bool {
 	if n < 1 {
 		ed.Error("Replace: n < 1")
 		return false
 	}
-	ed.Unimplemented("Replace")
-	return false
+	b := ed.Buf()
+	line := b.CurrentLine()
+	rc := utf8.RuneCountInString(line)
+	if b.Loc.Col+n > rc {
+		ed.Notice("Out of range")
+		return false
+	}
+
+	head, _, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
+	body := make([]rune, n)
+	for i := 0; i < n; i++ {
+		body[i] = char
+	}
+	b.SetCurrentLine(head + string(body) + tail)
+
+	b.Loc.Col += n - 1
+	b.VirtCol = b.Loc.Col
+	return true
 }
 
 // J : Join current line with next line.

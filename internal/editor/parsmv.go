@@ -1,9 +1,9 @@
 package editor
 
-func (ed *Editor) ParseMoveLetter(
-	num int, op string, letter rune,
+func (ed *Editor) ParseMoveRune(
+	num int, op string, r rune,
 ) (Cmd, bool) {
-	if letter == 0 {
+	if r == 0 {
 		return Cmd{}, false
 	}
 	switch op {
@@ -13,10 +13,10 @@ func (ed *Editor) ParseMoveLetter(
 	//
 
 	case "'":
-		if letter == '\'' {
+		if r == '\'' {
 			return Cmd{Kind: BackToMarkLine}, true
 		} else {
-			return Cmd{Kind: MoveToMarkLine, Ltr: letter}, true
+			return Cmd{Kind: MoveToMarkLine, Rune: r}, true
 		}
 
 	//
@@ -24,35 +24,35 @@ func (ed *Editor) ParseMoveLetter(
 	//
 
 	case "`":
-		if letter == '`' {
+		if r == '`' {
 			return Cmd{Kind: BackToMark}, true
 		} else {
-			return Cmd{Kind: MoveToMark, Ltr: letter}, true
+			return Cmd{Kind: MoveToMark, Rune: r}, true
 		}
 
 	case "f":
 		return Cmd{
 			Kind: Find,
 			Num:  num,
-			Ltr:  letter,
+			Rune: r,
 		}, true
 	case "F":
 		return Cmd{
 			Kind: FindBackward,
 			Num:  num,
-			Ltr:  letter,
+			Rune: r,
 		}, true
 	case "t":
 		return Cmd{
 			Kind: FindBefore,
 			Num:  num,
-			Ltr:  letter,
+			Rune: r,
 		}, true
 	case "T":
 		return Cmd{
 			Kind: FindBeforeBackward,
 			Num:  num,
-			Ltr:  letter,
+			Rune: r,
 		}, true
 
 	}
@@ -61,7 +61,7 @@ func (ed *Editor) ParseMoveLetter(
 }
 
 func (ed *Editor) ParseMove(
-	noNum bool, num int, mv string, letter rune,
+	noNum bool, num int, mv string, r rune,
 ) (Cmd, bool) {
 	switch mv {
 
@@ -157,7 +157,7 @@ func (ed *Editor) ParseMove(
 	// Additions
 	//
 
-	cmd, ok := ed.ParseMoveLetter(num, mv, letter)
+	cmd, ok := ed.ParseMoveRune(num, mv, r)
 	if ok {
 		return cmd, true
 	}

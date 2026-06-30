@@ -12,15 +12,15 @@ import (
 // Set Mark / Move to Mark
 //
 
-// m<letter> : Mark current cursor position labelled by <letter>.
-func (ed *Editor) Mark(letter rune) {
-	ed.Buf().Mark(letter)
+// m<char> : Mark current cursor position labelled by <char>.
+func (ed *Editor) Mark(r rune) {
+	ed.Buf().Mark(r)
 }
 
-// `<letter> : Move cursor to marked position labelled by <letter>.
-func (ed *Editor) MoveToMark(letter rune) (buf.Loc, bool) {
+// `<char> : Move cursor to marked position labelled by <char>.
+func (ed *Editor) MoveToMark(r rune) (buf.Loc, bool) {
 	b := ed.Buf()
-	loc, ok := b.Marks[letter]
+	loc, ok := b.Marks[r]
 	if !ok {
 		ed.Notice("Mark not found")
 		return buf.Loc{}, false
@@ -29,10 +29,10 @@ func (ed *Editor) MoveToMark(letter rune) (buf.Loc, bool) {
 	return loc, true
 }
 
-// '<letter> : Move cursor to marked line labelled by <letter>.
-func (ed *Editor) MoveToMarkLine(letter rune) (buf.Loc, bool) {
+// '<char> : Move cursor to marked line labelled by <char>.
+func (ed *Editor) MoveToMarkLine(r rune) (buf.Loc, bool) {
 	b := ed.Buf()
-	loc, ok := b.Marks[letter]
+	loc, ok := b.Marks[r]
 	if !ok {
 		ed.Notice("Mark not found")
 		return buf.Loc{}, false

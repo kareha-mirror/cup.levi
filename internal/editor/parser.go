@@ -4,12 +4,12 @@ import (
 	"strconv"
 )
 
-var letterOpSet = map[rune]struct{}{
+var isRuneOp = map[rune]struct{}{
 	'm': {},
 	'r': {},
 }
 
-var letterMoveSet = map[rune]struct{}{
+var isRuneMove = map[rune]struct{}{
 	'\'': {},
 	'`':  {},
 	'f':  {},
@@ -18,7 +18,7 @@ var letterMoveSet = map[rune]struct{}{
 	'T':  {},
 }
 
-var compoundSet = map[string]struct{}{
+var isCompound = map[string]struct{}{
 	"]]": {},
 	"[[": {},
 
@@ -40,7 +40,7 @@ var compoundSet = map[string]struct{}{
 	"cw": {},
 }
 
-var compoundHeadSet = map[rune]struct{}{
+var isHeadOfCompound = map[rune]struct{}{
 	']': {},
 	'[': {},
 
@@ -57,22 +57,11 @@ var compoundHeadSet = map[rune]struct{}{
 	'Z': {},
 }
 
-type Tokens struct {
-	Reg      string
-	NoNum    bool
-	Num      int
-	Op       string
-	NoSubnum bool
-	Subnum   int
-	Mv       string
-	Letter   rune
-}
-
 type Parser struct {
-	buf    []rune
-	Cache  string
-	Tokens Tokens
-	Ok     bool
+	buf   []rune
+	Cache string
+	Args  Args
+	Ok    bool
 }
 
 func (p *Parser) String() string {
@@ -100,22 +89,22 @@ func (p *Parser) Reset() {
 func (p *Parser) ResetAll() {
 	p.Reset()
 	p.Cache = ""
-	p.Tokens = Tokens{}
+	p.Args = Args{}
 	p.Ok = false
 }
 
 func (ed *Editor) Parse() (CmdPair, bool) {
 	p := &ed.parser
-	p.Tokens = Tokens{}
+	p.Args = Args{}
 	p.Ok = false
-	t := &p.Tokens
+	args := &p.Args
 
 	if len(p.buf) < 1 {
 		return CmdPair{}, false
 	}
 
 	if p.buf[0] == '0' { // special
-		t.Mv = string(p.buf[0])
+		args.Mv = string(p.buf[0])
 		p.Ok = true
 		return CmdPair{
 			Mv: Cmd{Kind: MoveToStart},
@@ -126,7 +115,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	if p.buf[0] == '"' {
 		i++
 		if len(p.buf) > i {
-			t.Reg = string(p.buf[i])
+			args.Reg = string(p.buf[i])
 			i++
 		}
 	}
@@ -138,45 +127,45 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		}
 		i++
 	}
-	t.NoNum = i <= iPrev
-	t.Num = 1
+	args.NoNum = i <= iPrev
+	args.Num = 1
 	if i > iPrev {
 		s := string(p.buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
 		}
-		t.Num = n
+		args.Num = n
 	}
 
 	if i < len(p.buf) {
-		_, ok := letterOpSet[p.buf[i]]
+		_, ok := isRuneOp[p.buf[i]]
 		if ok {
-			t.Op = string(p.buf[i])
+			args.Op = string(p.buf[i])
 			if i+1 >= len(p.buf) {
 				return CmdPair{}, false
 			}
-			t.Letter = p.buf[i+1]
-			cmd, ok := ed.ParseLetter(t.Num, t.Op, t.Letter)
+			args.Rune = p.buf[i+1]
+			cmd, ok := ed.ParseRune(args.Num, args.Op, args.Rune)
 			if ok {
 				p.Ok = true
 				return CmdPair{Op: cmd}, true
 			}
 		}
-		_, ok = letterMoveSet[p.buf[i]]
+		_, ok = isRuneMove[p.buf[i]]
 		if ok {
-			t.Mv = string(p.buf[i])
+			args.Mv = string(p.buf[i])
 			if i+1 >= len(p.buf) {
 				return CmdPair{}, false
 			}
-			t.Letter = p.buf[i+1]
-			cmd, ok := ed.ParseMoveLetter(t.Num, t.Mv, t.Letter)
+			args.Rune = p.buf[i+1]
+			cmd, ok := ed.ParseMoveRune(args.Num, args.Mv, args.Rune)
 			if ok {
 				p.Ok = true
 				return CmdPair{Mv: cmd}, true
 			}
 		}
-		if t.Letter != 0 {
+		if args.Rune != 0 {
 			p.Ok = true
 			return CmdPair{
 				Op: Cmd{Kind: InvalidCmd},
@@ -187,7 +176,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	iPrev = i
 	for i < len(p.buf) {
 		if i+1-iPrev == 2 {
-			_, ok := compoundSet[string(p.buf[iPrev:i+1])]
+			_, ok := isCompound[string(p.buf[iPrev:i+1])]
 			if !ok {
 				break
 			}
@@ -201,31 +190,31 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		return CmdPair{}, false
 	}
 
-	t.Mv = string(p.buf[iPrev:i])
+	args.Mv = string(p.buf[iPrev:i])
 
-	cmd, ok := ed.ParseMove(t.NoNum, t.Num, t.Mv, 0)
+	cmd, ok := ed.ParseMove(args.NoNum, args.Num, args.Mv, 0)
 	if ok {
 		p.Ok = true
 		return CmdPair{Mv: cmd}, true
 	}
-	if t.Mv == "/" || t.Mv == "?" {
+	if args.Mv == "/" || args.Mv == "?" {
 		// XXX input pat
 	}
-	t.Op = t.Mv
-	t.Mv = ""
+	args.Op = args.Mv
+	args.Mv = ""
 	opFirst := p.buf[iPrev]
 
-	cmd, ok = ed.ParseView(t.Num, t.Op)
+	cmd, ok = ed.ParseView(args.Num, args.Op)
 	if ok {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true
 	}
-	cmd, ok = ed.ParseInsert(t.Num, t.Op)
+	cmd, ok = ed.ParseInsert(args.Num, args.Op)
 	if ok {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true
 	}
-	cmd, ok = ed.ParseMisc(t.Num, t.Op)
+	cmd, ok = ed.ParseMisc(args.Num, args.Op)
 	if ok {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true
@@ -238,48 +227,51 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		}
 		i++
 	}
-	t.NoSubnum = i <= iPrev
-	t.Subnum = 1
+	args.NoSubnum = i <= iPrev
+	args.Subnum = 1
 	if i > iPrev {
 		s := string(p.buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
 		}
-		t.Subnum = n
+		args.Subnum = n
 	}
 
 	if i < len(p.buf) {
-		_, ok := letterMoveSet[p.buf[i]]
+		_, ok := isRuneMove[p.buf[i]]
 		if ok {
 			if i+1 < len(p.buf) {
-				t.Mv = string(p.buf[i])
-				t.Letter = p.buf[i+1]
+				args.Mv = string(p.buf[i])
+				args.Rune = p.buf[i+1]
 			}
 		}
 	}
 
-	if t.Mv == "" {
+	if args.Mv == "" {
 		if i < len(p.buf) {
-			t.Mv = string(p.buf[i:])
+			args.Mv = string(p.buf[i:])
 		}
 	}
 
 	c, ok := ed.ParseOp(
-		t.Reg, t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter,
+		args.Reg, args.Num, args.Op,
+		args.NoSubnum, args.Subnum, args.Mv, args.Rune,
 	)
 	if ok {
 		p.Ok = true
 		return c, true
 	}
-	c, ok = ed.ParseEdit(t.Num, t.Op, t.NoSubnum, t.Subnum, t.Mv, t.Letter)
+	c, ok = ed.ParseEdit(
+		args.Num, args.Op, args.NoSubnum, args.Subnum, args.Mv, args.Rune,
+	)
 	if ok {
 		p.Ok = true
 		return c, true
 	}
 
-	if len(t.Op) < 2 {
-		_, ok := compoundHeadSet[opFirst]
+	if len(args.Op) < 2 {
+		_, ok := isHeadOfCompound[opFirst]
 		if ok {
 			return CmdPair{}, false
 		}

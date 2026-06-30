@@ -33,7 +33,7 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	switch c.Op.Kind {
 
 	case Mark:
-		ed.Mark(c.Op.Ltr)
+		ed.Mark(c.Op.Rune)
 		return false, true
 
 	case ViewDown:
@@ -186,7 +186,7 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.SubstLine(c.Reg, c.Op.Num, replay), true
 
 	case Replace:
-		return ed.Replace(c.Op.Ltr, c.Op.Num, replay), true
+		return ed.Replace(c.Op.Rune, c.Op.Num), true
 	case Join:
 		return ed.Join(c.Op.Num), true
 	case Indent:

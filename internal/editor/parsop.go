@@ -1,20 +1,20 @@
 package editor
 
-func (ed *Editor) ParseLetter(num int, op string, letter rune) (Cmd, bool) {
-	if letter == 0 {
+func (ed *Editor) ParseRune(num int, op string, r rune) (Cmd, bool) {
+	if r == 0 {
 		return Cmd{}, false
 	}
 
 	switch op {
 
 	case "m":
-		return Cmd{Kind: Mark, Ltr: letter}, true
+		return Cmd{Kind: Mark, Rune: r}, true
 
 	case "r":
 		return Cmd{
 			Kind: Replace,
 			Num:  num,
-			Ltr:  letter,
+			Rune: r,
 		}, true
 
 	}
@@ -100,13 +100,13 @@ func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 
 func (ed *Editor) ParseOp(
 	reg string, num int, op string, noSubnum bool, subnum int,
-	mv string, letter rune,
+	mv string, r rune,
 ) (CmdPair, bool) {
 	if mv != "" {
 		switch op {
 
 		case "y":
-			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
 			if ok {
 				return CmdPair{
 					Reg: reg,
@@ -116,7 +116,7 @@ func (ed *Editor) ParseOp(
 			}
 			return CmdPair{}, false
 		case "d":
-			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
 			if ok {
 				return CmdPair{
 					Reg: reg,
@@ -126,7 +126,7 @@ func (ed *Editor) ParseOp(
 			}
 			return CmdPair{}, false
 		case "c":
-			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
 			if cmd.Kind == MoveByWord {
 				cmd.Kind = MoveByChangeWord
 			}
@@ -229,7 +229,7 @@ func (ed *Editor) ParseOp(
 }
 
 func (ed *Editor) ParseEdit(
-	num int, op string, noSubnum bool, subnum int, mv string, letter rune,
+	num int, op string, noSubnum bool, subnum int, mv string, r rune,
 ) (CmdPair, bool) {
 	switch op {
 
@@ -248,7 +248,7 @@ func (ed *Editor) ParseEdit(
 		}, true
 
 	case ">":
-		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
 		if ok {
 			attr, ok := MoveAttrs[cmd.Kind]
 			if !ok {
@@ -268,7 +268,7 @@ func (ed *Editor) ParseEdit(
 		}
 		return CmdPair{}, false
 	case "<":
-		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, letter)
+		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
 		if ok {
 			attr, ok := MoveAttrs[cmd.Kind]
 			if !ok {
