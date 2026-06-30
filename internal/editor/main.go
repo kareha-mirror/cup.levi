@@ -161,7 +161,7 @@ func (ed *Editor) MainSearch(key termi.Key) {
 			ed.searchs.pattern.Reset()
 			ed.mode = ModeCommand
 		case termi.RuneEnter, termi.RuneNewline:
-			if ed.searchs.pattern.Len() < 1 {
+			if ed.searchs.pattern.RuneCount() < 1 {
 				if ed.searchs.backward {
 					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatBackwardSearch}}, false)
 				} else {

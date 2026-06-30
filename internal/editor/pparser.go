@@ -6,7 +6,7 @@ import (
 )
 
 func (ed *Editor) ParsePrompt() (Pcmd, bool) {
-	if ed.prompt.Len() < 1 {
+	if ed.prompt.RuneCount() < 1 {
 		return Pcmd{Kind: PcmdInvalid}, false
 	}
 	prompt := ed.prompt.String()

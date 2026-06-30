@@ -39,7 +39,7 @@ func (ed *Editor) Locate() {
 /////////////////////
 
 // /<pattern> Enter : Search <pattern> and move to it.
-//func (ed *Editor) Search(pattern string) (buf.Loc, bool) {
+// func (ed *Editor) Search(pattern string) (buf.Loc, bool) {
 func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 	if ed.searchs.regexp == nil {
 		ed.Ring("No previous search pattern")
@@ -76,7 +76,7 @@ func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 }
 
 // ?<pattern> Enter : Search <pattern> backward and move to it.
-//func (ed *Editor) SearchBackward(pattern string) (buf.Loc, bool) {
+// func (ed *Editor) SearchBackward(pattern string) (buf.Loc, bool) {
 func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
 	if ed.searchs.regexp == nil {
 		ed.Ring("No previous search pattern")

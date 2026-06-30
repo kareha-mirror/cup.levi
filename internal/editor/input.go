@@ -108,9 +108,9 @@ func (inp *Input) Newline(ai bool) {
 
 func (inp *Input) Column() int {
 	if len(inp.bodies) < 2 {
-		return utf8.RuneCountInString(inp.head) + inp.body().Len()
+		return utf8.RuneCountInString(inp.head) + inp.body().RuneCount()
 	} else {
-		return inp.body().Len()
+		return inp.body().RuneCount()
 	}
 }
 
