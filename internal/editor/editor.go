@@ -36,8 +36,8 @@ type Editor struct {
 	inpRow   int // 0-based
 	inserted []string
 	prompt   termi.RuneBuf
-	searchs  SearchState
-	finds    FindState
+	searchs  searchState
+	finds    findState
 	regs     Regs
 	clipUsed bool
 	lastCmd  CmdPair

@@ -72,7 +72,7 @@ const (
 	SearchNext
 	SearchPrev
 	RepeatSearch
-	RepeatSearchBackward
+	RepeatBackwardSearch
 
 	Find
 	FindBackward

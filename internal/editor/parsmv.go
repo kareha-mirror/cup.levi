@@ -175,7 +175,7 @@ func (ed *Editor) ParseSearch(op string, pat string) (Cmd, bool) {
 		}
 	case "?":
 		if pat == "" {
-			return Cmd{Kind: RepeatSearchBackward}, true
+			return Cmd{Kind: RepeatBackwardSearch}, true
 		} else {
 			return Cmd{Kind: SearchBackward, Pat: pat}, true
 		}

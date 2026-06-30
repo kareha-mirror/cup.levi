@@ -10,7 +10,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
-type SearchState struct {
+type searchState struct {
 	backward bool
 	pattern  termi.RuneBuf
 	regexp   *regexp.Regexp
@@ -38,8 +38,9 @@ func (ed *Editor) Locate() {
 // Search Commands //
 /////////////////////
 
-// /<pattern> Enter : Search <pattern> forward.
-func (ed *Editor) Search() (buf.Loc, bool) {
+// /<pattern> Enter : Search <pattern> and move to it.
+//func (ed *Editor) Search(pattern string) (buf.Loc, bool) {
+func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 	if ed.searchs.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
@@ -74,8 +75,9 @@ func (ed *Editor) Search() (buf.Loc, bool) {
 	return buf.Loc{}, false
 }
 
-// ?<pattern> Enter : Search <pattern> backward.
-func (ed *Editor) SearchBackward() (buf.Loc, bool) {
+// ?<pattern> Enter : Search <pattern> backward and move to it.
+//func (ed *Editor) SearchBackward(pattern string) (buf.Loc, bool) {
+func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
 	if ed.searchs.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
@@ -137,30 +139,32 @@ func (ed *Editor) SearchBackward() (buf.Loc, bool) {
 	return buf.Loc{}, false
 }
 
-// n : Search next match.
+// n : Repeat last search operation to search next match.
 func (ed *Editor) SearchNext() (buf.Loc, bool) {
 	if ed.searchs.backward {
-		return ed.RepeatSearchBackward()
+		return ed.RepeatBackwardSearch()
 	} else {
 		return ed.RepeatSearch()
 	}
 }
 
-// N : Search previous match.
+// N : Repeat last search operation to search previous match.
 func (ed *Editor) SearchPrev() (buf.Loc, bool) {
 	if ed.searchs.backward {
 		return ed.RepeatSearch()
 	} else {
-		return ed.RepeatSearchBackward()
+		return ed.RepeatBackwardSearch()
 	}
 }
 
-// / Enter : Repeat last search forward.
+// / Enter : Repeat last search.
 func (ed *Editor) RepeatSearch() (buf.Loc, bool) {
-	return ed.Search()
+	//return ed.Search(ed.searchs.pattern)
+	return ed.Search() // XXX
 }
 
-// ? Enter : Repeat last search backward.
-func (ed *Editor) RepeatSearchBackward() (buf.Loc, bool) {
-	return ed.SearchBackward()
+// ? Enter : Repeat last backward search.
+func (ed *Editor) RepeatBackwardSearch() (buf.Loc, bool) {
+	//return ed.SearchBackward(ed.searchs.pattern)
+	return ed.SearchBackward() // XXX
 }

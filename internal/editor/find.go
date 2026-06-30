@@ -5,11 +5,12 @@ import (
 	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
-type FindState struct {
-	Active   bool
-	Rune     rune
-	Backward bool
-	Before   bool
+type findState struct {
+	// order matters
+	active   bool
+	r        rune
+	backward bool
+	before   bool
 }
 
 ////////////////////////////////
@@ -30,7 +31,7 @@ func (ed *Editor) Find(r rune, n int) (buf.Loc, bool) {
 		ed.Error("Find: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.finds = FindState{true, r, false, false}
+	ed.finds = findState{true, r, false, false}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
@@ -60,7 +61,7 @@ func (ed *Editor) FindBackward(r rune, n int) (buf.Loc, bool) {
 		ed.Error("FindBackward: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.finds = FindState{true, r, true, false}
+	ed.finds = findState{true, r, true, false}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
@@ -91,7 +92,7 @@ func (ed *Editor) FindBefore(r rune, n int) (buf.Loc, bool) {
 		ed.Error("FindBefore: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.finds = FindState{true, r, false, true}
+	ed.finds = findState{true, r, false, true}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
@@ -122,7 +123,7 @@ func (ed *Editor) FindBeforeBackward(r rune, n int) (buf.Loc, bool) {
 		ed.Error("FindBeforeBackward: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.finds = FindState{true, r, true, true}
+	ed.finds = findState{true, r, true, true}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
@@ -144,23 +145,23 @@ func (ed *Editor) FindNext(n int) (buf.Loc, bool) {
 		ed.Error("FindNext: n < 1")
 		return buf.Loc{}, false
 	}
-	if !ed.finds.Active {
+	if !ed.finds.active {
 		return buf.Loc{}, false
 	}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
-		if ed.finds.Backward {
-			if ed.finds.Before {
-				loc, ok = ed.findBeforeBackward(loc, ed.finds.Rune)
+		if ed.finds.backward {
+			if ed.finds.before {
+				loc, ok = ed.findBeforeBackward(loc, ed.finds.r)
 			} else {
-				loc, ok = ed.findBackward(loc, ed.finds.Rune)
+				loc, ok = ed.findBackward(loc, ed.finds.r)
 			}
 		} else {
-			if ed.finds.Before {
-				loc, ok = ed.findBefore(loc, ed.finds.Rune)
+			if ed.finds.before {
+				loc, ok = ed.findBefore(loc, ed.finds.r)
 			} else {
-				loc, ok = ed.find(loc, ed.finds.Rune)
+				loc, ok = ed.find(loc, ed.finds.r)
 			}
 		}
 		if !ok {
@@ -180,23 +181,23 @@ func (ed *Editor) FindPrev(n int) (buf.Loc, bool) {
 		ed.Error("FindPrev: n < 1")
 		return buf.Loc{}, false
 	}
-	if !ed.finds.Active {
+	if !ed.finds.active {
 		return buf.Loc{}, false
 	}
 	loc := ed.Buf().Loc
 	var ok bool
 	for i := 0; i < n; i++ {
-		if ed.finds.Backward {
-			if ed.finds.Before {
-				loc, ok = ed.findBefore(loc, ed.finds.Rune)
+		if ed.finds.backward {
+			if ed.finds.before {
+				loc, ok = ed.findBefore(loc, ed.finds.r)
 			} else {
-				loc, ok = ed.find(loc, ed.finds.Rune)
+				loc, ok = ed.find(loc, ed.finds.r)
 			}
 		} else {
-			if ed.finds.Before {
-				loc, ok = ed.findBeforeBackward(loc, ed.finds.Rune)
+			if ed.finds.before {
+				loc, ok = ed.findBeforeBackward(loc, ed.finds.r)
 			} else {
-				loc, ok = ed.findBackward(loc, ed.finds.Rune)
+				loc, ok = ed.findBackward(loc, ed.finds.r)
 			}
 		}
 		if !ok {

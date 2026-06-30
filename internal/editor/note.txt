@@ -1,3 +1,10 @@
-done
+finished
 * find.go
 * misc.go
+
+problems
+* search.go
+  note that nvi search commands have no number prefix
+  * Locate does not care about col
+  * search pattern should be provided by Cmd
+    currently it is provided directry from main.go

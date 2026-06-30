@@ -94,8 +94,8 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 		return ed.SearchPrev()
 	case RepeatSearch:
 		return ed.RepeatSearch()
-	case RepeatSearchBackward:
-		return ed.RepeatSearchBackward()
+	case RepeatBackwardSearch:
+		return ed.RepeatBackwardSearch()
 
 	case Find:
 		return ed.Find(c.Ltr, c.Num)

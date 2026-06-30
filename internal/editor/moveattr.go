@@ -55,7 +55,7 @@ var MoveAttrs = map[CmdKind]MoveAttr{
 	SearchNext:           {Locate: true},
 	SearchPrev:           {Locate: true},
 	RepeatSearch:         {Locate: true},
-	RepeatSearchBackward: {Locate: true},
+	RepeatBackwardSearch: {Locate: true},
 
 	Find:               {Inclusive: true},
 	FindBackward:       {Inclusive: true},

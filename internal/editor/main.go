@@ -163,7 +163,7 @@ func (ed *Editor) MainSearch(key termi.Key) {
 		case termi.RuneEnter, termi.RuneNewline:
 			if ed.searchs.pattern.Len() < 1 {
 				if ed.searchs.backward {
-					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatSearchBackward}}, false)
+					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatBackwardSearch}}, false)
 				} else {
 					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatSearch}}, false)
 				}
