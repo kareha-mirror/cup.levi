@@ -84,25 +84,25 @@ func (ed *Editor) RunMove(c Cmd) (buf.Loc, bool) {
 	case BackToMarkLine:
 		return ed.BackToMarkLine()
 
-	case SearchForward:
-		return ed.SearchForward()
+	case Search:
+		return ed.Search()
 	case SearchBackward:
 		return ed.SearchBackward()
 	case SearchNext:
 		return ed.SearchNext()
 	case SearchPrev:
 		return ed.SearchPrev()
-	case RepeatSearchForward:
-		return ed.RepeatSearchForward()
+	case RepeatSearch:
+		return ed.RepeatSearch()
 	case RepeatSearchBackward:
 		return ed.RepeatSearchBackward()
 
-	case FindForward:
-		return ed.FindForward(c.Ltr, c.Num)
+	case Find:
+		return ed.Find(c.Ltr, c.Num)
 	case FindBackward:
 		return ed.FindBackward(c.Ltr, c.Num)
-	case FindBeforeForward:
-		return ed.FindBeforeForward(c.Ltr, c.Num)
+	case FindBefore:
+		return ed.FindBefore(c.Ltr, c.Num)
 	case FindBeforeBackward:
 		return ed.FindBeforeBackward(c.Ltr, c.Num)
 	case FindNext:

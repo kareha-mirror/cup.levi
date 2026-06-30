@@ -89,7 +89,7 @@ func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 	case "U":
 		return Cmd{Kind: Restore}, true
 	case "ZZ":
-		return Cmd{Kind: SaveAndQuit}, true
+		return Cmd{Kind: SaveAndClose}, true
 	case "\x1a": // Ctrl-Z
 		return Cmd{Kind: Suspend}, true
 

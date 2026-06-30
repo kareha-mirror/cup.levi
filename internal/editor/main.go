@@ -27,12 +27,12 @@ func (ed *Editor) MainCommand(key termi.Key) {
 			case '/':
 				ed.Reset()
 				ed.mode = ModeSearch
-				ed.search.backward = false
+				ed.searchs.backward = false
 				return
 			case '?':
 				ed.Reset()
 				ed.mode = ModeSearch
-				ed.search.backward = true
+				ed.searchs.backward = true
 				return
 			}
 		}
@@ -158,39 +158,35 @@ func (ed *Editor) MainSearch(key termi.Key) {
 	case termi.KeyRune:
 		switch key.Rune {
 		case termi.RuneEscape:
-			ed.search.pattern.Reset()
+			ed.searchs.pattern.Reset()
 			ed.mode = ModeCommand
 		case termi.RuneEnter, termi.RuneNewline:
-			if ed.search.pattern.Len() < 1 {
-				if ed.search.backward {
-					ed.Run(CmdPair{Mv: Cmd{
-						Kind: RepeatSearchBackward,
-					}}, false)
+			if ed.searchs.pattern.Len() < 1 {
+				if ed.searchs.backward {
+					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatSearchBackward}}, false)
 				} else {
-					ed.Run(CmdPair{Mv: Cmd{
-						Kind: RepeatSearchForward,
-					}}, false)
+					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatSearch}}, false)
 				}
 				return
 			}
-			re, err := regexp.Compile(ed.search.pattern.String())
+			re, err := regexp.Compile(ed.searchs.pattern.String())
 			if err != nil {
 				ed.Ring("%v", err)
 				return
 			}
-			ed.search.regexp = re
-			ed.search.pattern.Reset()
-			if ed.search.backward {
+			ed.searchs.regexp = re
+			ed.searchs.pattern.Reset()
+			if ed.searchs.backward {
 				ed.Run(CmdPair{Mv: Cmd{Kind: SearchBackward}}, false)
 			} else {
-				ed.Run(CmdPair{Mv: Cmd{Kind: SearchForward}}, false)
+				ed.Run(CmdPair{Mv: Cmd{Kind: Search}}, false)
 			}
 		case termi.RuneBackspace, termi.RuneDelete:
-			if !ed.search.pattern.RemoveTail() {
+			if !ed.searchs.pattern.RemoveTail() {
 				ed.mode = ModeCommand
 			}
 		default:
-			ed.search.pattern.WriteRune(key.Rune)
+			ed.searchs.pattern.WriteRune(key.Rune)
 		}
 	default:
 		ed.Error("Unknown key")

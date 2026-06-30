@@ -32,7 +32,7 @@ func (ed *Editor) ParseMoveLetter(
 
 	case "f":
 		return Cmd{
-			Kind: FindForward,
+			Kind: Find,
 			Num:  num,
 			Ltr:  letter,
 		}, true
@@ -44,7 +44,7 @@ func (ed *Editor) ParseMoveLetter(
 		}, true
 	case "t":
 		return Cmd{
-			Kind: FindBeforeForward,
+			Kind: FindBefore,
 			Num:  num,
 			Ltr:  letter,
 		}, true
@@ -169,9 +169,9 @@ func (ed *Editor) ParseSearch(op string, pat string) (Cmd, bool) {
 
 	case "/":
 		if pat == "" {
-			return Cmd{Kind: RepeatSearchForward}, true
+			return Cmd{Kind: RepeatSearch}, true
 		} else {
-			return Cmd{Kind: SearchForward, Pat: pat}, true
+			return Cmd{Kind: Search, Pat: pat}, true
 		}
 	case "?":
 		if pat == "" {

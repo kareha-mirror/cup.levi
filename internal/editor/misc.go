@@ -8,13 +8,13 @@ import (
 // Miscellaneous Commands //
 ////////////////////////////
 
-// Ctrl-G : Show info such as current cursor position.
+// Ctrl-G : Show info about states of current buffer.
 func (ed *Editor) ShowInfo() {
 	// don't send info directly as format, which can have % character
 	ed.Message("%s", ed.Buf().Info())
 }
 
-// . : Repeat last edit.
+// . : Repeat last command which is repeatable.
 func (ed *Editor) Repeat(n int) {
 	c := ed.lastCmd
 	b := ed.Buf()
@@ -43,7 +43,7 @@ func (ed *Editor) Repeat(n int) {
 	}
 }
 
-// u : Undo.
+// u : Undo last modification or redo by undoing itself.
 func (ed *Editor) Undo(n int, replay bool) {
 	if !replay {
 		ed.undo = !ed.undo
@@ -64,13 +64,13 @@ func (ed *Editor) Undo(n int, replay bool) {
 	b.Modified = true
 }
 
-// U : Restore current line to previous state.
+// U : Restore current line to previous state last visited.
 func (ed *Editor) Restore() bool {
 	return ed.Buf().RestoreLine()
 }
 
-// ZZ : Save and quit.
-func (ed *Editor) SaveAndQuit() {
+// ZZ : Save and close.
+func (ed *Editor) SaveAndClose() {
 	b := ed.Buf()
 	if b.Modified {
 		if b.Path == "" {
@@ -86,7 +86,7 @@ func (ed *Editor) SaveAndQuit() {
 	ed.CheckQuit()
 }
 
-// Ctrl-Z : Suspend.
+// Ctrl-Z : Suspend editor process.
 func (ed *Editor) Suspend() {
 	termi.Suspend()
 }

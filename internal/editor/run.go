@@ -216,8 +216,8 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return false, true
 	case Restore:
 		return ed.Restore(), true
-	case SaveAndQuit:
-		ed.SaveAndQuit()
+	case SaveAndClose:
+		ed.SaveAndClose()
 		return false, true
 	case Suspend:
 		ed.Suspend()

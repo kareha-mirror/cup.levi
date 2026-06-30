@@ -67,16 +67,16 @@ const (
 	BackToMark
 	BackToMarkLine
 
-	SearchForward
+	Search
 	SearchBackward
 	SearchNext
 	SearchPrev
-	RepeatSearchForward
+	RepeatSearch
 	RepeatSearchBackward
 
-	FindForward
+	Find
 	FindBackward
-	FindBeforeForward
+	FindBefore
 	FindBeforeBackward
 	FindNext
 	FindPrev
@@ -179,7 +179,7 @@ const (
 	ShowInfo
 	Repeat
 	Undo
-	SaveAndQuit
+	SaveAndClose
 	Suspend
 )
 

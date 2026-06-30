@@ -260,11 +260,11 @@ func (ed *Editor) DrawStatus() {
 		fmt.Print(termi.Render(":" + ed.prompt.String()))
 	} else if ed.mode == ModeSearch {
 		head := "/"
-		if ed.search.backward {
+		if ed.searchs.backward {
 			head = "?"
 		}
 		fmt.Print(termi.Render(
-			fmt.Sprintf("%s%s", head, ed.search.pattern.String()),
+			fmt.Sprintf("%s%s", head, ed.searchs.pattern.String()),
 		))
 	} else if !ed.cfg.Silent {
 		mode := ""
@@ -313,7 +313,7 @@ func (ed *Editor) PlaceCursor() {
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
 	case ModeSearch:
 		// "/" or "?"
-		line := termi.Render("/" + ed.search.pattern.String())
+		line := termi.Render("/" + ed.searchs.pattern.String())
 		rc := utf8.RuneCountInString(line)
 		x := termi.StringWidth(line, rc)
 		fmt.Print(termi.MoveCursor(x, ed.h-1))
