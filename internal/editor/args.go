@@ -27,6 +27,61 @@ func (a *Args) Sub() *Args {
 	return &sub
 }
 
+// Parses into command.
+func (a *Args) Parse() (CmdPair, bool) {
+	cp, ok := a.ParseOp()
+	if ok {
+		return cp, true
+	}
+
+	cp, ok = a.ParseEdit()
+	if ok {
+		return cp, true
+	}
+
+	cp, ok = a.ParseCompound()
+	if ok {
+		return cp, true
+	}
+
+	op, ok := a.ParseInsert()
+	if ok {
+		return CmdPair{
+			Op: op,
+		}, true
+	}
+
+	op, ok = a.ParseRune()
+	if ok {
+		return CmdPair{
+			Op: op,
+		}, true
+	}
+
+	op, ok = a.ParseView()
+	if ok {
+		return CmdPair{
+			Op: op,
+		}, true
+	}
+
+	op, ok = a.ParseMisc()
+	if ok {
+		return CmdPair{
+			Op: op,
+		}, true
+	}
+
+	mv, ok := a.ParseMove(false)
+	if ok {
+		return CmdPair{
+			Mv: mv,
+		}, true
+	}
+
+	return CmdPair{}, false
+}
+
 // Returns mnemonic code for parsed arguments of vi command.
 func (a *Args) Code() string {
 	b := strings.Builder{}

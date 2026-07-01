@@ -6,26 +6,17 @@ func (a *Args) ParseMoveRune() (Cmd, bool) {
 	}
 	switch a.Mv {
 
-	//
-	// Linewise
-	//
-
-	case '\'':
-		if a.Rune == '\'' {
-			return Cmd{Kind: BackToMarkLine}, true
-		} else {
-			return Cmd{Kind: MoveToMarkLine, Rune: a.Rune}, true
-		}
-
-	//
-	// Runewise
-	//
-
 	case '`':
 		if a.Rune == '`' {
 			return Cmd{Kind: BackToMark}, true
 		} else {
 			return Cmd{Kind: MoveToMark, Rune: a.Rune}, true
+		}
+	case '\'':
+		if a.Rune == '\'' {
+			return Cmd{Kind: BackToMarkLine}, true
+		} else {
+			return Cmd{Kind: MoveToMarkLine, Rune: a.Rune}, true
 		}
 
 	case 'f':
@@ -58,61 +49,37 @@ func (a *Args) ParseMoveRune() (Cmd, bool) {
 	return Cmd{}, false
 }
 
+func (a *Args) ParseSearch() (Cmd, bool) {
+	switch a.Mv {
+
+	//case '/':
+	//	return Cmd{Kind: RepeatSearch}, true
+	//	return Cmd{Kind: Search, Pat: pat}, true
+	//case '?':
+	//	return Cmd{Kind: RepeatBackwardSearch}, true
+	//	return Cmd{Kind: SearchBackward, Pat: pat}, true
+
+	case 'n':
+		return Cmd{Kind: SearchNext}, true
+	case 'N':
+		return Cmd{Kind: SearchPrev}, true
+
+	}
+
+	return Cmd{}, false
+}
+
 func (a *Args) ParseMove(meta bool) (Cmd, bool) {
 	switch a.Mv {
 
-	//
-	// Linewise
-	//
-
+	case 'h':
+		return Cmd{Kind: MoveLeft, Num: a.Num}, true
 	case 'j':
 		return Cmd{Kind: MoveDown, Num: a.Num}, true
 	//case 'g': // XXX debug
 	//	return Cmd{Kind: MoveHere, Num: a.Num}, true
 	case 'k':
 		return Cmd{Kind: MoveUp, Num: a.Num}, true
-
-	case '\r', '+':
-		return Cmd{Kind: MoveByLine, Num: a.Num}, true
-	case '-':
-		return Cmd{Kind: MoveBackwardByLine, Num: a.Num}, true
-	case 'G':
-		if a.NoNum {
-			return Cmd{Kind: MoveToLastLine}, true
-		} else {
-			return Cmd{Kind: MoveToLine, Num: a.Num}, true
-		}
-
-	case ')':
-		return Cmd{Kind: MoveBySentence, Num: a.Num}, true
-	case '(':
-		return Cmd{Kind: MoveBackwardBySentence, Num: a.Num}, true
-	case '}':
-		return Cmd{Kind: MoveByParagraph, Num: a.Num}, true
-	case '{':
-		return Cmd{Kind: MoveBackwardByParagraph, Num: a.Num}, true
-
-	case 'H':
-		if a.NoNum {
-			return Cmd{Kind: MoveToTopOfView}, true
-		} else {
-			return Cmd{Kind: MoveToBelowTopOfView, Num: a.Num}, true
-		}
-	case 'M':
-		return Cmd{Kind: MoveToMiddleOfView}, true
-	case 'L':
-		if a.NoNum {
-			return Cmd{Kind: MoveToBottomOfView}, true
-		} else {
-			return Cmd{Kind: MoveToAboveBottomOfView, Num: a.Num}, true
-		}
-
-	//
-	// Runewise
-	//
-
-	case 'h':
-		return Cmd{Kind: MoveLeft, Num: a.Num}, true
 	case 'l':
 		return Cmd{Kind: MoveRight, Num: a.Num}, true
 
@@ -142,16 +109,49 @@ func (a *Args) ParseMove(meta bool) (Cmd, bool) {
 	case 'E':
 		return Cmd{Kind: MoveToEndOfLooseWord, Num: a.Num}, true
 
+	case '\r', '+':
+		return Cmd{Kind: MoveByLine, Num: a.Num}, true
+	case '-':
+		return Cmd{Kind: MoveBackwardByLine, Num: a.Num}, true
+	case 'G':
+		if a.NoNum {
+			return Cmd{Kind: MoveToLastLine}, true
+		} else {
+			return Cmd{Kind: MoveToLine, Num: a.Num}, true
+		}
+
+	case ')':
+		return Cmd{Kind: MoveBySentence, Num: a.Num}, true
+	case '(':
+		return Cmd{Kind: MoveBackwardBySentence, Num: a.Num}, true
+	case '}':
+		return Cmd{Kind: MoveByParagraph, Num: a.Num}, true
+	case '{':
+		return Cmd{Kind: MoveBackwardByParagraph, Num: a.Num}, true
+
+	// MoveBySection and MoveBackwardBySection are compound
+
+	case 'H':
+		if a.NoNum {
+			return Cmd{Kind: MoveToTopOfView}, true
+		} else {
+			return Cmd{Kind: MoveToBelowTopOfView, Num: a.Num}, true
+		}
+	case 'M':
+		return Cmd{Kind: MoveToMiddleOfView}, true
+	case 'L':
+		if a.NoNum {
+			return Cmd{Kind: MoveToBottomOfView}, true
+		} else {
+			return Cmd{Kind: MoveToAboveBottomOfView, Num: a.Num}, true
+		}
+
 	case ';':
 		return Cmd{Kind: FindNext, Num: a.Num}, true
 	case ',':
 		return Cmd{Kind: FindPrev, Num: a.Num}, true
 
 	}
-
-	//
-	// Additions
-	//
 
 	cmd, ok := a.ParseMoveRune()
 	if ok {
@@ -171,26 +171,6 @@ func (a *Args) ParseMove(meta bool) (Cmd, bool) {
 		case 'y', 'd', 'c', '>', '<':
 			return Cmd{Kind: MoveHere, Num: a.Num}, true
 		}
-	}
-
-	return Cmd{}, false
-}
-
-func (a *Args) ParseSearch() (Cmd, bool) {
-	switch a.Mv {
-
-	//case '/':
-	//	return Cmd{Kind: RepeatSearch}, true
-	//	return Cmd{Kind: Search, Pat: pat}, true
-	//case '?':
-	//	return Cmd{Kind: RepeatBackwardSearch}, true
-	//	return Cmd{Kind: SearchBackward, Pat: pat}, true
-
-	case 'n':
-		return Cmd{Kind: SearchNext}, true
-	case 'N':
-		return Cmd{Kind: SearchPrev}, true
-
 	}
 
 	return Cmd{}, false

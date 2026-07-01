@@ -32,6 +32,8 @@ type Editor struct {
 
 	// parser and input
 	parser   Parser
+	args     Args
+	parseOk  bool
 	inp      Input
 	inpRow   int // 0-based
 	inserted []string
@@ -175,6 +177,7 @@ func (ed *Editor) Line(row int) string {
 
 func (ed *Editor) Reset() {
 	ed.parser.ResetAll()
+	ed.args = Args{}
 }
 
 func (ed *Editor) Commit() {

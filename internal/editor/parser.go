@@ -10,12 +10,47 @@ var isRuneOp = map[rune]struct{}{
 }
 
 var isRuneMove = map[rune]struct{}{
-	'\'': {},
 	'`':  {},
+	'\'': {},
 	'f':  {},
 	'F':  {},
 	't':  {},
 	'T':  {},
+}
+
+var isMove = map[rune]struct{}{
+	'n': {},
+	'N': {},
+
+	'h':  {},
+	'j':  {},
+	'k':  {},
+	'l':  {},
+	'0':  {},
+	'$':  {},
+	'^':  {},
+	'|':  {},
+	'w':  {},
+	'b':  {},
+	'e':  {},
+	'W':  {},
+	'B':  {},
+	'E':  {},
+	'\r': {},
+	'+':  {},
+	'-':  {},
+	'G':  {},
+	')':  {},
+	'(':  {},
+	'}':  {},
+	'{':  {},
+	'H':  {},
+	'M':  {},
+	'L':  {},
+	';':  {},
+	',':  {},
+
+	'g': {}, // XXX debug
 }
 
 var isCompound = map[rune]struct{}{
@@ -39,8 +74,6 @@ var isCompound = map[rune]struct{}{
 type Parser struct {
 	buf   []rune
 	Cache string
-	Args  Args
-	Ok    bool
 }
 
 func (p *Parser) String() string {
@@ -68,25 +101,18 @@ func (p *Parser) Reset() {
 func (p *Parser) ResetAll() {
 	p.Reset()
 	p.Cache = ""
-	p.Args = Args{}
-	p.Ok = false
 }
 
-func (p *Parser) Parse() (CmdPair, bool) {
-	p.Args = Args{}
-	p.Ok = false
-	a := &p.Args
+func (p *Parser) Parse() Args {
+	a := Args{}
 
 	if len(p.buf) < 1 {
-		return CmdPair{}, false
+		return a
 	}
 
 	if p.buf[0] == '0' { // special
 		a.Mv = p.buf[0]
-		p.Ok = true
-		return CmdPair{
-			Mv: Cmd{Kind: MoveToStart},
-		}, true
+		return a
 	}
 
 	i := 0
@@ -131,33 +157,23 @@ func (p *Parser) Parse() (CmdPair, bool) {
 		if ok {
 			a.Op = p.buf[i]
 			if i+1 >= len(p.buf) {
-				return CmdPair{}, false
+				return a
 			}
 			a.Rune = p.buf[i+1]
-			cmd, ok := a.ParseRune()
-			if ok {
-				p.Ok = true
-				return CmdPair{Op: cmd}, true
-			}
+			return a
 		}
 		_, ok = isRuneMove[p.buf[i]]
 		if ok {
 			a.Mv = p.buf[i]
 			if i+1 >= len(p.buf) {
-				return CmdPair{}, false
+				return a
 			}
 			a.Rune = p.buf[i+1]
-			cmd, ok := a.ParseMoveRune()
-			if ok {
-				p.Ok = true
-				return CmdPair{Mv: cmd}, true
-			}
+			return a
 		}
 		if a.Rune != 0 {
-			p.Ok = true
-			return CmdPair{
-				Op: Cmd{Kind: InvalidCmd},
-			}, true
+			a.Mv = 0
+			return a
 		}
 	}
 
@@ -172,37 +188,18 @@ func (p *Parser) Parse() (CmdPair, bool) {
 		i++
 	}
 	if i <= iPrev {
-		return CmdPair{}, false
+		return a
 	}
 
 	a.Mv = p.buf[iPrev]
-	cmd, ok := a.ParseMove(false)
+	_, ok := isMove[a.Mv]
 	if ok {
-		p.Ok = true
-		return CmdPair{Mv: cmd}, true
+		return a
 	}
-	if a.Mv == '/' || a.Mv == '?' {
-		// XXX input pat
-	}
+
 	a.Op = a.Mv
 	a.Mv = 0
 	opFirst := p.buf[iPrev]
-
-	cmd, ok = a.ParseView()
-	if ok {
-		p.Ok = true
-		return CmdPair{Op: cmd}, true
-	}
-	cmd, ok = a.ParseInsert()
-	if ok {
-		p.Ok = true
-		return CmdPair{Op: cmd}, true
-	}
-	cmd, ok = a.ParseMisc()
-	if ok {
-		p.Ok = true
-		return CmdPair{Op: cmd}, true
-	}
 
 	iPrev = i
 	for i < len(p.buf) {
@@ -238,28 +235,9 @@ func (p *Parser) Parse() (CmdPair, bool) {
 		}
 	}
 
-	c, ok := a.ParseOp()
-	if ok {
-		p.Ok = true
-		return c, true
-	}
-	c, ok = a.ParseEdit()
-	if ok {
-		p.Ok = true
-		return c, true
-	}
-	c, ok = a.ParseCompound()
-	if ok {
-		p.Ok = true
-		return c, true
-	}
-
 	_, ok = isCompound[opFirst]
 	if ok {
-		return CmdPair{}, false
+		return a
 	}
-	p.Ok = true
-	return CmdPair{
-		Op: Cmd{Kind: InvalidCmd},
-	}, true
+	return a
 }

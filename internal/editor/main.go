@@ -46,7 +46,10 @@ func (ed *Editor) MainCommand(key termi.Key) {
 			ed.parser.WriteRune(key.Rune)
 		}
 
-		c, ok := ed.parser.Parse()
+		a := ed.parser.Parse()
+		ed.args = a
+		c, ok := a.Parse()
+		ed.parseOk = ok
 		if ok {
 			b := ed.Buf()
 			prevRow := b.Loc.Row

@@ -268,16 +268,16 @@ func (ed *Editor) DrawStatus() {
 
 		seq := ed.parser.Cache
 		cursor := ""
-		if !ed.parser.Ok {
+		if !ed.parseOk {
 			cursor = "_"
 		}
 		sep := ""
-		code := ed.parser.Args.Code()
+		code := ed.args.Code()
 		if len(code) > 0 {
 			sep = " : "
 		}
 		end := ""
-		if ed.parser.Ok {
+		if ed.parseOk {
 			end = "."
 		}
 
