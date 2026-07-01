@@ -172,7 +172,12 @@ func (ed *Editor) PromptSaveAll() {
 
 // :qa Enter : Close all files and quit editor.
 func (ed *Editor) PromptQuitAll() {
-	ed.Unimplemented("PromptQuitAll")
+	for ed.alive {
+		if !ed.Close(false) {
+			return
+		}
+		ed.CheckQuit()
+	}
 }
 
 // :qa! Enter : Force close all files and quit editor.

@@ -69,8 +69,8 @@ func (ed *Editor) ParseMove(
 
 	case 'j':
 		return Cmd{Kind: MoveDown, Num: num}, true
-	case 'K': // XXX debug
-		return Cmd{Kind: MoveHere, Num: num}, true
+	//case 'g': // XXX debug
+	//	return Cmd{Kind: MoveHere, Num: num}, true
 	case 'k':
 		return Cmd{Kind: MoveUp, Num: num}, true
 
@@ -129,8 +129,10 @@ func (ed *Editor) ParseMove(
 
 	case 'w':
 		return Cmd{Kind: MoveByWord, Num: num}, true
+	//case 'g': // XXX debug
+	//	return Cmd{Kind: MoveByChangeWord, Num: num}, true
 	case 'g': // XXX debug
-		return Cmd{Kind: MoveByWordAlt, Num: num}, true
+		return Cmd{Kind: MoveByDeleteWord, Num: num}, true
 	case 'b':
 		return Cmd{Kind: MoveBackwardByWord, Num: num}, true
 	case 'e':

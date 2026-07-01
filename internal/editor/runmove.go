@@ -4,7 +4,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
-func (ed *Editor) RunMove(c Cmd, num int, alt bool) (buf.Loc, bool) {
+func (ed *Editor) RunMove(c Cmd, num int) (buf.Loc, bool) {
 	ed.Commit()
 	num *= c.Num
 	switch c.Kind {
@@ -30,13 +30,11 @@ func (ed *Editor) RunMove(c Cmd, num int, alt bool) (buf.Loc, bool) {
 		return ed.MoveToColumn(num)
 
 	case MoveByWord:
-		if alt {
-			return ed.MoveByWordAlt(num)
-		} else {
-			return ed.MoveByWord(num)
-		}
-	case MoveByWordAlt: // XXX debug
-		return ed.MoveByWordAlt(num)
+		return ed.MoveByWord(num)
+	case MoveByChangeWord:
+		return ed.MoveByChangeWord(num)
+	case MoveByDeleteWord:
+		return ed.MoveByDeleteWord(num)
 	case MoveBackwardByWord:
 		return ed.MoveBackwardByWord(num)
 	case MoveToEndOfWord:

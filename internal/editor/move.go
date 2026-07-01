@@ -166,10 +166,10 @@ func (ed *Editor) MoveByWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// internal use : Move cursor forward by word used by cw and dw.
-func (ed *Editor) MoveByWordAlt(n int) (buf.Loc, bool) {
+// internal use : Move cursor forward by word used by cw.
+func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveByWordAlt: n < 1")
+		ed.Error("MoveByChangeWord: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
@@ -187,6 +187,32 @@ func (ed *Editor) MoveByWordAlt(n int) (buf.Loc, bool) {
 	}
 	if loc, found = b.MoveByWordAlt(loc); found {
 		return loc, true
+	}
+	return loc, true
+}
+
+// TODO
+// internal use : Move cursor forward by word used by dw.
+func (ed *Editor) MoveByDeleteWord(n int) (buf.Loc, bool) {
+	if n < 1 {
+		ed.Error("MoveByDeleteWord: n < 1")
+		return buf.Loc{}, false
+	}
+	b := ed.Buf()
+	loc := b.Loc
+	var found bool
+	for i := 0; i < n; i++ {
+		if loc, found = b.MoveByWord(loc); found {
+			continue
+		}
+		if i == n-1 && b.Line(loc.Row) != "" {
+			break
+		}
+		loc.Row++
+		loc.Col = 0
+		if loc, found = b.SkipBlanks(loc); !found {
+			return loc, true
+		}
 	}
 	return loc, true
 }

@@ -1,5 +1,11 @@
 package editor
 
+///////////////////////////////////////////
+// Commands for Selecting Current Buffer //
+///////////////////////////////////////////
+
+// :next, :n : Go to next buffer in list.
+// Also available as 'zj' (levi enhancement).
 func (ed *Editor) NextBuf() {
 	if ed.bufIdx+1 >= len(ed.bufs) {
 		ed.Ring("No more files to edit.")
@@ -7,14 +13,15 @@ func (ed *Editor) NextBuf() {
 	}
 	if !ed.bufMove {
 		ed.lastBufIdx = ed.bufIdx
+		ed.bufMove = true
 	}
 	ed.bufIdx++
 	ed.undo = false
-	ed.redraw = true
 	ed.ShowFileInfo()
-	ed.bufMove = true
 }
 
+// :prev : Go to previous buffer in list.
+// Also available as 'zk' (levi enhancement).
 func (ed *Editor) PrevBuf() {
 	if ed.bufIdx-1 < 0 {
 		ed.Ring("No previous files to edit.")
@@ -22,42 +29,44 @@ func (ed *Editor) PrevBuf() {
 	}
 	if !ed.bufMove {
 		ed.lastBufIdx = ed.bufIdx
+		ed.bufMove = true
 	}
 	ed.bufIdx--
 	ed.undo = false
-	ed.redraw = true
 	ed.ShowFileInfo()
-	ed.bufMove = true
 }
 
+// Ctrl-^, Ctrl-_ : Go to last visited buffer.
 func (ed *Editor) LastBuf() {
 	if ed.lastBufIdx == ed.bufIdx {
-		ed.Ring("No need to change buffer.")
+		//ed.Ring("No previous files to edit.") // nvi
+		ed.Ring("No last files to edit.")
 		return
 	}
 	ed.bufIdx, ed.lastBufIdx = ed.lastBufIdx, ed.bufIdx
 	ed.undo = false
-	ed.redraw = true
 	ed.ShowFileInfo()
 }
 
-func (ed *Editor) GoToBuf(n int) bool {
+// <num> Ctrl-^, <num> Ctrl-_ : Go to buffer specified by <num>.
+// Not available in nvi.
+// Available in Vim.
+func (ed *Editor) GoToBuf(n int) bool { // n is 1-based
 	if n < 1 {
 		ed.Error("GoToBuf: n < 1")
 		return false
 	}
-	n--
+	n-- // to 0-based
 	if n >= ed.NumBufs() {
-		ed.Ring("Out of range")
+		ed.Ring("Out of range") // levi
 		return false
 	}
 	if !ed.bufMove {
 		ed.lastBufIdx = ed.bufIdx
+		ed.bufMove = true
 	}
 	ed.bufIdx = n
 	ed.undo = false
-	ed.redraw = true
 	ed.ShowFileInfo()
-	ed.bufMove = true
 	return true
 }

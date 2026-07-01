@@ -85,7 +85,7 @@ func (ed *Editor) Join(n int) bool {
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
 func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, true)
+	start, end = b.ConfineRegion(start, end, true, true)
 	indented := false
 	for row := start.Row; row <= end.Row; row++ {
 		line := b.Line(row)
@@ -104,7 +104,7 @@ func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 // < <mv> : Outdent region from current cursor to destination of motion <mv>.
 func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, true)
+	start, end = b.ConfineRegion(start, end, true, true)
 	outdented := false
 	for row := start.Row; row <= end.Row; row++ {
 		line := b.Line(row)

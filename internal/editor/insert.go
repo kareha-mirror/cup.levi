@@ -3,18 +3,18 @@ package editor
 import (
 	"unicode/utf8"
 
+	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/rkind"
 	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
-////////////////////////
-// Insertion Commands //
-////////////////////////
+////////////////////////////////
+// Commands Using Insert Mode //
+////////////////////////////////
 
-//
-// Enter Insert Mode
-//
+// Internal Use //
 
+// Repeats insertion.
 func (ed *Editor) replayInsert() {
 	inserted := append([]string{}, ed.inserted...)
 	b := ed.Buf()
@@ -43,7 +43,12 @@ func (ed *Editor) replayInsert() {
 	}
 }
 
-// i : Switch to insert mode before cursor.
+//
+// Insert
+//
+
+// Switches to insert mode.
+// Key: i
 func (ed *Editor) Insert(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("Insert: n < 1")
@@ -70,7 +75,8 @@ func (ed *Editor) Insert(n int, replay bool) bool {
 	return false
 }
 
-// a : Switch to insert mode after cursor.
+// Switches to insert mode after cursor.
+// Key: a
 func (ed *Editor) InsertAfter(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("InsertAfter: n < 1")
@@ -109,7 +115,8 @@ func (ed *Editor) InsertAfter(n int, replay bool) bool {
 	return false
 }
 
-// I : Switch to insert mode before first non-blank character of current line.
+// Switches to insert mode after indent of current line.
+// Key: I
 func (ed *Editor) InsertAfterIndent(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("InsertAfterIndent: n < 1")
@@ -120,7 +127,8 @@ func (ed *Editor) InsertAfterIndent(n int, replay bool) bool {
 	return ed.Insert(n, replay)
 }
 
-// A : Switch to insert mode after end of current line.
+// Switches to insert mode after end of current line.
+// Key: A
 func (ed *Editor) InsertAfterEnd(n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("InsertAfterEnd: n < 1")
@@ -132,24 +140,15 @@ func (ed *Editor) InsertAfterEnd(n int, replay bool) bool {
 	return ed.InsertAfter(n, replay)
 }
 
-// R : Switch to replace (overwrite) mode.
-func (ed *Editor) Overwrite(n int, replay bool) bool {
-	if n < 1 {
-		ed.Error("Overwrite: n < 1")
-		return false
-	}
-	ed.Unimplemented("Overwrite")
-	return false
-}
-
 //
-// Open Line
+// Insert Line
 //
 
-// o : Open a new line below and switch to insert mode.
-func (ed *Editor) OpenBelow(n int, replay bool) bool {
+// Inserts blank line below cursor and switches to insert mode.
+// Key: o
+func (ed *Editor) InsertLine(n int, replay bool) bool {
 	if n < 1 {
-		ed.Error("OpenBelow: n < 1")
+		ed.Error("InsertLine: n < 1")
 		return false
 	}
 	b := ed.Buf()
@@ -174,10 +173,11 @@ func (ed *Editor) OpenBelow(n int, replay bool) bool {
 	return ed.InsertAfter(n, replay)
 }
 
-// O : Open a new line above and switch to insert mode.
-func (ed *Editor) OpenAbove(n int, replay bool) bool {
+// Inserts blank line above cursor and switches to insert mode.
+// Key: O
+func (ed *Editor) InsertLineAbove(n int, replay bool) bool {
 	if n < 1 {
-		ed.Error("OpenAbove: n < 1")
+		ed.Error("InsertLineAbove: n < 1")
 		return false
 	}
 	indent := ""
@@ -196,4 +196,116 @@ func (ed *Editor) OpenAbove(n int, replay bool) bool {
 	b.Lines = lines
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 	return ed.InsertAfter(n, replay)
+}
+
+//
+// Change / Substitute
+//
+
+// Changes region from cursor to destination of motion.
+// Key: c<mv> (when <mv> is characterwise motion)
+func (ed *Editor) ChangeRegion(
+	reg rune, start buf.Loc, end buf.Loc, inclusive bool, replay bool,
+) bool {
+	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, inclusive, false)
+	after := false
+	if end.Row < b.NumLines() {
+		rc := utf8.RuneCountInString(b.Line(end.Row))
+		if end.Col >= rc {
+			after = true
+		}
+	}
+	ed.DeleteRegion(reg, start, end, inclusive)
+	if after {
+		b.Loc.Col++
+	}
+	if replay {
+		if len(ed.inserted) < 0 {
+			ed.Notice("Not inserted yet")
+			return false
+		}
+		ed.replayInsert()
+		b.Loc.Col--
+		b.Loc = b.ConfineInclusive(b.Loc)
+		b.VirtCol = b.Loc.Col
+		return true
+	}
+	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
+	ed.inpRow = b.Loc.Row
+	ed.mode = ModeInsert
+	return false
+}
+
+// Changes line region from cursor to destination of motion.
+// Key: c<mv> (when <mv> is linewise motion)
+func (ed *Editor) ChangeLineRegion(
+	reg rune, start buf.Loc, end buf.Loc, replay bool,
+) bool {
+	b := ed.Buf()
+	start, end = b.ConfineRegion(start, end, true, true)
+	n := end.Row - start.Row + 1
+	// empty case
+	if b.NumLines() == 0 && n == 1 {
+		return ed.Insert(1, replay)
+	}
+	b.Loc = start
+	if b.Loc.Row+n > b.NumLines() {
+		ed.Notice("Out of range")
+		return false
+	}
+	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
+
+	// above
+	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
+	// current
+	if ed.cfg.AutoIndent {
+		lines = append(lines, rkind.IndentOf(b.Lines[b.Loc.Row]))
+	} else {
+		lines = append(lines, "")
+	}
+	// below
+	if b.Loc.Row+n < b.NumLines() {
+		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
+	}
+	b.Lines = lines
+
+	return ed.InsertAfterEnd(1, replay)
+}
+
+// Substitutes character under cursor.
+// Key: s<char>
+func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
+	if n < 1 {
+		ed.Error("Subst: n < 1")
+		return false
+	}
+	ed.internalDelete(reg, n)
+	b := ed.Buf()
+	if replay {
+		if len(ed.inserted) < 0 {
+			ed.Notice("Not inserted yet")
+			return false
+		}
+		ed.replayInsert()
+		b.Loc.Col--
+		b.Loc = b.ConfineInclusive(b.Loc)
+		b.VirtCol = b.Loc.Col
+		return true
+	}
+	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
+	ed.inpRow = b.Loc.Row
+	ed.mode = ModeInsert
+	return false
+}
+
+//
+// Unsupported Commands
+//
+
+// Switches to insert mode and overwrites current line.
+// Key: R
+func (ed *Editor) Overwrite() bool {
+	ed.Unsupported("Overwrite")
+	return false
 }

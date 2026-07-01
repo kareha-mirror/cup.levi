@@ -21,7 +21,7 @@ func (ed *Editor) CopyRegion(
 	reg rune, start buf.Loc, end buf.Loc, inclusive bool,
 ) {
 	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, inclusive)
+	start, end = b.ConfineRegion(start, end, inclusive, false)
 	lines := b.RegionRunewise(start, end)
 	ed.ApplyRegRunes(reg, lines)
 	b.Loc = start
@@ -32,7 +32,7 @@ func (ed *Editor) CopyLineRegion(
 	reg rune, start buf.Loc, end buf.Loc,
 ) {
 	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, true)
+	start, end = b.ConfineRegion(start, end, true, true)
 	if end.Row+1 > b.NumLines() {
 		ed.Notice("Out of range")
 		return
@@ -225,7 +225,7 @@ func (ed *Editor) DeleteRegion(
 	reg rune, start buf.Loc, end buf.Loc, inclusive bool,
 ) bool {
 	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, inclusive)
+	start, end = b.ConfineRegion(start, end, inclusive, false)
 	if inclusive {
 		end.Col++
 	}
@@ -252,7 +252,7 @@ func (ed *Editor) DeleteLineRegion(
 	reg rune, start buf.Loc, end buf.Loc,
 ) bool {
 	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, true)
+	start, end = b.ConfineRegion(start, end, true, true)
 	if end.Row+1 > b.NumLines() {
 		ed.Notice("Out of range")
 		return false

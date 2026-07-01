@@ -13,7 +13,7 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 
 	if c.Op.Kind == InvalidCmd {
 		if attr, ok := MoveAttrs[c.Mv.Kind]; ok {
-			if loc, ok := ed.RunMove(c.Mv, 1, false); ok {
+			if loc, ok := ed.RunMove(c.Mv, 1); ok {
 				b := ed.Buf()
 				if attr.Linewise {
 					if attr.FreeCol {
@@ -52,22 +52,24 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.InsertAfterIndent(c.Op.Num, replay), true
 	case InsertAfterEnd:
 		return ed.InsertAfterEnd(c.Op.Num, replay), true
-	case Overwrite:
-		return ed.Overwrite(c.Op.Num, replay), true
 
-	case OpenBelow:
-		return ed.OpenBelow(c.Op.Num, replay), true
-	case OpenAbove:
-		return ed.OpenAbove(c.Op.Num, replay), true
+	case InsertLine:
+		return ed.InsertLine(c.Op.Num, replay), true
+	case InsertLineAbove:
+		return ed.InsertLineAbove(c.Op.Num, replay), true
 
 	case ChangeRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
+		mv := c.Mv
+		if mv.Kind == MoveByWord {
+			mv.Kind = MoveByChangeWord
+		}
+		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[c.Mv.Kind]
+		attr, ok := MoveAttrs[mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false
@@ -81,6 +83,9 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		}
 	case Subst:
 		return ed.Subst(c.Reg, c.Op.Num, replay), true
+
+	case Overwrite: // unsupported
+		return ed.Overwrite(), true
 
 	//
 	// Edit Commands
@@ -97,12 +102,16 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.DeleteBefore(c.Reg, c.Op.Num), true
 	case DeleteRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
+		mv := c.Mv
+		if mv.Kind == MoveByWord {
+			mv.Kind = MoveByDeleteWord
+		}
+		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[c.Mv.Kind]
+		attr, ok := MoveAttrs[mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false
@@ -119,7 +128,11 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.Join(c.Op.Num), true
 	case IndentRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
+		mv := c.Mv
+		if mv.Kind == MoveByWord {
+			mv.Kind = MoveByChangeWord // XXX or MoveByDeleteWord?
+		}
+		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, true
@@ -127,7 +140,11 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.IndentRegion(start, end), true
 	case OutdentRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
+		mv := c.Mv
+		if mv.Kind == MoveByWord {
+			mv.Kind = MoveByChangeWord // or MoveByDeleteWord
+		}
+		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, true
@@ -151,7 +168,7 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 
 	case CopyRegion:
 		start := ed.Buf().Loc
-		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
+		end, ok := ed.RunMove(c.Mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false

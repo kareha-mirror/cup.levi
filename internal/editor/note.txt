@@ -2,8 +2,8 @@ finished: //
 reviewed: ##
 
 //args.go - see notes
+//bufcmd.go
 //buf.go
-##change.go - see notes
 //cmd.go
 //config.go
 //def_unix.go
@@ -13,7 +13,7 @@ reviewed: ##
 //editor.go
 //find.go
 input.go
-insert.go
+//insert.go
 main.go
 ##mark.go - see problems
 //misc.go

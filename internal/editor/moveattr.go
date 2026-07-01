@@ -20,7 +20,8 @@ var MoveAttrs = map[CmdKind]MoveAttr{
 	MoveToColumn:      {},
 
 	MoveByWord:              {},
-	MoveByWordAlt:           {},
+	MoveByChangeWord:        {},
+	MoveByDeleteWord:        {},
 	MoveBackwardByWord:      {},
 	MoveToEndOfWord:         {},
 	MoveByLooseWord:         {},

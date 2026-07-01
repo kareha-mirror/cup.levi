@@ -7,6 +7,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
+// Creates new buffer and place it last of buffer list.
 func (ed *Editor) NewBuf() {
 	b := buf.New(ed.cfg.CRLF, ed.cfg.Depth)
 
@@ -23,20 +24,24 @@ func (ed *Editor) NewBuf() {
 	ed.redraw = true
 }
 
+// Returns current buffer.
 func (ed *Editor) Buf() *buf.Buf {
 	return ed.bufs[ed.bufIdx]
 }
 
+// Returns number of buffers.
 func (ed *Editor) NumBufs() int {
 	return len(ed.bufs)
 }
 
+// Activates quit flag if buffer list is empty.
 func (ed *Editor) CheckQuit() {
 	if len(ed.bufs) < 1 {
 		ed.alive = false
 	}
 }
 
+// Closes current buffer and remove from buffer list.
 func (ed *Editor) Close(force bool) bool {
 	if !force && ed.Buf().Modified {
 		ed.Ring(
@@ -64,6 +69,7 @@ func (ed *Editor) Close(force bool) bool {
 	return true
 }
 
+// Loads text from file to current buffer.
 func (ed *Editor) Load(path string, force bool) bool {
 	if !force && ed.Buf().Modified {
 		ed.Ring(
@@ -102,6 +108,7 @@ func (ed *Editor) Load(path string, force bool) bool {
 	return true
 }
 
+// Creates new buffer and loads text from file to it.
 func (ed *Editor) Open(path string) bool {
 	ed.lastBufIdx = ed.bufIdx
 
@@ -109,6 +116,7 @@ func (ed *Editor) Open(path string) bool {
 	return ed.Load(path, true)
 }
 
+// Saves current buffer to named file.
 func (ed *Editor) SaveAs(path string, force bool) bool {
 	if path == "" {
 		ed.Ring("No filename specified")
@@ -167,6 +175,7 @@ func (ed *Editor) SaveAs(path string, force bool) bool {
 	return true
 }
 
+// Saves current buffer to original file.
 func (ed *Editor) Save(force bool) bool {
 	return ed.SaveAs(ed.Buf().Path, force)
 }

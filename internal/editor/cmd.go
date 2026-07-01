@@ -37,7 +37,8 @@ const (
 	MoveToColumn
 
 	MoveByWord
-	MoveByWordAlt
+	MoveByChangeWord
+	MoveByDeleteWord
 	MoveBackwardByWord
 	MoveToEndOfWord
 	MoveByLooseWord
@@ -95,13 +96,14 @@ const (
 	InsertAfter
 	InsertAfterIndent
 	InsertAfterEnd
-	Overwrite
 
-	OpenBelow
-	OpenAbove
+	InsertLine
+	InsertLineAbove
 
 	ChangeRegion
 	Subst
+
+	Overwrite // unsupported
 
 	//
 	// Edit Commands
@@ -182,10 +184,9 @@ var IsInsertCmd = map[CmdKind]struct{}{
 	InsertAfter:       {},
 	InsertAfterIndent: {},
 	InsertAfterEnd:    {},
-	Overwrite:         {},
 
-	OpenBelow: {},
-	OpenAbove: {},
+	InsertLine:      {},
+	InsertLineAbove: {},
 
 	ChangeRegion: {},
 	Subst:        {},
@@ -196,10 +197,9 @@ var IsMultiInsertCmd = map[CmdKind]struct{}{
 	InsertAfter:       {},
 	InsertAfterIndent: {},
 	InsertAfterEnd:    {},
-	Overwrite:         {},
 
-	OpenBelow: {},
-	OpenAbove: {},
+	InsertLine:      {},
+	InsertLineAbove: {},
 }
 
 var IsEditCmd = map[CmdKind]struct{}{
@@ -231,6 +231,7 @@ func init() {
 }
 
 var IsBufMoveCmd = map[CmdKind]struct{}{
+	LastBuf: {},
 	GoToBuf: {},
 	NextBuf: {},
 	PrevBuf: {},

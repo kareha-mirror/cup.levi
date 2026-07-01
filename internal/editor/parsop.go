@@ -57,14 +57,14 @@ func (ed *Editor) ParseInsert(num int, op rune) (Cmd, bool) {
 		return Cmd{Kind: InsertAfterIndent, Num: num}, true
 	case 'A':
 		return Cmd{Kind: InsertAfterEnd, Num: num}, true
-	case 'R':
-		return Cmd{Kind: Overwrite, Num: num}, true
 
 	case 'o':
-		return Cmd{Kind: OpenBelow, Num: num}, true
+		return Cmd{Kind: InsertLine, Num: num}, true
 	case 'O':
-		return Cmd{Kind: OpenAbove, Num: num}, true
+		return Cmd{Kind: InsertLineAbove, Num: num}, true
 
+	case 'R': // unsupported
+		return Cmd{Kind: Overwrite}, true
 	}
 
 	return Cmd{}, false

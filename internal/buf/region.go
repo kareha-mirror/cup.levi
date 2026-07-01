@@ -22,7 +22,9 @@ func OrderRegion(start, end Loc) (Loc, Loc) {
 }
 
 // inclusive or not selectable
-func (b *Buf) ConfineRegion(start, end Loc, inclusive bool) (Loc, Loc) {
+func (b *Buf) ConfineRegion(
+	start, end Loc, inclusive bool, linewise bool,
+) (Loc, Loc) {
 	start, end = OrderRegion(start, end)
 	if inclusive {
 		return b.ConfineInclusive(start), b.ConfineInclusive(end)
@@ -30,10 +32,12 @@ func (b *Buf) ConfineRegion(start, end Loc, inclusive bool) (Loc, Loc) {
 	}
 	// start is virtually inclusive
 	start, end = b.Confine(start), b.Confine(end)
-	// make row inclusive
-	if start.Row < end.Row && end.Col == 0 {
-		end.Row--
-		end.Col = utf8.RuneCountInString(b.Line(end.Row))
+	if linewise {
+		// make row inclusive
+		if start.Row < end.Row && end.Col == 0 {
+			end.Row--
+			end.Col = utf8.RuneCountInString(b.Line(end.Row))
+		}
 	}
 	return start, end
 }

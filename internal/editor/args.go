@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Parsed arguments of vi command.
 type Args struct {
 	Reg      rune
 	NoNum    bool
@@ -16,6 +17,7 @@ type Args struct {
 	Rune     rune
 }
 
+// Returns mnemonic code for parsed arguments of vi command.
 func (args *Args) Code() string {
 	b := strings.Builder{}
 	first := true
