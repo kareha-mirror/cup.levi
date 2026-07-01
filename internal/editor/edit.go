@@ -82,54 +82,6 @@ func (ed *Editor) Join(n int) bool {
 	return true
 }
 
-// >> : Indent current line.
-func (ed *Editor) Indent(n int) bool {
-	if n < 1 {
-		ed.Error("Indent: n < 1")
-		return false
-	}
-	b := ed.Buf()
-	if b.Loc.Row+n > b.NumLines() {
-		ed.Notice("Out of range")
-		return false
-	}
-	for row := b.Loc.Row; row < b.Loc.Row+n; row++ {
-		line := b.Line(row)
-		b.SetLine(row, "\t"+line)
-	}
-	b.Loc.Col++
-	b.Loc = b.ConfineInclusive(b.Loc)
-	return true
-}
-
-// << : Outdent current line.
-func (ed *Editor) Outdent(n int) bool {
-	if n < 1 {
-		ed.Error("Outdent: n < 1")
-		return false
-	}
-	b := ed.Buf()
-	if b.Loc.Row+n > b.NumLines() {
-		ed.Notice("Out of range")
-		return false
-	}
-	outdented := false
-	for row := b.Loc.Row; row < b.Loc.Row+n; row++ {
-		line := b.Line(row)
-		if strings.HasPrefix(line, "\t") {
-			b.SetLine(row, line[1:])
-			if row == b.Loc.Row {
-				outdented = true
-			}
-		}
-	}
-	if outdented {
-		b.Loc.Col--
-		b.Loc = b.ConfineInclusive(b.Loc)
-	}
-	return true
-}
-
 // > <mv> : Indent region from current cursor to destination of motion <mv>.
 func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()

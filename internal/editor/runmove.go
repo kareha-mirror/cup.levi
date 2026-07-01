@@ -13,6 +13,8 @@ func (ed *Editor) RunMove(c Cmd, num int, alt bool) (buf.Loc, bool) {
 		return ed.MoveLeft(num)
 	case MoveDown:
 		return ed.MoveDown(num)
+	case MoveHere:
+		return ed.MoveHere(num)
 	case MoveUp:
 		return ed.MoveUp(num)
 	case MoveRight:
@@ -21,7 +23,7 @@ func (ed *Editor) RunMove(c Cmd, num int, alt bool) (buf.Loc, bool) {
 	case MoveToStart:
 		return ed.MoveToStart()
 	case MoveToEnd:
-		return ed.MoveToEnd()
+		return ed.MoveToEnd(num)
 	case MoveToAfterIndent:
 		return ed.MoveToAfterIndent()
 	case MoveToColumn:
@@ -33,6 +35,8 @@ func (ed *Editor) RunMove(c Cmd, num int, alt bool) (buf.Loc, bool) {
 		} else {
 			return ed.MoveByWord(num)
 		}
+	case MoveByWordAlt: // XXX debug
+		return ed.MoveByWordAlt(num)
 	case MoveBackwardByWord:
 		return ed.MoveBackwardByWord(num)
 	case MoveToEndOfWord:

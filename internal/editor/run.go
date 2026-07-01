@@ -60,8 +60,6 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	case OpenAbove:
 		return ed.OpenAbove(c.Op.Num, replay), true
 
-	case ChangeLine:
-		return ed.ChangeLine(c.Reg, c.Op.Num, replay), true
 	case ChangeRegion:
 		start := ed.Buf().Loc
 		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
@@ -81,14 +79,8 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 				c.Reg, start, end, attr.Inclusive, replay,
 			), true
 		}
-	case ChangeWord:
-		return ed.ChangeWord(c.Reg, c.Op.Num, replay), true
-	case ChangeToEnd:
-		return ed.ChangeToEnd(c.Reg, c.Op.Num, replay), true
 	case Subst:
 		return ed.Subst(c.Reg, c.Op.Num, replay), true
-	case SubstLine:
-		return ed.SubstLine(c.Reg, c.Op.Num, replay), true
 
 	//
 	// Edit Commands
@@ -103,8 +95,6 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		return ed.Delete(c.Reg, c.Op.Num), true
 	case DeleteBefore:
 		return ed.DeleteBefore(c.Reg, c.Op.Num), true
-	case DeleteLine:
-		return ed.DeleteLine(c.Reg, c.Op.Num), true
 	case DeleteRegion:
 		start := ed.Buf().Loc
 		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
@@ -122,19 +112,11 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		} else {
 			return ed.DeleteRegion(c.Reg, start, end, attr.Inclusive), true
 		}
-	case DeleteWord:
-		return ed.DeleteWord(c.Reg, c.Op.Num), true
-	case DeleteToEnd:
-		return ed.DeleteToEnd(c.Reg, c.Op.Num), true
 
 	case Replace:
 		return ed.Replace(c.Op.Rune, c.Op.Num), true
 	case Join:
 		return ed.Join(c.Op.Num), true
-	case Indent:
-		return ed.Indent(c.Op.Num), true
-	case Outdent:
-		return ed.Outdent(c.Op.Num), true
 	case IndentRegion:
 		start := ed.Buf().Loc
 		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
@@ -167,9 +149,6 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	// Copy Commands
 	//
 
-	case CopyLine:
-		ed.CopyLine(c.Reg, c.Op.Num)
-		return false, true
 	case CopyRegion:
 		start := ed.Buf().Loc
 		end, ok := ed.RunMove(c.Mv, c.Op.Num, true)
@@ -187,12 +166,6 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		} else {
 			ed.CopyRegion(c.Reg, start, end, attr.Inclusive)
 		}
-		return false, true
-	case CopyWord:
-		ed.CopyWord(c.Reg, c.Op.Num)
-		return false, true
-	case CopyToEnd:
-		ed.CopyToEnd(c.Reg, c.Op.Num)
 		return false, true
 
 	//

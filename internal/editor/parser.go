@@ -29,15 +29,7 @@ var isCompound = map[string]struct{}{
 	"z.":  {},
 	"z-":  {},
 
-	"yy": {},
-	"dd": {},
-	"cc": {},
-	">>": {},
-	"<<": {},
 	"ZZ": {},
-
-	"dw": {},
-	"cw": {},
 }
 
 var isHeadOfCompound = map[rune]struct{}{
@@ -49,12 +41,13 @@ var isHeadOfCompound = map[rune]struct{}{
 
 	'z': {},
 
+	'Z': {},
+
 	'y': {},
 	'd': {},
 	'c': {},
 	'>': {},
 	'<': {},
-	'Z': {},
 }
 
 type Parser struct {
@@ -191,8 +184,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	}
 
 	args.Mv = string(p.buf[iPrev:i])
-
-	cmd, ok := ed.ParseMove(args.NoNum, args.Num, args.Mv, 0)
+	cmd, ok := ed.ParseMove(args.NoNum, args.Num, args.Mv, 0, false)
 	if ok {
 		p.Ok = true
 		return CmdPair{Mv: cmd}, true

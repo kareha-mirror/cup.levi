@@ -106,7 +106,7 @@ func (ed *Editor) ParseOp(
 		switch op {
 
 		case "y":
-			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 			if ok {
 				return CmdPair{
 					Reg: reg,
@@ -116,7 +116,7 @@ func (ed *Editor) ParseOp(
 			}
 			return CmdPair{}, false
 		case "d":
-			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 			if ok {
 				return CmdPair{
 					Reg: reg,
@@ -126,7 +126,7 @@ func (ed *Editor) ParseOp(
 			}
 			return CmdPair{}, false
 		case "c":
-			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
+			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 			if ok {
 				return CmdPair{
 					Reg: reg,
@@ -140,22 +140,6 @@ func (ed *Editor) ParseOp(
 	}
 
 	switch op {
-
-	case "yy", "Y":
-		return CmdPair{
-			Reg: reg,
-			Op:  Cmd{Kind: CopyLine, Num: num},
-		}, true
-	case "yw":
-		return CmdPair{
-			Reg: reg,
-			Op:  Cmd{Kind: CopyWord, Num: num},
-		}, true
-	case "y$":
-		return CmdPair{
-			Reg: reg,
-			Op:  Cmd{Kind: CopyToEnd, Num: num},
-		}, true
 
 	case "p":
 		return CmdPair{
@@ -178,36 +162,18 @@ func (ed *Editor) ParseOp(
 			Reg: reg,
 			Op:  Cmd{Kind: DeleteBefore, Num: num},
 		}, true
-	case "dd":
+	case "D":
 		return CmdPair{
 			Reg: reg,
-			Op:  Cmd{Kind: DeleteLine, Num: num},
-		}, true
-	case "dw":
-		return CmdPair{
-			Reg: reg,
-			Op:  Cmd{Kind: DeleteWord, Num: num},
-		}, true
-	case "d$", "D":
-		return CmdPair{
-			Reg: reg,
-			Op:  Cmd{Kind: DeleteToEnd, Num: num},
+			Op:  Cmd{Kind: DeleteRegion, Num: num},
+			Mv:  Cmd{Kind: MoveToEnd, Num: 1},
 		}, true
 
-	case "cc":
-		return CmdPair{
-			Reg: reg,
-			Op:  Cmd{Kind: ChangeLine, Num: num},
-		}, true
-	case "cw":
-		return CmdPair{
-			Reg: reg,
-			Op:  Cmd{Kind: ChangeWord, Num: num},
-		}, true
 	case "C":
 		return CmdPair{
 			Reg: reg,
-			Op:  Cmd{Kind: ChangeToEnd, Num: num},
+			Op:  Cmd{Kind: ChangeRegion, Num: num},
+			Mv:  Cmd{Kind: MoveToEnd, Num: 1},
 		}, true
 	case "s":
 		return CmdPair{
@@ -217,7 +183,8 @@ func (ed *Editor) ParseOp(
 	case "S":
 		return CmdPair{
 			Reg: reg,
-			Op:  Cmd{Kind: SubstLine, Num: num},
+			Op:  Cmd{Kind: ChangeRegion, Num: num},
+			Mv:  Cmd{Kind: MoveHere, Num: 1},
 		}, true
 
 	}
@@ -235,17 +202,8 @@ func (ed *Editor) ParseEdit(
 			Op: Cmd{Kind: Join, Num: num},
 		}, true
 
-	case ">>":
-		return CmdPair{
-			Op: Cmd{Kind: Indent, Num: num},
-		}, true
-	case "<<":
-		return CmdPair{
-			Op: Cmd{Kind: Outdent, Num: num},
-		}, true
-
 	case ">":
-		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
+		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 		if ok {
 			attr, ok := MoveAttrs[cmd.Kind]
 			if !ok {
@@ -253,19 +211,19 @@ func (ed *Editor) ParseEdit(
 			}
 			if attr.Linewise {
 				return CmdPair{
-					Op: Cmd{Kind: IndentRegion},
+					Op: Cmd{Kind: IndentRegion, Num: num},
 					Mv: cmd,
 				}, true
 			} else {
 				return CmdPair{
-					Op: Cmd{Kind: IndentRegion},
+					Op: Cmd{Kind: IndentRegion, Num: num},
 					Mv: cmd,
 				}, true
 			}
 		}
 		return CmdPair{}, false
 	case "<":
-		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r)
+		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 		if ok {
 			attr, ok := MoveAttrs[cmd.Kind]
 			if !ok {
@@ -273,12 +231,12 @@ func (ed *Editor) ParseEdit(
 			}
 			if attr.Linewise {
 				return CmdPair{
-					Op: Cmd{Kind: OutdentRegion},
+					Op: Cmd{Kind: OutdentRegion, Num: num},
 					Mv: cmd,
 				}, true
 			} else {
 				return CmdPair{
-					Op: Cmd{Kind: OutdentRegion},
+					Op: Cmd{Kind: OutdentRegion, Num: num},
 					Mv: cmd,
 				}, true
 			}

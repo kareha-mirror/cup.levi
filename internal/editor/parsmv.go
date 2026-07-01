@@ -61,7 +61,7 @@ func (ed *Editor) ParseMoveRune(
 }
 
 func (ed *Editor) ParseMove(
-	noNum bool, num int, mv string, r rune,
+	noNum bool, num int, mv string, r rune, here bool,
 ) (Cmd, bool) {
 	switch mv {
 
@@ -71,6 +71,8 @@ func (ed *Editor) ParseMove(
 
 	case "j":
 		return Cmd{Kind: MoveDown, Num: num}, true
+	case "K": // XXX debug
+		return Cmd{Kind: MoveHere, Num: num}, true
 	case "k":
 		return Cmd{Kind: MoveUp, Num: num}, true
 
@@ -125,7 +127,7 @@ func (ed *Editor) ParseMove(
 	case "0": // special
 		return Cmd{Kind: MoveToStart}, true
 	case "$":
-		return Cmd{Kind: MoveToEnd}, true
+		return Cmd{Kind: MoveToEnd, Num: num}, true
 	case "^":
 		return Cmd{Kind: MoveToAfterIndent}, true
 	case "|":
@@ -161,7 +163,23 @@ func (ed *Editor) ParseMove(
 	if ok {
 		return cmd, true
 	}
-	return ed.ParseSearch(mv, "") // XXX pat
+	cmd, ok = ed.ParseSearch(mv, "") // XXX pat
+	if ok {
+		return cmd, true
+	}
+
+	//
+	// Here
+	//
+
+	if here {
+		switch mv {
+		case "y", "d", "c", ">", "<":
+			return Cmd{Kind: MoveHere, Num: num}, true
+		}
+	}
+
+	return Cmd{}, false
 }
 
 func (ed *Editor) ParseSearch(op string, pat string) (Cmd, bool) {

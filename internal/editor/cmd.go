@@ -27,6 +27,7 @@ const (
 
 	MoveLeft
 	MoveDown
+	MoveHere // debug
 	MoveUp
 	MoveRight
 
@@ -99,12 +100,8 @@ const (
 	OpenBelow
 	OpenAbove
 
-	ChangeLine
 	ChangeRegion
-	ChangeWord
-	ChangeToEnd
 	Subst
-	SubstLine
 
 	//
 	// Edit Commands
@@ -118,15 +115,10 @@ const (
 
 	Delete
 	DeleteBefore
-	DeleteLine
 	DeleteRegion
-	DeleteWord
-	DeleteToEnd
 
 	Replace
 	Join
-	Indent
-	Outdent
 	IndentRegion
 	OutdentRegion
 
@@ -147,10 +139,7 @@ const (
 	// These commands copy lines or runes into registers.
 	// They don't change text content of buffer.
 
-	CopyLine
 	CopyRegion
-	CopyWord
-	CopyToEnd
 
 	//
 	// View Commands
@@ -193,12 +182,8 @@ var IsInsertCmd = map[CmdKind]struct{}{
 	OpenBelow: {},
 	OpenAbove: {},
 
-	ChangeLine:   {},
 	ChangeRegion: {},
-	ChangeWord:   {},
-	ChangeToEnd:  {},
 	Subst:        {},
-	SubstLine:    {},
 }
 
 var IsMultiInsertCmd = map[CmdKind]struct{}{
@@ -218,14 +203,9 @@ var IsEditCmd = map[CmdKind]struct{}{
 
 	Delete:       {},
 	DeleteBefore: {},
-	DeleteLine:   {},
 	DeleteRegion: {},
-	DeleteWord:   {},
-	DeleteToEnd:  {},
 
 	Join:          {},
-	Indent:        {},
-	Outdent:       {},
 	IndentRegion:  {},
 	OutdentRegion: {},
 

@@ -10,6 +10,7 @@ type MoveAttr struct {
 var MoveAttrs = map[CmdKind]MoveAttr{
 	MoveLeft:  {},
 	MoveDown:  {Linewise: true, FreeCol: true},
+	MoveHere:  {Linewise: true, FreeCol: true},
 	MoveUp:    {Linewise: true, FreeCol: true},
 	MoveRight: {},
 

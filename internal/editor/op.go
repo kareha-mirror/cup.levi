@@ -16,20 +16,6 @@ import (
 // Copy (Yank)
 //
 
-// "<reg>yy, "<reg>Y : Copy current line into register <reg>.
-func (ed *Editor) CopyLine(reg string, n int) {
-	if n < 1 {
-		ed.Error("CopyLine: n < 1")
-		return
-	}
-	b := ed.Buf()
-	if b.Loc.Row+n > b.NumLines() {
-		ed.Notice("Out of range")
-		return
-	}
-	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
-}
-
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
 func (ed *Editor) CopyRegion(
 	reg string, start buf.Loc, end buf.Loc, inclusive bool,
@@ -53,24 +39,6 @@ func (ed *Editor) CopyLineRegion(
 	}
 	ed.ApplyRegLines(reg, b.Lines[start.Row:end.Row+1])
 	b.Loc = start
-}
-
-// yw : Copy word.
-func (ed *Editor) CopyWord(reg string, n int) {
-	if n < 1 {
-		ed.Error("CopyWord: n < 1")
-		return
-	}
-	ed.Unimplemented("CopyWord")
-}
-
-// y$ : Copy to end of current line.
-func (ed *Editor) CopyToEnd(reg string, n int) {
-	if n < 1 {
-		ed.Error("CopyToEnd: n < 1")
-		return
-	}
-	ed.Unimplemented("CopyToEnd")
 }
 
 //
@@ -252,27 +220,6 @@ func (ed *Editor) DeleteBefore(reg string, n int) bool {
 	return false
 }
 
-// dd : Delete current line.
-func (ed *Editor) DeleteLine(reg string, n int) bool {
-	if n < 1 {
-		ed.Error("DeleteLine: n < 1")
-		return false
-	}
-	b := ed.Buf()
-	if b.Loc.Row+n > b.NumLines() {
-		ed.Notice("Out of range")
-		return false
-	}
-	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
-	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
-	if b.Loc.Row+n < b.NumLines() {
-		lines = append(lines, b.Lines[b.Loc.Row+n:]...)
-	}
-	b.Lines = lines
-	b.Loc = b.ConfineInclusive(b.Loc)
-	return true
-}
-
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
 func (ed *Editor) DeleteRegion(
 	reg string, start buf.Loc, end buf.Loc, inclusive bool,
@@ -319,36 +266,4 @@ func (ed *Editor) DeleteLineRegion(
 	b.Loc = start
 	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
-}
-
-// dw : Delete word.
-func (ed *Editor) DeleteWord(reg string, n int) bool {
-	if n < 1 {
-		ed.Error("DeleteWord: n < 1")
-		return false
-	}
-	b := ed.Buf()
-	start := b.Loc
-	end, ok := ed.MoveByWordAlt(n)
-	if !ok {
-		ed.Error("Failed to move")
-		return false
-	}
-	return ed.DeleteRegion(reg, start, end, false)
-	// TODO n
-}
-
-// d$, D : Delete to end of current line.
-func (ed *Editor) DeleteToEnd(reg string, n int) bool {
-	if n < 1 {
-		ed.Error("DeleteToEnd: n < 1")
-		return false
-	}
-	b := ed.Buf()
-	head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
-	ed.ApplyRegRunes(reg, []string{tail})
-	b.SetCurrentLine(head)
-	b.Loc = b.ConfineInclusive(b.Loc)
-	return true
-	// TODO n
 }

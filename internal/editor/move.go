@@ -45,6 +45,22 @@ func (ed *Editor) MoveDown(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
+// internal use : Move cursor here.
+func (ed *Editor) MoveHere(n int) (buf.Loc, bool) {
+	if n < 1 {
+		ed.Error("MoveHere: n < 1")
+		return buf.Loc{}, false
+	}
+	b := ed.Buf()
+	loc := b.Loc
+	loc.Row += n - 1
+	if !b.CheckRowInclusive(loc.Row) {
+		ed.Notice("Out of range")
+		return buf.Loc{}, false
+	}
+	return loc, true
+}
+
 // k : Move cursor up by line.
 func (ed *Editor) MoveUp(n int) (buf.Loc, bool) {
 	if n < 1 {
@@ -86,9 +102,18 @@ func (ed *Editor) MoveToStart() (buf.Loc, bool) {
 }
 
 // $ : Move cursor to end of current line.
-func (ed *Editor) MoveToEnd() (buf.Loc, bool) {
+func (ed *Editor) MoveToEnd(n int) (buf.Loc, bool) {
+	if n < 1 {
+		ed.Error("MoveToEnd: n < 1")
+		return buf.Loc{}, false
+	}
 	b := ed.Buf()
 	loc := b.Loc
+	loc.Row += n - 1
+	if !b.CheckRowInclusive(loc.Row) {
+		ed.Notice("Out of range")
+		return buf.Loc{}, false
+	}
 	loc.Col = utf8.RuneCountInString(b.Line(loc.Row))
 	return loc, true
 }
@@ -163,12 +188,6 @@ func (ed *Editor) MoveByWordAlt(n int) (buf.Loc, bool) {
 	if loc, found = b.MoveByWordAlt(loc); found {
 		return loc, true
 	}
-	if n < 2 {
-		return loc, true
-	}
-	loc.Row++
-	loc.Col = 0
-	loc, _ = b.SkipBlanks(loc)
 	return loc, true
 }
 
