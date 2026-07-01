@@ -1,22 +1,22 @@
-package editor
+package cmd
 
-type CmdKind int
+type Kind int
 
 type Cmd struct {
-	Kind CmdKind
+	Kind Kind
 	Num  int
 	Rune rune
 	Pat  string
 }
 
-type CmdPair struct {
+type Pair struct {
 	Reg rune
 	Op  Cmd
 	Mv  Cmd
 }
 
 const (
-	InvalidCmd CmdKind = iota
+	Invalid Kind = iota
 
 	//
 	// Motion Commands
@@ -27,10 +27,9 @@ const (
 
 	MoveLeft
 	MoveDown
-	MoveHere // debug
+	MoveHere
 	MoveUp
 	MoveRight
-
 	MoveToStart
 	MoveToEnd
 	MoveToAfterIndent
@@ -65,7 +64,6 @@ const (
 
 	MoveToMark
 	MoveToMarkLine
-
 	BackToMark
 	BackToMarkLine
 
@@ -184,7 +182,7 @@ const (
 	Ring
 )
 
-var IsInsertCmd = map[CmdKind]struct{}{
+var IsInsert = map[Kind]struct{}{
 	Insert:            {},
 	InsertAfter:       {},
 	InsertAfterIndent: {},
@@ -197,7 +195,7 @@ var IsInsertCmd = map[CmdKind]struct{}{
 	Subst:        {},
 }
 
-var IsMultiInsertCmd = map[CmdKind]struct{}{
+var IsMultiInsert = map[Kind]struct{}{
 	Insert:            {},
 	InsertAfter:       {},
 	InsertAfterIndent: {},
@@ -207,7 +205,7 @@ var IsMultiInsertCmd = map[CmdKind]struct{}{
 	InsertLineAbove: {},
 }
 
-var IsEditCmd = map[CmdKind]struct{}{
+var IsEdit = map[Kind]struct{}{
 	Paste:       {},
 	PasteBefore: {},
 
@@ -224,18 +222,18 @@ var IsEditCmd = map[CmdKind]struct{}{
 	Restore: {},
 }
 
-var IsModifyingCmd = map[CmdKind]struct{}{}
+var IsModifying = map[Kind]struct{}{}
 
 func init() {
-	for c := range IsInsertCmd {
-		IsModifyingCmd[c] = struct{}{}
+	for c := range IsInsert {
+		IsModifying[c] = struct{}{}
 	}
-	for c := range IsEditCmd {
-		IsModifyingCmd[c] = struct{}{}
+	for c := range IsEdit {
+		IsModifying[c] = struct{}{}
 	}
 }
 
-var IsBufMoveCmd = map[CmdKind]struct{}{
+var IsBufMove = map[Kind]struct{}{
 	LastBuf: {},
 	GoToBuf: {},
 	NextBuf: {},

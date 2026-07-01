@@ -1,6 +1,10 @@
 package editor
 
-func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
+import (
+	"tea.kareha.org/cup/levi/internal/cmd"
+)
+
+func (ed *Editor) Run(c cmd.Pair, replay bool) (bool, bool) {
 	ed.Commit()
 
 	// * motion commands are delegated to RunMove
@@ -11,8 +15,8 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	// Motion Commands
 	//
 
-	if c.Op.Kind == InvalidCmd {
-		if attr, ok := MoveAttrs[c.Mv.Kind]; ok {
+	if c.Op.Kind == cmd.Invalid {
+		if attr, ok := cmd.AttrOf[c.Mv.Kind]; ok {
 			if loc, ok := ed.RunMove(c.Mv, 1); ok {
 				b := ed.Buf()
 				if attr.Linewise {
@@ -44,32 +48,32 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	// Insert Commands
 	//
 
-	case Insert:
+	case cmd.Insert:
 		return ed.Insert(c.Op.Num, replay), true
-	case InsertAfter:
+	case cmd.InsertAfter:
 		return ed.InsertAfter(c.Op.Num, replay), true
-	case InsertAfterIndent:
+	case cmd.InsertAfterIndent:
 		return ed.InsertAfterIndent(c.Op.Num, replay), true
-	case InsertAfterEnd:
+	case cmd.InsertAfterEnd:
 		return ed.InsertAfterEnd(c.Op.Num, replay), true
 
-	case InsertLine:
+	case cmd.InsertLine:
 		return ed.InsertLine(c.Op.Num, replay), true
-	case InsertLineAbove:
+	case cmd.InsertLineAbove:
 		return ed.InsertLineAbove(c.Op.Num, replay), true
 
-	case ChangeRegion:
+	case cmd.ChangeRegion:
 		start := ed.Buf().Loc
 		mv := c.Mv
-		if mv.Kind == MoveByWord {
-			mv.Kind = MoveByChangeWord
+		if mv.Kind == cmd.MoveByWord {
+			mv.Kind = cmd.MoveByChangeWord
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[mv.Kind]
+		attr, ok := cmd.AttrOf[mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false
@@ -81,37 +85,37 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 				c.Reg, start, end, attr.Inclusive, replay,
 			), true
 		}
-	case Subst:
+	case cmd.Subst:
 		return ed.Subst(c.Reg, c.Op.Num, replay), true
 
-	case Overwrite: // unsupported
+	case cmd.Overwrite: // unsupported
 		return ed.Overwrite(), true
 
 	//
 	// Edit Commands
 	//
 
-	case Paste:
+	case cmd.Paste:
 		return ed.Paste(c.Reg, c.Op.Num), true
-	case PasteBefore:
+	case cmd.PasteBefore:
 		return ed.PasteBefore(c.Reg, c.Op.Num), true
 
-	case Delete:
+	case cmd.Delete:
 		return ed.Delete(c.Reg, c.Op.Num), true
-	case DeleteBefore:
+	case cmd.DeleteBefore:
 		return ed.DeleteBefore(c.Reg, c.Op.Num), true
-	case DeleteRegion:
+	case cmd.DeleteRegion:
 		start := ed.Buf().Loc
 		mv := c.Mv
-		if mv.Kind == MoveByWord {
-			mv.Kind = MoveByDeleteWord
+		if mv.Kind == cmd.MoveByWord {
+			mv.Kind = cmd.MoveByDeleteWord
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[mv.Kind]
+		attr, ok := cmd.AttrOf[mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false
@@ -122,15 +126,15 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 			return ed.DeleteRegion(c.Reg, start, end, attr.Inclusive), true
 		}
 
-	case Replace:
+	case cmd.Replace:
 		return ed.Replace(c.Op.Rune, c.Op.Num), true
-	case Join:
+	case cmd.Join:
 		return ed.Join(c.Op.Num), true
-	case IndentRegion:
+	case cmd.IndentRegion:
 		start := ed.Buf().Loc
 		mv := c.Mv
-		if mv.Kind == MoveByWord {
-			mv.Kind = MoveByChangeWord // XXX or MoveByDeleteWord?
+		if mv.Kind == cmd.MoveByWord {
+			mv.Kind = cmd.MoveByChangeWord // XXX or cmd.MoveByDeleteWord?
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
@@ -138,11 +142,11 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 			return false, true
 		}
 		return ed.IndentRegion(start, end), true
-	case OutdentRegion:
+	case cmd.OutdentRegion:
 		start := ed.Buf().Loc
 		mv := c.Mv
-		if mv.Kind == MoveByWord {
-			mv.Kind = MoveByChangeWord // or MoveByDeleteWord
+		if mv.Kind == cmd.MoveByWord {
+			mv.Kind = cmd.MoveByChangeWord // XXX or cmd.MoveByDeleteWord?
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
@@ -151,14 +155,14 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		}
 		return ed.OutdentRegion(start, end), true
 
-	case Restore:
+	case cmd.Restore:
 		return ed.Restore(), true
 
 	//
 	// Mark Commands
 	//
 
-	case Mark:
+	case cmd.Mark:
 		ed.Mark(c.Op.Rune)
 		return false, true
 
@@ -166,14 +170,14 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	// Copy Commands
 	//
 
-	case CopyRegion:
+	case cmd.CopyRegion:
 		start := ed.Buf().Loc
 		end, ok := ed.RunMove(c.Mv, c.Op.Num)
 		if !ok {
 			ed.Error("Failed to move")
 			return false, false
 		}
-		attr, ok := MoveAttrs[c.Mv.Kind]
+		attr, ok := cmd.AttrOf[c.Mv.Kind]
 		if !ok {
 			ed.Error("Failed to retrieve move attr")
 			return false, false
@@ -189,36 +193,36 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	// View Commands
 	//
 
-	case ViewDown:
+	case cmd.ViewDown:
 		ed.ViewDown(c.Op.Num)
 		return false, true
-	case ViewUp:
+	case cmd.ViewUp:
 		ed.ViewUp(c.Op.Num)
 		return false, true
-	case ViewDownHalf:
+	case cmd.ViewDownHalf:
 		ed.ViewDownHalf(c.Op.Num)
 		return false, true
-	case ViewUpHalf:
+	case cmd.ViewUpHalf:
 		ed.ViewUpHalf(c.Op.Num)
 		return false, true
-	case ViewDownLine:
+	case cmd.ViewDownLine:
 		ed.ViewDownLine(c.Op.Num)
 		return false, true
-	case ViewUpLine:
+	case cmd.ViewUpLine:
 		ed.ViewUpLine(c.Op.Num)
 		return false, true
 
-	case ViewToTop:
+	case cmd.ViewToTop:
 		ed.ViewToTop()
 		return false, true
-	case ViewToMiddle:
+	case cmd.ViewToMiddle:
 		ed.ViewToMiddle()
 		return false, true
-	case ViewToBottom:
+	case cmd.ViewToBottom:
 		ed.ViewToBottom()
 		return false, true
 
-	case Redraw:
+	case cmd.Redraw:
 		ed.Redraw()
 		return false, true
 
@@ -226,36 +230,36 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 	// Miscellaneous Commands
 	//
 
-	case ShowInfo:
+	case cmd.ShowInfo:
 		ed.ShowInfo()
 		return false, true
-	case Repeat:
+	case cmd.Repeat:
 		ed.Repeat(c.Op.Num)
 		return false, true
-	case Undo:
+	case cmd.Undo:
 		ed.Undo(c.Op.Num, replay)
 		return false, true
-	case SaveAndClose:
+	case cmd.SaveAndClose:
 		ed.SaveAndClose()
 		return false, true
-	case Suspend:
+	case cmd.Suspend:
 		ed.Suspend()
 		return false, true
 
-	case LastBuf:
+	case cmd.LastBuf:
 		ed.LastBuf()
 		return false, true
-	case GoToBuf:
+	case cmd.GoToBuf:
 		ed.GoToBuf(c.Op.Num)
 		return false, true
-	case NextBuf:
+	case cmd.NextBuf:
 		ed.NextBuf()
 		return false, true
-	case PrevBuf:
+	case cmd.PrevBuf:
 		ed.PrevBuf()
 		return false, true
 
-	case Ring:
+	case cmd.Ring:
 		ed.Ring("%s", c.Op.Pat)
 		return false, true
 

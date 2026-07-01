@@ -268,7 +268,7 @@ func (ed *Editor) DrawStatus() {
 
 		seq := ed.parser.Cache
 		cursor := ""
-		if !ed.parseOk {
+		if !ed.cmdOk {
 			cursor = "_"
 		}
 		sep := ""
@@ -277,7 +277,7 @@ func (ed *Editor) DrawStatus() {
 			sep = " : "
 		}
 		end := ""
-		if ed.parseOk {
+		if ed.cmdOk {
 			end = "."
 		}
 

@@ -2,6 +2,8 @@ package editor
 
 import (
 	"tea.kareha.org/cup/termi"
+
+	"tea.kareha.org/cup/levi/internal/cmd"
 )
 
 ////////////////////////////
@@ -24,7 +26,7 @@ func (ed *Editor) Repeat(n int) {
 	c := ed.lastCmd
 	b := ed.Buf()
 	prevRow := b.Loc.Row
-	if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
+	if _, ok := cmd.IsModifying[c.Op.Kind]; ok {
 		ed.BeginUndoRecord()
 	}
 	if modified, ok := ed.Run(c, true); ok { // replay
@@ -34,7 +36,7 @@ func (ed *Editor) Repeat(n int) {
 		if ed.alive && ed.Buf() == b && b.Loc.Row != prevRow {
 			b.StoreLine()
 		}
-		if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
+		if _, ok := cmd.IsModifying[c.Op.Kind]; ok {
 			if modified {
 				ed.EndUndoRecord()
 			} else {
@@ -42,7 +44,7 @@ func (ed *Editor) Repeat(n int) {
 			}
 		}
 	} else {
-		if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
+		if _, ok := cmd.IsModifying[c.Op.Kind]; ok {
 			ed.CancelUndoRecord()
 		}
 	}

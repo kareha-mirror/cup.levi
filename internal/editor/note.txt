@@ -1,10 +1,8 @@
 finished: //
 reviewed: ##
 
-//args.go - see notes
 //bufcmd.go
 //buf.go
-//cmd.go
 //config.go
 //def_unix.go
 //def_windows.go
@@ -17,14 +15,10 @@ input.go
 main.go
 ##mark.go - see problems
 //misc.go
-//moveattr.go
 move.go
 msg.go
 note.txt # myself
 op.go
-parser.go
-parsmv.go
-parsop.go
 pcmd.go
 pparser.go
 prompt.go

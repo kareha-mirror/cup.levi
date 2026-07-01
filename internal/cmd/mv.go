@@ -1,75 +1,50 @@
-package editor
+package cmd
 
-func (a *Args) ParseMoveRune() (Cmd, bool) {
-	if a.Rune == 0 {
-		return Cmd{}, false
-	}
-	switch a.Mv {
+func (a Args) compileMove(sub bool) (Cmd, bool) {
+	if a.Rune != 0 {
+		switch a.Mv {
 
-	case '`':
-		if a.Rune == '`' {
-			return Cmd{Kind: BackToMark}, true
-		} else {
-			return Cmd{Kind: MoveToMark, Rune: a.Rune}, true
+		case '`':
+			if a.Rune == '`' {
+				return Cmd{Kind: BackToMark}, true
+			} else {
+				return Cmd{Kind: MoveToMark, Rune: a.Rune}, true
+			}
+		case '\'':
+			if a.Rune == '\'' {
+				return Cmd{Kind: BackToMarkLine}, true
+			} else {
+				return Cmd{Kind: MoveToMarkLine, Rune: a.Rune}, true
+			}
+
+		case 'f':
+			return Cmd{
+				Kind: Find,
+				Num:  a.Num,
+				Rune: a.Rune,
+			}, true
+		case 'F':
+			return Cmd{
+				Kind: FindBackward,
+				Num:  a.Num,
+				Rune: a.Rune,
+			}, true
+		case 't':
+			return Cmd{
+				Kind: FindBefore,
+				Num:  a.Num,
+				Rune: a.Rune,
+			}, true
+		case 'T':
+			return Cmd{
+				Kind: FindBeforeBackward,
+				Num:  a.Num,
+				Rune: a.Rune,
+			}, true
+
 		}
-	case '\'':
-		if a.Rune == '\'' {
-			return Cmd{Kind: BackToMarkLine}, true
-		} else {
-			return Cmd{Kind: MoveToMarkLine, Rune: a.Rune}, true
-		}
-
-	case 'f':
-		return Cmd{
-			Kind: Find,
-			Num:  a.Num,
-			Rune: a.Rune,
-		}, true
-	case 'F':
-		return Cmd{
-			Kind: FindBackward,
-			Num:  a.Num,
-			Rune: a.Rune,
-		}, true
-	case 't':
-		return Cmd{
-			Kind: FindBefore,
-			Num:  a.Num,
-			Rune: a.Rune,
-		}, true
-	case 'T':
-		return Cmd{
-			Kind: FindBeforeBackward,
-			Num:  a.Num,
-			Rune: a.Rune,
-		}, true
-
 	}
 
-	return Cmd{}, false
-}
-
-func (a *Args) ParseSearch() (Cmd, bool) {
-	switch a.Mv {
-
-	//case '/':
-	//	return Cmd{Kind: RepeatSearch}, true
-	//	return Cmd{Kind: Search, Pat: pat}, true
-	//case '?':
-	//	return Cmd{Kind: RepeatBackwardSearch}, true
-	//	return Cmd{Kind: SearchBackward, Pat: pat}, true
-
-	case 'n':
-		return Cmd{Kind: SearchNext}, true
-	case 'N':
-		return Cmd{Kind: SearchPrev}, true
-
-	}
-
-	return Cmd{}, false
-}
-
-func (a *Args) ParseMove(meta bool) (Cmd, bool) {
 	switch a.Mv {
 
 	case 'h':
@@ -82,7 +57,6 @@ func (a *Args) ParseMove(meta bool) (Cmd, bool) {
 		return Cmd{Kind: MoveUp, Num: a.Num}, true
 	case 'l':
 		return Cmd{Kind: MoveRight, Num: a.Num}, true
-
 	case '0': // special
 		return Cmd{Kind: MoveToStart}, true
 	case '$':
@@ -146,6 +120,18 @@ func (a *Args) ParseMove(meta bool) (Cmd, bool) {
 			return Cmd{Kind: MoveToAboveBottomOfView, Num: a.Num}, true
 		}
 
+	// XXX search pattern
+	//case '/':
+	//	return Cmd{Kind: RepeatSearch}, true
+	//	return Cmd{Kind: Search, Pat: pat}, true
+	//case '?':
+	//	return Cmd{Kind: RepeatBackwardSearch}, true
+	//	return Cmd{Kind: SearchBackward, Pat: pat}, true
+	case 'n':
+		return Cmd{Kind: SearchNext}, true
+	case 'N':
+		return Cmd{Kind: SearchPrev}, true
+
 	case ';':
 		return Cmd{Kind: FindNext, Num: a.Num}, true
 	case ',':
@@ -153,20 +139,8 @@ func (a *Args) ParseMove(meta bool) (Cmd, bool) {
 
 	}
 
-	cmd, ok := a.ParseMoveRune()
-	if ok {
-		return cmd, true
-	}
-	cmd, ok = a.ParseSearch()
-	if ok {
-		return cmd, true
-	}
-
-	//
-	// Meta Motion Commands
-	//
-
-	if meta {
+	// Sub Motion Commands
+	if sub {
 		switch a.Mv {
 		case 'y', 'd', 'c', '>', '<':
 			return Cmd{Kind: MoveHere, Num: a.Num}, true

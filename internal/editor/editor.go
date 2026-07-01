@@ -7,6 +7,7 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/cmd"
 	"tea.kareha.org/cup/levi/internal/color"
 	"tea.kareha.org/cup/levi/internal/rkind"
 )
@@ -31,9 +32,9 @@ type Editor struct {
 	msg    *Msg
 
 	// parser and input
-	parser   Parser
-	args     Args
-	parseOk  bool
+	parser   cmd.Parser
+	args     cmd.Args
+	cmdOk    bool
 	inp      Input
 	inpRow   int // 0-based
 	inserted []string
@@ -42,7 +43,7 @@ type Editor struct {
 	finds    findState
 	regs     Regs
 	clipUsed bool
-	lastCmd  CmdPair
+	lastCmd  cmd.Pair
 	undo     bool
 
 	// screen
@@ -177,7 +178,7 @@ func (ed *Editor) Line(row int) string {
 
 func (ed *Editor) Reset() {
 	ed.parser.ResetAll()
-	ed.args = Args{}
+	ed.args = cmd.Args{}
 }
 
 func (ed *Editor) Commit() {
@@ -219,7 +220,7 @@ func (ed *Editor) Commit() {
 
 		// if number prefix is supplied, repeat insertion
 		if _, ok :=
-			IsMultiInsertCmd[ed.lastCmd.Op.Kind]; ok &&
+			cmd.IsMultiInsert[ed.lastCmd.Op.Kind]; ok &&
 			ed.lastCmd.Op.Num > 1 {
 			cmd := ed.lastCmd
 			cmd.Op.Num--

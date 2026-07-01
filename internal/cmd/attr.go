@@ -1,19 +1,20 @@
-package editor
+package cmd
 
-type MoveAttr struct {
+// Attributes of motion command.
+type Attr struct {
 	Linewise  bool
 	FreeCol   bool
 	Inclusive bool
 	Locate    bool
 }
 
-var MoveAttrs = map[CmdKind]MoveAttr{
-	MoveLeft:  {},
-	MoveDown:  {Linewise: true, FreeCol: true},
-	MoveHere:  {Linewise: true, FreeCol: true},
-	MoveUp:    {Linewise: true, FreeCol: true},
-	MoveRight: {},
-
+// Map of attributes of motion commands.
+var AttrOf = map[Kind]Attr{
+	MoveLeft:          {},
+	MoveDown:          {Linewise: true, FreeCol: true},
+	MoveHere:          {Linewise: true, FreeCol: true},
+	MoveUp:            {Linewise: true, FreeCol: true},
+	MoveRight:         {},
 	MoveToStart:       {},
 	MoveToEnd:         {},
 	MoveToAfterIndent: {},
@@ -48,7 +49,6 @@ var MoveAttrs = map[CmdKind]MoveAttr{
 
 	MoveToMark:     {},
 	MoveToMarkLine: {Linewise: true},
-
 	BackToMark:     {},
 	BackToMarkLine: {Linewise: true},
 

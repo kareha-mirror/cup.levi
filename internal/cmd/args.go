@@ -1,11 +1,11 @@
-package editor
+package cmd
 
 import (
 	"fmt"
 	"strings"
 )
 
-// Parsed arguments of vi command.
+// Parsed arguments of command.
 type Args struct {
 	Reg      rune
 	NoNum    bool
@@ -18,72 +18,30 @@ type Args struct {
 }
 
 // Uses sub number as main number.
-func (a *Args) Sub() *Args {
-	sub := *a
+func (a Args) sub() Args {
+	sub := a
 	sub.NoNum = a.NoSubnum
 	sub.Num = a.Subnum
 	sub.NoSubnum = true
 	sub.Subnum = 1
-	return &sub
+	return sub
 }
 
-// Parses into command.
-func (a *Args) Parse() (CmdPair, bool) {
-	cp, ok := a.ParseOp()
+// Compiles into command.
+func (a Args) Compile() (Pair, bool) {
+	op, ok := a.compileOp()
 	if ok {
-		return cp, true
+		return op, true
 	}
-
-	cp, ok = a.ParseEdit()
+	mv, ok := a.compileMove(false)
 	if ok {
-		return cp, true
+		return Pair{Mv: mv}, true
 	}
-
-	cp, ok = a.ParseCompound()
-	if ok {
-		return cp, true
-	}
-
-	op, ok := a.ParseInsert()
-	if ok {
-		return CmdPair{
-			Op: op,
-		}, true
-	}
-
-	op, ok = a.ParseRune()
-	if ok {
-		return CmdPair{
-			Op: op,
-		}, true
-	}
-
-	op, ok = a.ParseView()
-	if ok {
-		return CmdPair{
-			Op: op,
-		}, true
-	}
-
-	op, ok = a.ParseMisc()
-	if ok {
-		return CmdPair{
-			Op: op,
-		}, true
-	}
-
-	mv, ok := a.ParseMove(false)
-	if ok {
-		return CmdPair{
-			Mv: mv,
-		}, true
-	}
-
-	return CmdPair{}, false
+	return Pair{}, false
 }
 
-// Returns mnemonic code for parsed arguments of vi command.
-func (a *Args) Code() string {
+// Returns mnemonic code for parsed arguments of command.
+func (a Args) Code() string {
 	b := strings.Builder{}
 	first := true
 
@@ -91,7 +49,7 @@ func (a *Args) Code() string {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("Reg(%c)", a.Reg))
+		b.WriteString(fmt.Sprintf("Rg(%c)", a.Reg))
 		first = false
 	}
 
@@ -131,7 +89,7 @@ func (a *Args) Code() string {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("Rune(%c)", a.Rune))
+		b.WriteString(fmt.Sprintf("Ch(%c)", a.Rune))
 		first = false
 	}
 

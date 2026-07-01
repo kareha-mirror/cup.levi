@@ -5,6 +5,8 @@ import (
 	"regexp"
 
 	"tea.kareha.org/cup/termi"
+
+	"tea.kareha.org/cup/levi/internal/cmd"
 )
 
 func (ed *Editor) MainCommand(key termi.Key) {
@@ -48,12 +50,12 @@ func (ed *Editor) MainCommand(key termi.Key) {
 
 		a := ed.parser.Parse()
 		ed.args = a
-		c, ok := a.Parse()
-		ed.parseOk = ok
+		c, ok := a.Compile()
+		ed.cmdOk = ok
 		if ok {
 			b := ed.Buf()
 			prevRow := b.Loc.Row
-			if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
+			if _, ok := cmd.IsModifying[c.Op.Kind]; ok {
 				ed.BeginUndoRecord()
 			}
 			if modified, ok := ed.Run(c, false); ok {
@@ -63,44 +65,44 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				if ed.alive && ed.Buf() == b && b.Loc.Row != prevRow {
 					b.StoreLine()
 				}
-				if _, ok := IsInsertCmd[c.Op.Kind]; ok {
+				if _, ok := cmd.IsInsert[c.Op.Kind]; ok {
 					ed.lastCmd = c
-				} else if _, ok := IsEditCmd[c.Op.Kind]; ok {
+				} else if _, ok := cmd.IsEdit[c.Op.Kind]; ok {
 					if modified {
 						ed.EndUndoRecord()
 						ed.lastCmd = c
 					} else {
 						ed.CancelUndoRecord()
 					}
-				} else if c.Op.Kind == Undo {
+				} else if c.Op.Kind == cmd.Undo {
 					// undo is not included in modifying commands
 					// it is not usual edit or insert but repeatable
 					ed.lastCmd = c
 				}
 				// reset undo/redo toggle if command is not undo/repeat
-				if c.Op.Kind != Undo && c.Op.Kind != Repeat {
+				if c.Op.Kind != cmd.Undo && c.Op.Kind != cmd.Repeat {
 					ed.undo = false
 				}
 				// reset buffer select mode
-				if _, ok := IsBufMoveCmd[c.Op.Kind]; !ok {
+				if _, ok := cmd.IsBufMove[c.Op.Kind]; !ok {
 					ed.bufMove = false
 				}
 				ed.parser.Reset()
 			} else {
 				ed.Error("Failed to run")
-				if _, ok := IsModifyingCmd[c.Op.Kind]; ok {
+				if _, ok := cmd.IsModifying[c.Op.Kind]; ok {
 					ed.CancelUndoRecord()
 				}
 			}
 		}
 	case termi.KeyUp:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveUp, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveUp, Num: 1}}, false)
 	case termi.KeyDown:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveDown, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveDown, Num: 1}}, false)
 	case termi.KeyRight:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveRight, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveRight, Num: 1}}, false)
 	case termi.KeyLeft:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveLeft, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveLeft, Num: 1}}, false)
 	default:
 		ed.Ring("unknown key")
 	}
@@ -120,13 +122,13 @@ func (ed *Editor) MainInsert(key termi.Key) {
 			ed.InputWriteRune(key.Rune)
 		}
 	case termi.KeyUp:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveUp, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveUp, Num: 1}}, false)
 	case termi.KeyDown:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveDown, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveDown, Num: 1}}, false)
 	case termi.KeyRight:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveRight, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveRight, Num: 1}}, false)
 	case termi.KeyLeft:
-		ed.Run(CmdPair{Mv: Cmd{Kind: MoveLeft, Num: 1}}, false)
+		ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.MoveLeft, Num: 1}}, false)
 	default:
 		ed.Error("Unknown key")
 	}
@@ -176,9 +178,9 @@ func (ed *Editor) MainSearch(key termi.Key) {
 		case termi.RuneEnter, termi.RuneNewline:
 			if ed.searchs.pattern.RuneCount() < 1 {
 				if ed.searchs.backward {
-					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatBackwardSearch}}, false)
+					ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.RepeatBackwardSearch}}, false)
 				} else {
-					ed.Run(CmdPair{Mv: Cmd{Kind: RepeatSearch}}, false)
+					ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.RepeatSearch}}, false)
 				}
 				return
 			}
@@ -190,9 +192,9 @@ func (ed *Editor) MainSearch(key termi.Key) {
 			ed.searchs.regexp = re
 			ed.searchs.pattern.Reset()
 			if ed.searchs.backward {
-				ed.Run(CmdPair{Mv: Cmd{Kind: SearchBackward}}, false)
+				ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.SearchBackward}}, false)
 			} else {
-				ed.Run(CmdPair{Mv: Cmd{Kind: Search}}, false)
+				ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.Search}}, false)
 			}
 		case termi.RuneBackspace, termi.RuneDelete:
 			if !ed.searchs.pattern.RemoveTail() {

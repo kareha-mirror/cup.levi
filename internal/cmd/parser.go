@@ -1,4 +1,4 @@
-package editor
+package cmd
 
 import (
 	"strconv"
@@ -53,24 +53,6 @@ var isMove = map[rune]struct{}{
 	'g': {}, // XXX debug
 }
 
-var isCompound = map[rune]struct{}{
-	'y': {},
-	'd': {},
-	'c': {},
-	'>': {},
-	'<': {},
-
-	']': {},
-	'[': {},
-
-	'`':  {},
-	'\'': {},
-
-	'z': {},
-
-	'Z': {},
-}
-
 type Parser struct {
 	buf   []rune
 	Cache string
@@ -105,17 +87,17 @@ func (p *Parser) ResetAll() {
 
 func (p *Parser) Parse() Args {
 	a := Args{}
-
 	if len(p.buf) < 1 {
 		return a
 	}
+	i := 0
 
-	if p.buf[0] == '0' { // special
-		a.Mv = p.buf[0]
+	if p.buf[i] == '0' { // special
+		a.Mv = p.buf[i]
 		return a
 	}
 
-	i := 0
+	// register
 	if p.buf[i] == '"' {
 		i++
 		if i < len(p.buf) {
@@ -124,6 +106,7 @@ func (p *Parser) Parse() Args {
 		}
 	}
 
+	// main number
 	iPrev := i
 	for i < len(p.buf) {
 		if p.buf[i] < '0' || p.buf[i] > '9' {
@@ -142,6 +125,7 @@ func (p *Parser) Parse() Args {
 		a.Num = n
 	}
 
+	// register again
 	if a.Reg == 0 && i < len(p.buf) {
 		if p.buf[i] == '"' {
 			i++
@@ -152,6 +136,7 @@ func (p *Parser) Parse() Args {
 		}
 	}
 
+	// rune command
 	if i < len(p.buf) {
 		_, ok := isRuneOp[p.buf[i]]
 		if ok {
@@ -177,6 +162,7 @@ func (p *Parser) Parse() Args {
 		}
 	}
 
+	// detect non number
 	iPrev = i
 	for i < len(p.buf) {
 		if i+1-iPrev == 2 {
@@ -191,16 +177,18 @@ func (p *Parser) Parse() Args {
 		return a
 	}
 
+	// detect motion command
 	a.Mv = p.buf[iPrev]
 	_, ok := isMove[a.Mv]
 	if ok {
 		return a
 	}
 
+	// cast motion to operation
 	a.Op = a.Mv
 	a.Mv = 0
-	opFirst := p.buf[iPrev]
 
+	// sub number
 	iPrev = i
 	for i < len(p.buf) {
 		if p.buf[i] < '0' || p.buf[i] > '9' {
@@ -219,25 +207,23 @@ func (p *Parser) Parse() Args {
 		a.Subnum = n
 	}
 
+	// rune motion command
 	if i < len(p.buf) {
 		_, ok := isRuneMove[p.buf[i]]
 		if ok {
 			if i+1 < len(p.buf) {
 				a.Mv = p.buf[i]
 				a.Rune = p.buf[i+1]
+				return a
 			}
 		}
 	}
 
+	// last motion command
 	if a.Mv == 0 {
 		if i < len(p.buf) {
 			a.Mv = p.buf[i]
 		}
-	}
-
-	_, ok = isCompound[opFirst]
-	if ok {
-		return a
 	}
 	return a
 }

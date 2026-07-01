@@ -2,117 +2,118 @@ package editor
 
 import (
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/cmd"
 )
 
-func (ed *Editor) RunMove(c Cmd, num int) (buf.Loc, bool) {
+func (ed *Editor) RunMove(c cmd.Cmd, num int) (buf.Loc, bool) {
 	ed.Commit()
 	num *= c.Num
 	switch c.Kind {
 
-	case MoveLeft:
+	case cmd.MoveLeft:
 		return ed.MoveLeft(num)
-	case MoveDown:
+	case cmd.MoveDown:
 		return ed.MoveDown(num)
-	case MoveHere:
+	case cmd.MoveHere:
 		return ed.MoveHere(num)
-	case MoveUp:
+	case cmd.MoveUp:
 		return ed.MoveUp(num)
-	case MoveRight:
+	case cmd.MoveRight:
 		return ed.MoveRight(num)
 
-	case MoveToStart:
+	case cmd.MoveToStart:
 		return ed.MoveToStart()
-	case MoveToEnd:
+	case cmd.MoveToEnd:
 		return ed.MoveToEnd(num)
-	case MoveToAfterIndent:
+	case cmd.MoveToAfterIndent:
 		return ed.MoveToAfterIndent()
-	case MoveToColumn:
+	case cmd.MoveToColumn:
 		return ed.MoveToColumn(num)
 
-	case MoveByWord:
+	case cmd.MoveByWord:
 		return ed.MoveByWord(num)
-	case MoveByChangeWord:
+	case cmd.MoveByChangeWord:
 		return ed.MoveByChangeWord(num)
-	case MoveByDeleteWord:
+	case cmd.MoveByDeleteWord:
 		return ed.MoveByDeleteWord(num)
-	case MoveBackwardByWord:
+	case cmd.MoveBackwardByWord:
 		return ed.MoveBackwardByWord(num)
-	case MoveToEndOfWord:
+	case cmd.MoveToEndOfWord:
 		return ed.MoveToEndOfWord(num)
-	case MoveByLooseWord:
+	case cmd.MoveByLooseWord:
 		return ed.MoveByLooseWord(num)
-	case MoveBackwardByLooseWord:
+	case cmd.MoveBackwardByLooseWord:
 		return ed.MoveBackwardByLooseWord(num)
-	case MoveToEndOfLooseWord:
+	case cmd.MoveToEndOfLooseWord:
 		return ed.MoveToEndOfLooseWord(num)
 
-	case MoveByLine:
+	case cmd.MoveByLine:
 		return ed.MoveByLine(num)
-	case MoveBackwardByLine:
+	case cmd.MoveBackwardByLine:
 		return ed.MoveBackwardByLine(num)
-	case MoveToLastLine:
+	case cmd.MoveToLastLine:
 		return ed.MoveToLastLine()
-	case MoveToLine:
+	case cmd.MoveToLine:
 		return ed.MoveToLine(num)
 
-	case MoveBySentence:
+	case cmd.MoveBySentence:
 		return ed.MoveBySentence(num)
-	case MoveBackwardBySentence:
+	case cmd.MoveBackwardBySentence:
 		return ed.MoveBackwardBySentence(num)
-	case MoveByParagraph:
+	case cmd.MoveByParagraph:
 		return ed.MoveByParagraph(num)
-	case MoveBackwardByParagraph:
+	case cmd.MoveBackwardByParagraph:
 		return ed.MoveBackwardByParagraph(num)
-	case MoveBySection:
+	case cmd.MoveBySection:
 		return ed.MoveBySection(num)
-	case MoveBackwardBySection:
+	case cmd.MoveBackwardBySection:
 		return ed.MoveBackwardBySection(num)
 
-	case MoveToTopOfView:
+	case cmd.MoveToTopOfView:
 		return ed.MoveToTopOfView()
-	case MoveToMiddleOfView:
+	case cmd.MoveToMiddleOfView:
 		return ed.MoveToMiddleOfView()
-	case MoveToBottomOfView:
+	case cmd.MoveToBottomOfView:
 		return ed.MoveToBottomOfView()
-	case MoveToBelowTopOfView:
+	case cmd.MoveToBelowTopOfView:
 		return ed.MoveToBelowTopOfView(num)
-	case MoveToAboveBottomOfView:
+	case cmd.MoveToAboveBottomOfView:
 		return ed.MoveToAboveBottomOfView(num)
 
-	case MoveToMark:
+	case cmd.MoveToMark:
 		return ed.MoveToMark(c.Rune)
-	case MoveToMarkLine:
+	case cmd.MoveToMarkLine:
 		return ed.MoveToMarkLine(c.Rune)
 
-	case BackToMark:
+	case cmd.BackToMark:
 		return ed.BackToMark()
-	case BackToMarkLine:
+	case cmd.BackToMarkLine:
 		return ed.BackToMarkLine()
 
-	case Search:
+	case cmd.Search:
 		return ed.Search()
-	case SearchBackward:
+	case cmd.SearchBackward:
 		return ed.SearchBackward()
-	case SearchNext:
+	case cmd.SearchNext:
 		return ed.SearchNext()
-	case SearchPrev:
+	case cmd.SearchPrev:
 		return ed.SearchPrev()
-	case RepeatSearch:
+	case cmd.RepeatSearch:
 		return ed.RepeatSearch()
-	case RepeatBackwardSearch:
+	case cmd.RepeatBackwardSearch:
 		return ed.RepeatBackwardSearch()
 
-	case Find:
+	case cmd.Find:
 		return ed.Find(c.Rune, num)
-	case FindBackward:
+	case cmd.FindBackward:
 		return ed.FindBackward(c.Rune, num)
-	case FindBefore:
+	case cmd.FindBefore:
 		return ed.FindBefore(c.Rune, num)
-	case FindBeforeBackward:
+	case cmd.FindBeforeBackward:
 		return ed.FindBeforeBackward(c.Rune, num)
-	case FindNext:
+	case cmd.FindNext:
 		return ed.FindNext(num)
-	case FindPrev:
+	case cmd.FindPrev:
 		return ed.FindPrev(num)
 
 	}
