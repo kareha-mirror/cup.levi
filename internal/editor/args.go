@@ -17,56 +17,66 @@ type Args struct {
 	Rune     rune
 }
 
+// Uses sub number as main number.
+func (a *Args) Sub() *Args {
+	sub := *a
+	sub.NoNum = a.NoSubnum
+	sub.Num = a.Subnum
+	sub.NoSubnum = true
+	sub.Subnum = 1
+	return &sub
+}
+
 // Returns mnemonic code for parsed arguments of vi command.
-func (args *Args) Code() string {
+func (a *Args) Code() string {
 	b := strings.Builder{}
 	first := true
 
-	if args.Reg != 0 {
+	if a.Reg != 0 {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("Reg(%c)", args.Reg))
+		b.WriteString(fmt.Sprintf("Reg(%c)", a.Reg))
 		first = false
 	}
 
-	if !args.NoNum && args.Num > 0 {
+	if !a.NoNum && a.Num > 0 {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("%d", args.Num))
+		b.WriteString(fmt.Sprintf("%d", a.Num))
 		first = false
 	}
 
-	if args.Op != 0 {
+	if a.Op != 0 {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("Op(%c)", args.Op))
+		b.WriteString(fmt.Sprintf("Op(%c)", a.Op))
 		first = false
 	}
 
-	if !args.NoSubnum && args.Subnum > 0 {
+	if !a.NoSubnum && a.Subnum > 0 {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("%d", args.Subnum))
+		b.WriteString(fmt.Sprintf("%d", a.Subnum))
 		first = false
 	}
 
-	if args.Mv != 0 {
+	if a.Mv != 0 {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("Mv(%c)", args.Mv))
+		b.WriteString(fmt.Sprintf("Mv(%c)", a.Mv))
 		first = false
 	}
 
-	if args.Rune != 0 {
+	if a.Rune != 0 {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("Rune(%c)", args.Rune))
+		b.WriteString(fmt.Sprintf("Rune(%c)", a.Rune))
 		first = false
 	}
 

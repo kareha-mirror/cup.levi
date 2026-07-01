@@ -255,6 +255,10 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		ed.PrevBuf()
 		return false, true
 
+	case Ring:
+		ed.Ring("%s", c.Op.Pat)
+		return false, true
+
 	}
 
 	return false, false

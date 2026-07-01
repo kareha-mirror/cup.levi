@@ -1,20 +1,20 @@
 package editor
 
-func (ed *Editor) ParseMoveRune(num int, op rune, r rune) (Cmd, bool) {
-	if r == 0 {
+func (a *Args) ParseMoveRune() (Cmd, bool) {
+	if a.Rune == 0 {
 		return Cmd{}, false
 	}
-	switch op {
+	switch a.Mv {
 
 	//
 	// Linewise
 	//
 
 	case '\'':
-		if r == '\'' {
+		if a.Rune == '\'' {
 			return Cmd{Kind: BackToMarkLine}, true
 		} else {
-			return Cmd{Kind: MoveToMarkLine, Rune: r}, true
+			return Cmd{Kind: MoveToMarkLine, Rune: a.Rune}, true
 		}
 
 	//
@@ -22,35 +22,35 @@ func (ed *Editor) ParseMoveRune(num int, op rune, r rune) (Cmd, bool) {
 	//
 
 	case '`':
-		if r == '`' {
+		if a.Rune == '`' {
 			return Cmd{Kind: BackToMark}, true
 		} else {
-			return Cmd{Kind: MoveToMark, Rune: r}, true
+			return Cmd{Kind: MoveToMark, Rune: a.Rune}, true
 		}
 
 	case 'f':
 		return Cmd{
 			Kind: Find,
-			Num:  num,
-			Rune: r,
+			Num:  a.Num,
+			Rune: a.Rune,
 		}, true
 	case 'F':
 		return Cmd{
 			Kind: FindBackward,
-			Num:  num,
-			Rune: r,
+			Num:  a.Num,
+			Rune: a.Rune,
 		}, true
 	case 't':
 		return Cmd{
 			Kind: FindBefore,
-			Num:  num,
-			Rune: r,
+			Num:  a.Num,
+			Rune: a.Rune,
 		}, true
 	case 'T':
 		return Cmd{
 			Kind: FindBeforeBackward,
-			Num:  num,
-			Rune: r,
+			Num:  a.Num,
+			Rune: a.Rune,
 		}, true
 
 	}
@@ -58,55 +58,53 @@ func (ed *Editor) ParseMoveRune(num int, op rune, r rune) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseMove(
-	noNum bool, num int, mv rune, r rune, meta bool,
-) (Cmd, bool) {
-	switch mv {
+func (a *Args) ParseMove(meta bool) (Cmd, bool) {
+	switch a.Mv {
 
 	//
 	// Linewise
 	//
 
 	case 'j':
-		return Cmd{Kind: MoveDown, Num: num}, true
+		return Cmd{Kind: MoveDown, Num: a.Num}, true
 	//case 'g': // XXX debug
-	//	return Cmd{Kind: MoveHere, Num: num}, true
+	//	return Cmd{Kind: MoveHere, Num: a.Num}, true
 	case 'k':
-		return Cmd{Kind: MoveUp, Num: num}, true
+		return Cmd{Kind: MoveUp, Num: a.Num}, true
 
 	case '\r', '+':
-		return Cmd{Kind: MoveByLine, Num: num}, true
+		return Cmd{Kind: MoveByLine, Num: a.Num}, true
 	case '-':
-		return Cmd{Kind: MoveBackwardByLine, Num: num}, true
+		return Cmd{Kind: MoveBackwardByLine, Num: a.Num}, true
 	case 'G':
-		if noNum {
+		if a.NoNum {
 			return Cmd{Kind: MoveToLastLine}, true
 		} else {
-			return Cmd{Kind: MoveToLine, Num: num}, true
+			return Cmd{Kind: MoveToLine, Num: a.Num}, true
 		}
 
 	case ')':
-		return Cmd{Kind: MoveBySentence, Num: num}, true
+		return Cmd{Kind: MoveBySentence, Num: a.Num}, true
 	case '(':
-		return Cmd{Kind: MoveBackwardBySentence, Num: num}, true
+		return Cmd{Kind: MoveBackwardBySentence, Num: a.Num}, true
 	case '}':
-		return Cmd{Kind: MoveByParagraph, Num: num}, true
+		return Cmd{Kind: MoveByParagraph, Num: a.Num}, true
 	case '{':
-		return Cmd{Kind: MoveBackwardByParagraph, Num: num}, true
+		return Cmd{Kind: MoveBackwardByParagraph, Num: a.Num}, true
 
 	case 'H':
-		if noNum {
+		if a.NoNum {
 			return Cmd{Kind: MoveToTopOfView}, true
 		} else {
-			return Cmd{Kind: MoveToBelowTopOfView, Num: num}, true
+			return Cmd{Kind: MoveToBelowTopOfView, Num: a.Num}, true
 		}
 	case 'M':
 		return Cmd{Kind: MoveToMiddleOfView}, true
 	case 'L':
-		if noNum {
+		if a.NoNum {
 			return Cmd{Kind: MoveToBottomOfView}, true
 		} else {
-			return Cmd{Kind: MoveToAboveBottomOfView, Num: num}, true
+			return Cmd{Kind: MoveToAboveBottomOfView, Num: a.Num}, true
 		}
 
 	//
@@ -114,40 +112,40 @@ func (ed *Editor) ParseMove(
 	//
 
 	case 'h':
-		return Cmd{Kind: MoveLeft, Num: num}, true
+		return Cmd{Kind: MoveLeft, Num: a.Num}, true
 	case 'l':
-		return Cmd{Kind: MoveRight, Num: num}, true
+		return Cmd{Kind: MoveRight, Num: a.Num}, true
 
 	case '0': // special
 		return Cmd{Kind: MoveToStart}, true
 	case '$':
-		return Cmd{Kind: MoveToEnd, Num: num}, true
+		return Cmd{Kind: MoveToEnd, Num: a.Num}, true
 	case '^':
 		return Cmd{Kind: MoveToAfterIndent}, true
 	case '|':
-		return Cmd{Kind: MoveToColumn, Num: num}, true
+		return Cmd{Kind: MoveToColumn, Num: a.Num}, true
 
 	case 'w':
-		return Cmd{Kind: MoveByWord, Num: num}, true
+		return Cmd{Kind: MoveByWord, Num: a.Num}, true
 	//case 'g': // XXX debug
-	//	return Cmd{Kind: MoveByChangeWord, Num: num}, true
+	//	return Cmd{Kind: MoveByChangeWord, Num: a.Num}, true
 	case 'g': // XXX debug
-		return Cmd{Kind: MoveByDeleteWord, Num: num}, true
+		return Cmd{Kind: MoveByDeleteWord, Num: a.Num}, true
 	case 'b':
-		return Cmd{Kind: MoveBackwardByWord, Num: num}, true
+		return Cmd{Kind: MoveBackwardByWord, Num: a.Num}, true
 	case 'e':
-		return Cmd{Kind: MoveToEndOfWord, Num: num}, true
+		return Cmd{Kind: MoveToEndOfWord, Num: a.Num}, true
 	case 'W':
-		return Cmd{Kind: MoveByLooseWord, Num: num}, true
+		return Cmd{Kind: MoveByLooseWord, Num: a.Num}, true
 	case 'B':
-		return Cmd{Kind: MoveBackwardByLooseWord, Num: num}, true
+		return Cmd{Kind: MoveBackwardByLooseWord, Num: a.Num}, true
 	case 'E':
-		return Cmd{Kind: MoveToEndOfLooseWord, Num: num}, true
+		return Cmd{Kind: MoveToEndOfLooseWord, Num: a.Num}, true
 
 	case ';':
-		return Cmd{Kind: FindNext, Num: num}, true
+		return Cmd{Kind: FindNext, Num: a.Num}, true
 	case ',':
-		return Cmd{Kind: FindPrev, Num: num}, true
+		return Cmd{Kind: FindPrev, Num: a.Num}, true
 
 	}
 
@@ -155,11 +153,11 @@ func (ed *Editor) ParseMove(
 	// Additions
 	//
 
-	cmd, ok := ed.ParseMoveRune(num, mv, r)
+	cmd, ok := a.ParseMoveRune()
 	if ok {
 		return cmd, true
 	}
-	cmd, ok = ed.ParseSearch(mv, "") // XXX pat
+	cmd, ok = a.ParseSearch()
 	if ok {
 		return cmd, true
 	}
@@ -169,30 +167,24 @@ func (ed *Editor) ParseMove(
 	//
 
 	if meta {
-		switch mv {
+		switch a.Mv {
 		case 'y', 'd', 'c', '>', '<':
-			return Cmd{Kind: MoveHere, Num: num}, true
+			return Cmd{Kind: MoveHere, Num: a.Num}, true
 		}
 	}
 
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseSearch(op rune, pat string) (Cmd, bool) {
-	switch op {
+func (a *Args) ParseSearch() (Cmd, bool) {
+	switch a.Mv {
 
-	case '/':
-		if pat == "" {
-			return Cmd{Kind: RepeatSearch}, true
-		} else {
-			return Cmd{Kind: Search, Pat: pat}, true
-		}
-	case '?':
-		if pat == "" {
-			return Cmd{Kind: RepeatBackwardSearch}, true
-		} else {
-			return Cmd{Kind: SearchBackward, Pat: pat}, true
-		}
+	//case '/':
+	//	return Cmd{Kind: RepeatSearch}, true
+	//	return Cmd{Kind: Search, Pat: pat}, true
+	//case '?':
+	//	return Cmd{Kind: RepeatBackwardSearch}, true
+	//	return Cmd{Kind: SearchBackward, Pat: pat}, true
 
 	case 'n':
 		return Cmd{Kind: SearchNext}, true

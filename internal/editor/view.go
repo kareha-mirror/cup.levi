@@ -133,12 +133,3 @@ func (ed *Editor) ViewToMiddle() {
 func (ed *Editor) ViewToBottom() {
 	ed.Unimplemented("ViewToBottom")
 }
-
-//
-// Redraw
-//
-
-// Ctrl-L : Redraw view.
-func (ed *Editor) Redraw() {
-	ed.redraw = true
-}

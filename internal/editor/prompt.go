@@ -193,7 +193,6 @@ func (ed *Editor) PromptTabStop(n int) {
 	}
 	ed.cfg.TabStop = n
 	termi.TabWidth = n
-	ed.redraw = true
 }
 
 // :set ai Enter

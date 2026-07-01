@@ -14,6 +14,11 @@ func (ed *Editor) ShowInfo() {
 	ed.Message("%s", ed.Buf().Info())
 }
 
+// Ctrl-L : Redraw view.
+func (ed *Editor) Redraw() {
+	ed.redraw = true
+}
+
 // . : Repeat last command which is repeatable.
 func (ed *Editor) Repeat(n int) {
 	c := ed.lastCmd

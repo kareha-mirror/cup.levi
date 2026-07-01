@@ -20,8 +20,6 @@ func (ed *Editor) NewBuf() {
 		ed.bufs = append(ed.bufs, b)
 		ed.bufIdx = len(ed.bufs) - 1
 	}
-
-	ed.redraw = true
 }
 
 // Returns current buffer.

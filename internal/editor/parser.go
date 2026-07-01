@@ -72,18 +72,17 @@ func (p *Parser) ResetAll() {
 	p.Ok = false
 }
 
-func (ed *Editor) Parse() (CmdPair, bool) {
-	p := &ed.parser
+func (p *Parser) Parse() (CmdPair, bool) {
 	p.Args = Args{}
 	p.Ok = false
-	args := &p.Args
+	a := &p.Args
 
 	if len(p.buf) < 1 {
 		return CmdPair{}, false
 	}
 
 	if p.buf[0] == '0' { // special
-		args.Mv = p.buf[0]
+		a.Mv = p.buf[0]
 		p.Ok = true
 		return CmdPair{
 			Mv: Cmd{Kind: MoveToStart},
@@ -94,7 +93,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	if p.buf[i] == '"' {
 		i++
 		if i < len(p.buf) {
-			args.Reg = p.buf[i]
+			a.Reg = p.buf[i]
 			i++
 		}
 	}
@@ -106,22 +105,22 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		}
 		i++
 	}
-	args.NoNum = i <= iPrev
-	args.Num = 1
+	a.NoNum = i <= iPrev
+	a.Num = 1
 	if i > iPrev {
 		s := string(p.buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
 		}
-		args.Num = n
+		a.Num = n
 	}
 
-	if args.Reg == 0 && i < len(p.buf) {
+	if a.Reg == 0 && i < len(p.buf) {
 		if p.buf[i] == '"' {
 			i++
 			if i < len(p.buf) {
-				args.Reg = p.buf[i]
+				a.Reg = p.buf[i]
 				i++
 			}
 		}
@@ -130,12 +129,12 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	if i < len(p.buf) {
 		_, ok := isRuneOp[p.buf[i]]
 		if ok {
-			args.Op = p.buf[i]
+			a.Op = p.buf[i]
 			if i+1 >= len(p.buf) {
 				return CmdPair{}, false
 			}
-			args.Rune = p.buf[i+1]
-			cmd, ok := ed.ParseRune(args.Num, args.Op, args.Rune)
+			a.Rune = p.buf[i+1]
+			cmd, ok := a.ParseRune()
 			if ok {
 				p.Ok = true
 				return CmdPair{Op: cmd}, true
@@ -143,18 +142,18 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		}
 		_, ok = isRuneMove[p.buf[i]]
 		if ok {
-			args.Mv = p.buf[i]
+			a.Mv = p.buf[i]
 			if i+1 >= len(p.buf) {
 				return CmdPair{}, false
 			}
-			args.Rune = p.buf[i+1]
-			cmd, ok := ed.ParseMoveRune(args.Num, args.Mv, args.Rune)
+			a.Rune = p.buf[i+1]
+			cmd, ok := a.ParseMoveRune()
 			if ok {
 				p.Ok = true
 				return CmdPair{Mv: cmd}, true
 			}
 		}
-		if args.Rune != 0 {
+		if a.Rune != 0 {
 			p.Ok = true
 			return CmdPair{
 				Op: Cmd{Kind: InvalidCmd},
@@ -176,30 +175,30 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		return CmdPair{}, false
 	}
 
-	args.Mv = p.buf[iPrev]
-	cmd, ok := ed.ParseMove(args.NoNum, args.Num, args.Mv, 0, false)
+	a.Mv = p.buf[iPrev]
+	cmd, ok := a.ParseMove(false)
 	if ok {
 		p.Ok = true
 		return CmdPair{Mv: cmd}, true
 	}
-	if args.Mv == '/' || args.Mv == '?' {
+	if a.Mv == '/' || a.Mv == '?' {
 		// XXX input pat
 	}
-	args.Op = args.Mv
-	args.Mv = 0
+	a.Op = a.Mv
+	a.Mv = 0
 	opFirst := p.buf[iPrev]
 
-	cmd, ok = ed.ParseView(args.Num, args.Op)
+	cmd, ok = a.ParseView()
 	if ok {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true
 	}
-	cmd, ok = ed.ParseInsert(args.Num, args.Op)
+	cmd, ok = a.ParseInsert()
 	if ok {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true
 	}
-	cmd, ok = ed.ParseMisc(args.NoNum, args.Num, args.Op)
+	cmd, ok = a.ParseMisc()
 	if ok {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true
@@ -212,51 +211,44 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		}
 		i++
 	}
-	args.NoSubnum = i <= iPrev
-	args.Subnum = 1
+	a.NoSubnum = i <= iPrev
+	a.Subnum = 1
 	if i > iPrev {
 		s := string(p.buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
 		}
-		args.Subnum = n
+		a.Subnum = n
 	}
 
 	if i < len(p.buf) {
 		_, ok := isRuneMove[p.buf[i]]
 		if ok {
 			if i+1 < len(p.buf) {
-				args.Mv = p.buf[i]
-				args.Rune = p.buf[i+1]
+				a.Mv = p.buf[i]
+				a.Rune = p.buf[i+1]
 			}
 		}
 	}
 
-	if args.Mv == 0 {
+	if a.Mv == 0 {
 		if i < len(p.buf) {
-			args.Mv = p.buf[i]
+			a.Mv = p.buf[i]
 		}
 	}
 
-	c, ok := ed.ParseOp(
-		args.Reg, args.Num, args.Op,
-		args.NoSubnum, args.Subnum, args.Mv, args.Rune,
-	)
+	c, ok := a.ParseOp()
 	if ok {
 		p.Ok = true
 		return c, true
 	}
-	c, ok = ed.ParseEdit(
-		args.Num, args.Op, args.NoSubnum, args.Subnum, args.Mv, args.Rune,
-	)
+	c, ok = a.ParseEdit()
 	if ok {
 		p.Ok = true
 		return c, true
 	}
-	c, ok = ed.ParseCompound(
-		args.Num, args.Op, args.NoSubnum, args.Subnum, args.Mv, args.Rune,
-	)
+	c, ok = a.ParseCompound()
 	if ok {
 		p.Ok = true
 		return c, true

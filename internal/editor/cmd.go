@@ -89,7 +89,7 @@ const (
 
 	// Insert commands are commands which transit to insert mode.
 	// They are identified by IsInsertCmd.
-	// Insert commands which can have multiplexer number
+	// Insert commands which have multiplication number
 	// are identified by IsMultiInsertCmd.
 
 	Insert
@@ -148,7 +148,7 @@ const (
 	//
 
 	// View commands scroll screen.
-	// They possibly move cursor, but are not used as motion commands.
+	// They possibly move cursor, but are not recognized as motion commands.
 
 	ViewDown
 	ViewUp
@@ -161,22 +161,27 @@ const (
 	ViewToMiddle
 	ViewToBottom
 
-	Redraw
-
 	//
 	// Miscellaneous Commands
 	//
 
 	ShowInfo
+	Redraw
 	Repeat
 	Undo
 	SaveAndClose
 	Suspend
 
+	// Select Current Buffer
+
 	LastBuf
 	GoToBuf
 	NextBuf
 	PrevBuf
+
+	// For Compatibility
+
+	Ring
 )
 
 var IsInsertCmd = map[CmdKind]struct{}{
