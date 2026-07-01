@@ -1,16 +1,16 @@
 package editor
 
-func (ed *Editor) ParseRune(num int, op string, r rune) (Cmd, bool) {
+func (ed *Editor) ParseRune(num int, op rune, r rune) (Cmd, bool) {
 	if r == 0 {
 		return Cmd{}, false
 	}
 
 	switch op {
 
-	case "m":
+	case 'm':
 		return Cmd{Kind: Mark, Rune: r}, true
 
-	case "r":
+	case 'r':
 		return Cmd{
 			Kind: Replace,
 			Num:  num,
@@ -22,23 +22,23 @@ func (ed *Editor) ParseRune(num int, op string, r rune) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseView(num int, op string) (Cmd, bool) {
+func (ed *Editor) ParseView(num int, op rune) (Cmd, bool) {
 	switch op {
 
-	case "\x06": // Ctrl-F
+	case '\x06': // Ctrl-F
 		return Cmd{Kind: ViewDown, Num: num}, true
-	case "\x02": // Ctrl-B
+	case '\x02': // Ctrl-B
 		return Cmd{Kind: ViewUp, Num: num}, true
-	case "\x04": // Ctrl-D
+	case '\x04': // Ctrl-D
 		return Cmd{Kind: ViewDownHalf, Num: num}, true
-	case "\x15": // Ctrl-U
+	case '\x15': // Ctrl-U
 		return Cmd{Kind: ViewUpHalf, Num: num}, true
-	case "\x19": // Ctrl-Y
+	case '\x19': // Ctrl-Y
 		return Cmd{Kind: ViewDownLine, Num: num}, true
-	case "\x05": // Ctrl-E
+	case '\x05': // Ctrl-E
 		return Cmd{Kind: ViewUpLine, Num: num}, true
 
-	case "\x0c": // Ctrl-L
+	case '\x0c': // Ctrl-L
 		return Cmd{Kind: Redraw}, true
 
 	}
@@ -46,23 +46,23 @@ func (ed *Editor) ParseView(num int, op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseInsert(num int, op string) (Cmd, bool) {
+func (ed *Editor) ParseInsert(num int, op rune) (Cmd, bool) {
 	switch op {
 
-	case "i":
+	case 'i':
 		return Cmd{Kind: Insert, Num: num}, true
-	case "a":
+	case 'a':
 		return Cmd{Kind: InsertAfter, Num: num}, true
-	case "I":
+	case 'I':
 		return Cmd{Kind: InsertAfterIndent, Num: num}, true
-	case "A":
+	case 'A':
 		return Cmd{Kind: InsertAfterEnd, Num: num}, true
-	case "R":
+	case 'R':
 		return Cmd{Kind: Overwrite, Num: num}, true
 
-	case "o":
+	case 'o':
 		return Cmd{Kind: OpenBelow, Num: num}, true
-	case "O":
+	case 'O':
 		return Cmd{Kind: OpenAbove, Num: num}, true
 
 	}
@@ -70,18 +70,18 @@ func (ed *Editor) ParseInsert(num int, op string) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
+func (ed *Editor) ParseMisc(num int, op rune) (Cmd, bool) {
 	switch op {
 
-	case "\x07": // Ctrl-G
+	case '\x07': // Ctrl-G
 		return Cmd{Kind: ShowInfo}, true
-	case ".":
+	case '.':
 		return Cmd{Kind: Repeat, Num: num}, true
-	case "u":
+	case 'u':
 		return Cmd{Kind: Undo, Num: num}, true
-	case "U":
+	case 'U':
 		return Cmd{Kind: Restore}, true
-	case "\x1a": // Ctrl-Z
+	case '\x1a': // Ctrl-Z
 		return Cmd{Kind: Suspend}, true
 
 	}
@@ -90,13 +90,12 @@ func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 }
 
 func (ed *Editor) ParseOp(
-	reg string, num int, op string, noSubnum bool, subnum int,
-	mv string, r rune,
+	reg rune, num int, op rune, noSubnum bool, subnum int, mv rune, r rune,
 ) (CmdPair, bool) {
-	if mv != "" {
+	if mv != 0 {
 		switch op {
 
-		case "y":
+		case 'y':
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 			if ok {
 				return CmdPair{
@@ -106,7 +105,7 @@ func (ed *Editor) ParseOp(
 				}, true
 			}
 			return CmdPair{}, false
-		case "d":
+		case 'd':
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 			if ok {
 				return CmdPair{
@@ -116,7 +115,7 @@ func (ed *Editor) ParseOp(
 				}, true
 			}
 			return CmdPair{}, false
-		case "c":
+		case 'c':
 			cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 			if ok {
 				return CmdPair{
@@ -132,46 +131,46 @@ func (ed *Editor) ParseOp(
 
 	switch op {
 
-	case "p":
+	case 'p':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: Paste, Num: num},
 		}, true
-	case "P":
+	case 'P':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: PasteBefore, Num: num},
 		}, true
 
-	case "x":
+	case 'x':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: Delete, Num: num},
 		}, true
-	case "X":
+	case 'X':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: DeleteBefore, Num: num},
 		}, true
-	case "D":
+	case 'D':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: DeleteRegion, Num: num},
 			Mv:  Cmd{Kind: MoveToEnd, Num: 1},
 		}, true
 
-	case "C":
+	case 'C':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: ChangeRegion, Num: num},
 			Mv:  Cmd{Kind: MoveToEnd, Num: 1},
 		}, true
-	case "s":
+	case 's':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: Subst, Num: num},
 		}, true
-	case "S":
+	case 'S':
 		return CmdPair{
 			Reg: reg,
 			Op:  Cmd{Kind: ChangeRegion, Num: num},
@@ -184,16 +183,16 @@ func (ed *Editor) ParseOp(
 }
 
 func (ed *Editor) ParseEdit(
-	num int, op string, noSubnum bool, subnum int, mv string, r rune,
+	num int, op rune, noSubnum bool, subnum int, mv rune, r rune,
 ) (CmdPair, bool) {
 	switch op {
 
-	case "J":
+	case 'J':
 		return CmdPair{
 			Op: Cmd{Kind: Join, Num: num},
 		}, true
 
-	case ">":
+	case '>':
 		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 		if ok {
 			attr, ok := MoveAttrs[cmd.Kind]
@@ -213,7 +212,7 @@ func (ed *Editor) ParseEdit(
 			}
 		}
 		return CmdPair{}, false
-	case "<":
+	case '<':
 		cmd, ok := ed.ParseMove(noSubnum, subnum, mv, r, true)
 		if ok {
 			attr, ok := MoveAttrs[cmd.Kind]
@@ -240,50 +239,50 @@ func (ed *Editor) ParseEdit(
 }
 
 func (ed *Editor) ParseCompound(
-	num int, op string, noSubnum bool, subnum int, mv string, r rune,
+	num int, op rune, noSubnum bool, subnum int, mv rune, r rune,
 ) (CmdPair, bool) {
 	switch op {
 
-	case "]":
-		if mv == "" {
+	case ']':
+		if mv == 0 {
 			return CmdPair{}, false
 		}
-		if mv != "]" {
+		if mv != ']' {
 			ed.Ring("Usage: ]]")
 			return CmdPair{}, true
 		}
 		return CmdPair{Mv: Cmd{Kind: MoveBySection, Num: num}}, true
-	case "[":
-		if mv == "" {
+	case '[':
+		if mv == 0 {
 			return CmdPair{}, false
 		}
-		if mv != "[" {
+		if mv != '[' {
 			ed.Ring("Usage: [[")
 			return CmdPair{}, true
 		}
 		return CmdPair{Mv: Cmd{Kind: MoveBackwardBySection, Num: num}}, true
 
-	case "z":
-		if mv == "" {
+	case 'z':
+		if mv == 0 {
 			return CmdPair{}, false
 		}
 		switch mv {
-		case "\r":
+		case '\r':
 			return CmdPair{Op: Cmd{Kind: ViewToTop}}, true
-		case ".":
+		case '.':
 			return CmdPair{Op: Cmd{Kind: ViewToMiddle}}, true
-		case "-":
+		case '-':
 			return CmdPair{Op: Cmd{Kind: ViewToBottom}}, true
 		default:
 			ed.Ring("Usage: [line]z[window_size][-|.|+|^|<CR>]")
 			return CmdPair{}, true
 		}
 
-	case "Z":
-		if mv == "" {
+	case 'Z':
+		if mv == 0 {
 			return CmdPair{}, false
 		}
-		if mv != "Z" {
+		if mv != 'Z' {
 			ed.Ring("Usage: ZZ")
 			return CmdPair{}, true
 		}

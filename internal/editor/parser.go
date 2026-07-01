@@ -83,7 +83,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	}
 
 	if p.buf[0] == '0' { // special
-		args.Mv = string(p.buf[0])
+		args.Mv = p.buf[0]
 		p.Ok = true
 		return CmdPair{
 			Mv: Cmd{Kind: MoveToStart},
@@ -93,8 +93,8 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	i := 0
 	if p.buf[0] == '"' {
 		i++
-		if len(p.buf) > i {
-			args.Reg = string(p.buf[i])
+		if i < len(p.buf) {
+			args.Reg = p.buf[i]
 			i++
 		}
 	}
@@ -120,7 +120,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	if i < len(p.buf) {
 		_, ok := isRuneOp[p.buf[i]]
 		if ok {
-			args.Op = string(p.buf[i])
+			args.Op = p.buf[i]
 			if i+1 >= len(p.buf) {
 				return CmdPair{}, false
 			}
@@ -133,7 +133,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		}
 		_, ok = isRuneMove[p.buf[i]]
 		if ok {
-			args.Mv = string(p.buf[i])
+			args.Mv = p.buf[i]
 			if i+1 >= len(p.buf) {
 				return CmdPair{}, false
 			}
@@ -166,17 +166,17 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		return CmdPair{}, false
 	}
 
-	args.Mv = string(p.buf[iPrev:i])
+	args.Mv = p.buf[iPrev]
 	cmd, ok := ed.ParseMove(args.NoNum, args.Num, args.Mv, 0, false)
 	if ok {
 		p.Ok = true
 		return CmdPair{Mv: cmd}, true
 	}
-	if args.Mv == "/" || args.Mv == "?" {
+	if args.Mv == '/' || args.Mv == '?' {
 		// XXX input pat
 	}
 	args.Op = args.Mv
-	args.Mv = ""
+	args.Mv = 0
 	opFirst := p.buf[iPrev]
 
 	cmd, ok = ed.ParseView(args.Num, args.Op)
@@ -217,15 +217,15 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		_, ok := isRuneMove[p.buf[i]]
 		if ok {
 			if i+1 < len(p.buf) {
-				args.Mv = string(p.buf[i])
+				args.Mv = p.buf[i]
 				args.Rune = p.buf[i+1]
 			}
 		}
 	}
 
-	if args.Mv == "" {
+	if args.Mv == 0 {
 		if i < len(p.buf) {
-			args.Mv = string(p.buf[i:])
+			args.Mv = p.buf[i]
 		}
 	}
 
@@ -252,11 +252,9 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		return c, true
 	}
 
-	if len(args.Op) < 2 {
-		_, ok := isCompound[opFirst]
-		if ok {
-			return CmdPair{}, false
-		}
+	_, ok = isCompound[opFirst]
+	if ok {
+		return CmdPair{}, false
 	}
 	p.Ok = true
 	return CmdPair{

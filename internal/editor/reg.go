@@ -26,18 +26,18 @@ type Reg struct {
 type Regs struct {
 	DefMode   KillMode
 	DefKilled []string
-	Map       map[string]*Reg
+	Map       map[rune]*Reg
 }
 
-func (regs *Regs) SetReg(name string, reg *Reg) {
+func (regs *Regs) SetReg(name rune, reg *Reg) {
 	if regs.Map == nil {
-		regs.Map = make(map[string]*Reg)
+		regs.Map = make(map[rune]*Reg)
 	}
 	regs.Map[name] = reg
 }
 
-func (regs *Regs) Mode(name string) KillMode {
-	if name == "" {
+func (regs *Regs) Mode(name rune) KillMode {
+	if name == 0 {
 		return regs.DefMode
 	}
 	reg, ok := regs.Map[name]
@@ -47,8 +47,8 @@ func (regs *Regs) Mode(name string) KillMode {
 	return reg.Mode
 }
 
-func (regs *Regs) Killed(name string) []string {
-	if name == "" {
+func (regs *Regs) Killed(name rune) []string {
+	if name == 0 {
 		return regs.DefKilled
 	}
 	reg, ok := regs.Map[name]
@@ -58,8 +58,8 @@ func (regs *Regs) Killed(name string) []string {
 	return reg.Killed
 }
 
-func (regs *Regs) Shared(name string) bool {
-	if name == "" {
+func (regs *Regs) Shared(name rune) bool {
+	if name == 0 {
 		return false
 	}
 	reg, ok := regs.Map[name]
@@ -69,8 +69,12 @@ func (regs *Regs) Shared(name string) bool {
 	return reg.Shared
 }
 
-func (regs *Regs) SetShared(name string, shared bool) {
-	if name == "" {
+func IsValidRegName(name rune) bool {
+	return name >= 'a' && name <= 'z'
+}
+
+func (regs *Regs) SetShared(name rune, shared bool) {
+	if !IsValidRegName(name) {
 		return
 	}
 	reg, ok := regs.Map[name]
@@ -86,29 +90,14 @@ func (regs *Regs) SetShared(name string, shared bool) {
 	reg.Shared = shared
 }
 
-func IsValidRegName(name string) bool {
-	rc := utf8.RuneCountInString(name)
-	if rc != 1 {
-		return false
+func ToDestRegName(name rune) rune {
+	if name < 'A' || name > 'Z' {
+		return 0
 	}
-	rs := []rune(name)
-	r := rs[0]
-	return r >= 'a' && r <= 'z'
+	return name + 'a' - 'A'
 }
 
-func ToDestRegName(name string) string {
-	if len(name) != 1 {
-		return ""
-	}
-	rs := []rune(name)
-	r := rs[0]
-	if r < 'A' || r > 'Z' {
-		return ""
-	}
-	return string(r + 'a' - 'A')
-}
-
-func (regs *Regs) SetLines(name string, killed []string) {
+func (regs *Regs) SetLines(name rune, killed []string) {
 	lines := append([]string{}, killed...)
 	regs.DefMode = KillLines
 	regs.DefKilled = lines
@@ -131,7 +120,7 @@ func (regs *Regs) SetLines(name string, killed []string) {
 	reg.Killed = lines
 }
 
-func (regs *Regs) SetRunes(name string, killed []string) {
+func (regs *Regs) SetRunes(name rune, killed []string) {
 	lines := append([]string{}, killed...)
 	regs.DefMode = KillRunes
 	regs.DefKilled = lines
@@ -154,9 +143,9 @@ func (regs *Regs) SetRunes(name string, killed []string) {
 	reg.Killed = lines
 }
 
-func (regs *Regs) AddLines(name string, killed []string) {
+func (regs *Regs) AddLines(name rune, killed []string) {
 	name = ToDestRegName(name)
-	if name == "" {
+	if name == 0 {
 		return
 	}
 	reg, ok := regs.Map[name]
@@ -177,9 +166,9 @@ func (regs *Regs) AddLines(name string, killed []string) {
 	reg.Killed = append([]string{}, killed...)
 }
 
-func (regs *Regs) AddRunes(name string, killed []string) {
+func (regs *Regs) AddRunes(name rune, killed []string) {
 	name = ToDestRegName(name)
-	if name == "" {
+	if name == 0 {
 		return
 	}
 	reg, ok := regs.Map[name]
@@ -206,18 +195,18 @@ func (regs *Regs) AddRunes(name string, killed []string) {
 	reg.Killed = append([]string{}, killed...)
 }
 
-func (regs *Regs) ApplyLines(name string, killed []string) {
+func (regs *Regs) ApplyLines(name rune, killed []string) {
 	addName := ToDestRegName(name)
-	if addName != "" {
+	if addName != 0 {
 		regs.AddLines(name, killed)
 		return
 	}
 	regs.SetLines(name, killed)
 }
 
-func (regs *Regs) ApplyRunes(name string, killed []string) {
+func (regs *Regs) ApplyRunes(name rune, killed []string) {
 	addName := ToDestRegName(name)
-	if addName != "" {
+	if addName != 0 {
 		regs.AddRunes(name, killed)
 		return
 	}
@@ -228,8 +217,7 @@ func (regs *Regs) SyncWithConfig(cfg *Config) {
 	for _, reg := range regs.Map {
 		reg.Shared = false
 	}
-	for _, r := range cfg.Shared {
-		name := string(r)
+	for _, name := range cfg.Shared {
 		if !IsValidRegName(name) {
 			continue
 		}
@@ -248,8 +236,8 @@ func (ed *Editor) EnsureClipboard() error {
 	return nil
 }
 
-func (ed *Editor) RegMode(name string) KillMode {
-	if name == "+" {
+func (ed *Editor) RegMode(name rune) KillMode {
+	if name == '+' {
 		if err := ed.EnsureClipboard(); err != nil {
 			ed.Error("%v", err)
 			return KillNone
@@ -259,8 +247,8 @@ func (ed *Editor) RegMode(name string) KillMode {
 	return ed.regs.Mode(name)
 }
 
-func (ed *Editor) RegKilled(name string) []string {
-	if name == "+" {
+func (ed *Editor) RegKilled(name rune) []string {
+	if name == '+' {
 		if err := ed.EnsureClipboard(); err != nil {
 			ed.Error("%v", err)
 			return []string{""}
@@ -272,8 +260,8 @@ func (ed *Editor) RegKilled(name string) []string {
 	return ed.regs.Killed(name)
 }
 
-func (ed *Editor) ApplyRegLines(name string, killed []string) bool {
-	if name == "+" {
+func (ed *Editor) ApplyRegLines(name rune, killed []string) bool {
+	if name == '+' {
 		lines := append([]string{}, killed...)
 		lines = append(lines, "")
 		if !ed.ApplyRegRunes(name, lines) {
@@ -289,8 +277,8 @@ func (ed *Editor) ApplyRegLines(name string, killed []string) bool {
 	return true
 }
 
-func (ed *Editor) ApplyRegRunes(name string, killed []string) bool {
-	if name == "+" {
+func (ed *Editor) ApplyRegRunes(name rune, killed []string) bool {
+	if name == '+' {
 		if err := ed.EnsureClipboard(); err != nil {
 			ed.Error("%v", err)
 			return false

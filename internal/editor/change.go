@@ -17,7 +17,7 @@ import (
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
 func (ed *Editor) ChangeRegion(
-	reg string, start buf.Loc, end buf.Loc, inclusive bool, replay bool,
+	reg rune, start buf.Loc, end buf.Loc, inclusive bool, replay bool,
 ) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
@@ -51,7 +51,7 @@ func (ed *Editor) ChangeRegion(
 
 // c<mv> : Change region from current cursor to destination of motion <mv>.
 func (ed *Editor) ChangeLineRegion(
-	reg string, start buf.Loc, end buf.Loc, replay bool,
+	reg rune, start buf.Loc, end buf.Loc, replay bool,
 ) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
@@ -85,7 +85,7 @@ func (ed *Editor) ChangeLineRegion(
 }
 
 // s : Substitute one character under cursor.
-func (ed *Editor) Subst(reg string, n int, replay bool) bool {
+func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
 	if n < 1 {
 		ed.Error("Subst: n < 1")
 		return false

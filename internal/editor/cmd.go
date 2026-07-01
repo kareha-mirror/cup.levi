@@ -10,7 +10,7 @@ type Cmd struct {
 }
 
 type CmdPair struct {
-	Reg string
+	Reg rune
 	Op  Cmd
 	Mv  Cmd
 }

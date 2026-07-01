@@ -6,13 +6,13 @@ import (
 )
 
 type Args struct {
-	Reg      string
+	Reg      rune
 	NoNum    bool
 	Num      int
-	Op       string
+	Op       rune
 	NoSubnum bool
 	Subnum   int
-	Mv       string
+	Mv       rune
 	Rune     rune
 }
 
@@ -20,11 +20,11 @@ func (args *Args) Code() string {
 	code := strings.Builder{}
 	found := false
 
-	if args.Reg != "" {
+	if args.Reg != 0 {
 		if found {
 			code.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Rg(%s)", args.Reg))
+		code.WriteString(fmt.Sprintf("Rg(%c)", args.Reg))
 		found = true
 	}
 
@@ -36,11 +36,11 @@ func (args *Args) Code() string {
 		found = true
 	}
 
-	if args.Op != "" {
+	if args.Op != 0 {
 		if found {
 			code.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Op(%s)", args.Op))
+		code.WriteString(fmt.Sprintf("Op(%c)", args.Op))
 		found = true
 	}
 
@@ -52,11 +52,11 @@ func (args *Args) Code() string {
 		found = true
 	}
 
-	if args.Mv != "" {
+	if args.Mv != 0 {
 		if found {
 			code.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Mv(%s)", args.Mv))
+		code.WriteString(fmt.Sprintf("Mv(%c)", args.Mv))
 		found = true
 	}
 
@@ -64,7 +64,7 @@ func (args *Args) Code() string {
 		if found {
 			code.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Ch(%s)", args.Rune))
+		code.WriteString(fmt.Sprintf("Ch(%c)", args.Rune))
 		found = true
 	}
 

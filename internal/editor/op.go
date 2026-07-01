@@ -18,7 +18,7 @@ import (
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
 func (ed *Editor) CopyRegion(
-	reg string, start buf.Loc, end buf.Loc, inclusive bool,
+	reg rune, start buf.Loc, end buf.Loc, inclusive bool,
 ) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
@@ -29,7 +29,7 @@ func (ed *Editor) CopyRegion(
 
 // y<mv> : Copy region from current cursor to destination of motion <mv>.
 func (ed *Editor) CopyLineRegion(
-	reg string, start buf.Loc, end buf.Loc,
+	reg rune, start buf.Loc, end buf.Loc,
 ) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
@@ -46,13 +46,13 @@ func (ed *Editor) CopyLineRegion(
 //
 
 // "<reg>p : Paste after cursor from register <reg>.
-func (ed *Editor) Paste(reg string, n int) bool {
+func (ed *Editor) Paste(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("Paste: n < 1")
 		return false
 	}
 	if ed.RegMode(reg) == KillNone {
-		if reg == "" {
+		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
 			ed.Ring("Buffer %s is empty", reg)
@@ -118,14 +118,14 @@ func (ed *Editor) Paste(reg string, n int) bool {
 }
 
 // "<reg>p : Paste before cursor from register <reg>.
-func (ed *Editor) PasteBefore(reg string, n int) bool {
+func (ed *Editor) PasteBefore(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("PasteBefore: n < 1")
 		return false
 	}
 	b := ed.Buf()
 	if ed.RegMode(reg) == KillNone {
-		if reg == "" {
+		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
 			ed.Ring("Buffer %s is empty", reg)
@@ -181,7 +181,7 @@ func (ed *Editor) PasteBefore(reg string, n int) bool {
 // Delete
 //
 
-func (ed *Editor) internalDelete(reg string, n int) bool {
+func (ed *Editor) internalDelete(reg rune, n int) bool {
 	b := ed.Buf()
 	if len(b.CurrentLine()) < 1 {
 		return false
@@ -196,7 +196,7 @@ func (ed *Editor) internalDelete(reg string, n int) bool {
 }
 
 // x : Delete character under cursor.
-func (ed *Editor) Delete(reg string, n int) bool {
+func (ed *Editor) Delete(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("Delete: n < 1")
 		return false
@@ -211,7 +211,7 @@ func (ed *Editor) Delete(reg string, n int) bool {
 }
 
 // X : Delete character before cursor.
-func (ed *Editor) DeleteBefore(reg string, n int) bool {
+func (ed *Editor) DeleteBefore(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("DeleteBefore: n < 1")
 		return false
@@ -222,7 +222,7 @@ func (ed *Editor) DeleteBefore(reg string, n int) bool {
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
 func (ed *Editor) DeleteRegion(
-	reg string, start buf.Loc, end buf.Loc, inclusive bool,
+	reg rune, start buf.Loc, end buf.Loc, inclusive bool,
 ) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive)
@@ -249,7 +249,7 @@ func (ed *Editor) DeleteRegion(
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.
 func (ed *Editor) DeleteLineRegion(
-	reg string, start buf.Loc, end buf.Loc,
+	reg rune, start buf.Loc, end buf.Loc,
 ) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true)
