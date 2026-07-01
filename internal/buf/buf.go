@@ -43,6 +43,14 @@ type Buf struct {
 	current string
 }
 
+func New(crlf bool, depth int) *Buf {
+	return &Buf{
+		NewFile: true,
+		CRLF:    crlf,
+		Depth:   depth,
+	}
+}
+
 func (b *Buf) NumLines() int {
 	return len(b.Lines)
 }

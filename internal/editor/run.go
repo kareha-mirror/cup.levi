@@ -225,6 +225,19 @@ func (ed *Editor) Run(c CmdPair, replay bool) (bool, bool) {
 		ed.Suspend()
 		return false, true
 
+	case LastBuf:
+		ed.LastBuf()
+		return false, true
+	case GoToBuf:
+		ed.GoToBuf(c.Op.Num)
+		return false, true
+	case NextBuf:
+		ed.NextBuf()
+		return false, true
+	case PrevBuf:
+		ed.PrevBuf()
+		return false, true
+
 	}
 
 	return false, false

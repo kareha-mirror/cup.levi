@@ -8,15 +8,14 @@ import (
 )
 
 func (ed *Editor) NewBuf() {
-	b := &buf.Buf{
-		NewFile: true,
-		CRLF:    ed.cfg.CRLF,
-		Depth:   ed.cfg.Depth,
-	}
+	b := buf.New(ed.cfg.CRLF, ed.cfg.Depth)
 
 	if ed.bufIdx < len(ed.bufs) {
 		ed.bufs[ed.bufIdx] = b
 	} else {
+		if ed.bufIdx != len(ed.bufs) {
+			ed.Error("Invalid buffer index")
+		}
 		ed.bufs = append(ed.bufs, b)
 		ed.bufIdx = len(ed.bufs) - 1
 	}
@@ -52,6 +51,10 @@ func (ed *Editor) Close(force bool) bool {
 		bufs = append(bufs, ed.bufs[ed.bufIdx+1:]...)
 	}
 	ed.bufs = bufs
+
+	if ed.lastBufIdx >= ed.bufIdx {
+		ed.lastBufIdx = max(ed.lastBufIdx-1, 0)
+	}
 
 	numBufs := len(ed.bufs)
 	if ed.bufIdx >= numBufs {
@@ -97,6 +100,13 @@ func (ed *Editor) Load(path string, force bool) bool {
 	b.Modified = false
 	b.StoreLine()
 	return true
+}
+
+func (ed *Editor) Open(path string) bool {
+	ed.lastBufIdx = ed.bufIdx
+
+	ed.bufIdx = ed.NumBufs()
+	return ed.Load(path, true)
 }
 
 func (ed *Editor) SaveAs(path string, force bool) bool {

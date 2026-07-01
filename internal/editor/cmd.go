@@ -170,6 +170,11 @@ const (
 	Undo
 	SaveAndClose
 	Suspend
+
+	LastBuf
+	GoToBuf
+	NextBuf
+	PrevBuf
 )
 
 var IsInsertCmd = map[CmdKind]struct{}{
@@ -223,4 +228,10 @@ func init() {
 	for c := range IsEditCmd {
 		IsModifyingCmd[c] = struct{}{}
 	}
+}
+
+var IsBufMoveCmd = map[CmdKind]struct{}{
+	GoToBuf: {},
+	NextBuf: {},
+	PrevBuf: {},
 }

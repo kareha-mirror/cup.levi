@@ -61,15 +61,15 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		return Pcmd{Kind: PcmdForceQuit}, true
 	case "e":
 		if len(parts) > 1 {
-			return Pcmd{Kind: PcmdOpen, Name: parts[1]}, true
+			return Pcmd{Kind: PcmdLoad, Name: parts[1]}, true
 		} else {
-			return Pcmd{Kind: PcmdOpen}, true
+			return Pcmd{Kind: PcmdLoad}, true
 		}
 	case "e!":
 		if len(parts) > 1 {
-			return Pcmd{Kind: PcmdForceOpen, Name: parts[1]}, true
+			return Pcmd{Kind: PcmdForceLoad, Name: parts[1]}, true
 		} else {
-			return Pcmd{Kind: PcmdForceOpen}, true
+			return Pcmd{Kind: PcmdForceLoad}, true
 		}
 	case "r":
 		return Pcmd{Kind: PcmdRead}, true
@@ -115,6 +115,12 @@ func (ed *Editor) ParsePrompt() (Pcmd, bool) {
 		)
 		return Pcmd{Kind: PcmdInvalid}, false
 
+	case "open":
+		if len(parts) > 1 {
+			return Pcmd{Kind: PcmdOpen, Name: parts[1]}, true
+		} else {
+			return Pcmd{Kind: PcmdOpen}, true
+		}
 	case "nl", "newline":
 		if len(parts) > 1 {
 			return Pcmd{Kind: PcmdNewline, Name: parts[1]}, true

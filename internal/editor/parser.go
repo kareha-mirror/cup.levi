@@ -91,7 +91,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	}
 
 	i := 0
-	if p.buf[0] == '"' {
+	if p.buf[i] == '"' {
 		i++
 		if i < len(p.buf) {
 			args.Reg = p.buf[i]
@@ -115,6 +115,16 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 			panic(err)
 		}
 		args.Num = n
+	}
+
+	if args.Reg == 0 && i < len(p.buf) {
+		if p.buf[i] == '"' {
+			i++
+			if i < len(p.buf) {
+				args.Reg = p.buf[i]
+				i++
+			}
+		}
 	}
 
 	if i < len(p.buf) {
@@ -189,7 +199,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true
 	}
-	cmd, ok = ed.ParseMisc(args.Num, args.Op)
+	cmd, ok = ed.ParseMisc(args.NoNum, args.Num, args.Op)
 	if ok {
 		p.Ok = true
 		return CmdPair{Op: cmd}, true

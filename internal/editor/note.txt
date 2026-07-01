@@ -42,10 +42,6 @@ notes
 * possibly Args can have Parse method
 * nvi search commands have no number prefixes
   this can be enhanced or used for other purposes
-* cc (ChangeLine) and S (SubstLine) are identical.
-  one can be omitted
-* cw (ChangeWord) and dw (DeleteWord) can be omitted
-  since <num>c<subnum>w or <num>d<subnum>w works
 * currently, indent is tab only
 
 enhancements
@@ -60,6 +56,7 @@ planned
 
 omitted
 * splitpanes
+  use tmux and shared registers (planned)
 
 problems
 * search.go

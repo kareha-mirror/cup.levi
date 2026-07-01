@@ -53,6 +53,10 @@ type Editor struct {
 	// escape key indicator
 	listener termi.EscapeListener
 	esc      bool
+
+	// additions
+	lastBufIdx int
+	bufMove    bool
 }
 
 func Init(cfgDir string, paths []string) (*Editor, error) {

@@ -17,56 +17,56 @@ type Args struct {
 }
 
 func (args *Args) Code() string {
-	code := strings.Builder{}
-	found := false
+	b := strings.Builder{}
+	first := true
 
 	if args.Reg != 0 {
-		if found {
-			code.WriteRune('-')
+		if !first {
+			b.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Rg(%c)", args.Reg))
-		found = true
+		b.WriteString(fmt.Sprintf("Reg(%c)", args.Reg))
+		first = false
 	}
 
 	if !args.NoNum && args.Num > 0 {
-		if found {
-			code.WriteRune('-')
+		if !first {
+			b.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("%d", args.Num))
-		found = true
+		b.WriteString(fmt.Sprintf("%d", args.Num))
+		first = false
 	}
 
 	if args.Op != 0 {
-		if found {
-			code.WriteRune('-')
+		if !first {
+			b.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Op(%c)", args.Op))
-		found = true
+		b.WriteString(fmt.Sprintf("Op(%c)", args.Op))
+		first = false
 	}
 
 	if !args.NoSubnum && args.Subnum > 0 {
-		if found {
-			code.WriteRune('-')
+		if !first {
+			b.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("%d", args.Subnum))
-		found = true
+		b.WriteString(fmt.Sprintf("%d", args.Subnum))
+		first = false
 	}
 
 	if args.Mv != 0 {
-		if found {
-			code.WriteRune('-')
+		if !first {
+			b.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Mv(%c)", args.Mv))
-		found = true
+		b.WriteString(fmt.Sprintf("Mv(%c)", args.Mv))
+		first = false
 	}
 
 	if args.Rune != 0 {
-		if found {
-			code.WriteRune('-')
+		if !first {
+			b.WriteRune('-')
 		}
-		code.WriteString(fmt.Sprintf("Ch(%c)", args.Rune))
-		found = true
+		b.WriteString(fmt.Sprintf("Rune(%c)", args.Rune))
+		first = false
 	}
 
-	return code.String()
+	return b.String()
 }

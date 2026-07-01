@@ -23,20 +23,20 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 	case PcmdForceQuit:
 		ed.PromptForceQuit()
 		return true
-	case PcmdOpen:
-		ed.PromptOpen(c.Name)
+	case PcmdLoad:
+		ed.PromptLoad(c.Name)
 		return true
-	case PcmdForceOpen:
-		ed.PromptForceOpen(c.Name)
+	case PcmdForceLoad:
+		ed.PromptForceLoad(c.Name)
 		return true
 	case PcmdRead:
 		ed.PromptRead()
 		return true
 	case PcmdNext:
-		ed.PromptNext()
+		ed.NextBuf()
 		return true
 	case PcmdPrev:
-		ed.PromptPrev()
+		ed.PrevBuf()
 		return true
 
 	case PcmdShell:
@@ -63,6 +63,9 @@ func (ed *Editor) RunPrompt(c Pcmd) bool {
 		ed.PromptNoAutoIndent()
 		return true
 
+	case PcmdOpen:
+		ed.PromptOpen(c.Name)
+		return true
 	case PcmdNewline:
 		ed.PromptNewline(c.Name)
 		return true

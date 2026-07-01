@@ -25,20 +25,20 @@ func (ed *Editor) ParseRune(num int, op rune, r rune) (Cmd, bool) {
 func (ed *Editor) ParseView(num int, op rune) (Cmd, bool) {
 	switch op {
 
-	case '\x06': // Ctrl-F
+	case 0x06: // Ctrl-F
 		return Cmd{Kind: ViewDown, Num: num}, true
-	case '\x02': // Ctrl-B
+	case 0x02: // Ctrl-B
 		return Cmd{Kind: ViewUp, Num: num}, true
-	case '\x04': // Ctrl-D
+	case 0x04: // Ctrl-D
 		return Cmd{Kind: ViewDownHalf, Num: num}, true
-	case '\x15': // Ctrl-U
+	case 0x15: // Ctrl-U
 		return Cmd{Kind: ViewUpHalf, Num: num}, true
-	case '\x19': // Ctrl-Y
+	case 0x19: // Ctrl-Y
 		return Cmd{Kind: ViewDownLine, Num: num}, true
-	case '\x05': // Ctrl-E
+	case 0x05: // Ctrl-E
 		return Cmd{Kind: ViewUpLine, Num: num}, true
 
-	case '\x0c': // Ctrl-L
+	case 0x0c: // Ctrl-L
 		return Cmd{Kind: Redraw}, true
 
 	}
@@ -70,10 +70,10 @@ func (ed *Editor) ParseInsert(num int, op rune) (Cmd, bool) {
 	return Cmd{}, false
 }
 
-func (ed *Editor) ParseMisc(num int, op rune) (Cmd, bool) {
+func (ed *Editor) ParseMisc(noNum bool, num int, op rune) (Cmd, bool) {
 	switch op {
 
-	case '\x07': // Ctrl-G
+	case 0x07: // Ctrl-G
 		return Cmd{Kind: ShowInfo}, true
 	case '.':
 		return Cmd{Kind: Repeat, Num: num}, true
@@ -81,9 +81,15 @@ func (ed *Editor) ParseMisc(num int, op rune) (Cmd, bool) {
 		return Cmd{Kind: Undo, Num: num}, true
 	case 'U':
 		return Cmd{Kind: Restore}, true
-	case '\x1a': // Ctrl-Z
+	case 0x1a: // Ctrl-Z
 		return Cmd{Kind: Suspend}, true
 
+	case 0x1e, 0x1f: // Ctrl-^, Ctrl-_
+		if noNum {
+			return Cmd{Kind: LastBuf}, true
+		} else {
+			return Cmd{Kind: GoToBuf, Num: num}, true
+		}
 	}
 
 	return Cmd{}, false
@@ -273,6 +279,12 @@ func (ed *Editor) ParseCompound(
 			return CmdPair{Op: Cmd{Kind: ViewToMiddle}}, true
 		case '-':
 			return CmdPair{Op: Cmd{Kind: ViewToBottom}}, true
+
+		case 'j':
+			return CmdPair{Op: Cmd{Kind: NextBuf}}, true
+		case 'k':
+			return CmdPair{Op: Cmd{Kind: PrevBuf}}, true
+
 		default:
 			ed.Ring("Usage: [line]z[window_size][-|.|+|^|<CR>]")
 			return CmdPair{}, true

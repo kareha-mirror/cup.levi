@@ -78,6 +78,10 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				if c.Op.Kind != Undo && c.Op.Kind != Repeat {
 					ed.undo = false
 				}
+				// reset buffer select mode
+				if _, ok := IsBufMoveCmd[c.Op.Kind]; !ok {
+					ed.bufMove = false
+				}
 				ed.parser.Reset()
 			} else {
 				ed.Error("Failed to run")
@@ -139,6 +143,10 @@ func (ed *Editor) MainPrompt(key termi.Key) {
 				ok = ed.RunPrompt(c)
 				if !ok {
 					ed.Error("Prompt command failed")
+				}
+				// reset buffer select mode
+				if _, ok := IsBufMovePcmd[c.Kind]; !ok {
+					ed.bufMove = false
 				}
 			} else {
 				ed.mode = ModeCommand

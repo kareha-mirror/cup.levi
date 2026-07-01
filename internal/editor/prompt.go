@@ -131,8 +131,8 @@ func (ed *Editor) PromptForceQuit() {
 	ed.CheckQuit()
 }
 
-// :e Enter : Open file.
-func (ed *Editor) PromptOpen(name string) {
+// :e Enter : Load file.
+func (ed *Editor) PromptLoad(name string) {
 	b := ed.Buf()
 	b.BeginSnapshot()
 	if !ed.Load(name, false) {
@@ -143,8 +143,8 @@ func (ed *Editor) PromptOpen(name string) {
 	ed.ShowFileInfo()
 }
 
-// :e! Enter : Force open file.
-func (ed *Editor) PromptForceOpen(name string) {
+// :e! Enter : Force load file.
+func (ed *Editor) PromptForceLoad(name string) {
 	b := ed.Buf()
 	b.BeginSnapshot()
 	if !ed.Load(name, true) {
@@ -158,30 +158,6 @@ func (ed *Editor) PromptForceOpen(name string) {
 // :r Enter : Read file and insert to current buffer.
 func (ed *Editor) PromptRead() {
 	ed.Unimplemented("PromptRead")
-}
-
-// :n Enter : Switch to next buffer (tab).
-func (ed *Editor) PromptNext() {
-	if ed.bufIdx+1 >= len(ed.bufs) {
-		ed.Ring("No more files to edit.")
-		return
-	}
-	ed.bufIdx++
-	ed.undo = false
-	ed.redraw = true
-	ed.ShowFileInfo()
-}
-
-// :prev Enter : Switch to previous buffer (tab).
-func (ed *Editor) PromptPrev() {
-	if ed.bufIdx-1 < 0 {
-		ed.Ring("No previous files to edit.")
-		return
-	}
-	ed.bufIdx--
-	ed.undo = false
-	ed.redraw = true
-	ed.ShowFileInfo()
 }
 
 // :sh Enter : Execute shell.
@@ -223,6 +199,14 @@ func (ed *Editor) PromptAutoIndent() {
 // :set noai Enter
 func (ed *Editor) PromptNoAutoIndent() {
 	ed.cfg.AutoIndent = false
+}
+
+// :open Enter : Open file in new buffer.
+func (ed *Editor) PromptOpen(name string) {
+	if !ed.Open(name) {
+		return
+	}
+	ed.ShowFileInfo()
 }
 
 // :newline Enter

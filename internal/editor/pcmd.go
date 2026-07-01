@@ -20,8 +20,8 @@ const (
 	PcmdForceSave
 	PcmdQuit
 	PcmdForceQuit
-	PcmdOpen
-	PcmdForceOpen
+	PcmdLoad
+	PcmdForceLoad
 	PcmdRead
 	PcmdNext
 	PcmdPrev
@@ -36,9 +36,15 @@ const (
 	PcmdAutoIndent
 	PcmdNoAutoIndent
 
+	PcmdOpen
 	PcmdNewline
 	PcmdColors
 
 	PcmdMem   // XXX debug
 	PcmdHello // XXX debug
 )
+
+var IsBufMovePcmd = map[PcmdKind]struct{}{
+	PcmdNext: {},
+	PcmdPrev: {},
+}
