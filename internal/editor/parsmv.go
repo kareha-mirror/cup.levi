@@ -61,7 +61,7 @@ func (ed *Editor) ParseMoveRune(
 }
 
 func (ed *Editor) ParseMove(
-	noNum bool, num int, mv string, r rune, here bool,
+	noNum bool, num int, mv string, r rune, meta bool,
 ) (Cmd, bool) {
 	switch mv {
 
@@ -95,10 +95,6 @@ func (ed *Editor) ParseMove(
 		return Cmd{Kind: MoveByParagraph, Num: num}, true
 	case "{":
 		return Cmd{Kind: MoveBackwardByParagraph, Num: num}, true
-	case "]]":
-		return Cmd{Kind: MoveBySection, Num: num}, true
-	case "[[":
-		return Cmd{Kind: MoveBackwardBySection, Num: num}, true
 
 	case "H":
 		if noNum {
@@ -169,10 +165,10 @@ func (ed *Editor) ParseMove(
 	}
 
 	//
-	// Here
+	// Meta Motion Commands
 	//
 
-	if here {
+	if meta {
 		switch mv {
 		case "y", "d", "c", ">", "<":
 			return Cmd{Kind: MoveHere, Num: num}, true

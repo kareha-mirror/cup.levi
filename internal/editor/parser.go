@@ -18,21 +18,13 @@ var isRuneMove = map[rune]struct{}{
 	'T':  {},
 }
 
-var isCompound = map[string]struct{}{
-	"]]": {},
-	"[[": {},
+var isCompound = map[rune]struct{}{
+	'y': {},
+	'd': {},
+	'c': {},
+	'>': {},
+	'<': {},
 
-	"``": {},
-	"''": {},
-
-	"z\r": {},
-	"z.":  {},
-	"z-":  {},
-
-	"ZZ": {},
-}
-
-var isHeadOfCompound = map[rune]struct{}{
 	']': {},
 	'[': {},
 
@@ -42,12 +34,6 @@ var isHeadOfCompound = map[rune]struct{}{
 	'z': {},
 
 	'Z': {},
-
-	'y': {},
-	'd': {},
-	'c': {},
-	'>': {},
-	'<': {},
 }
 
 type Parser struct {
@@ -169,10 +155,7 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 	iPrev = i
 	for i < len(p.buf) {
 		if i+1-iPrev == 2 {
-			_, ok := isCompound[string(p.buf[iPrev:i+1])]
-			if !ok {
-				break
-			}
+			break
 		}
 		if p.buf[i] >= '0' && p.buf[i] <= '9' {
 			break
@@ -261,9 +244,16 @@ func (ed *Editor) Parse() (CmdPair, bool) {
 		p.Ok = true
 		return c, true
 	}
+	c, ok = ed.ParseCompound(
+		args.Num, args.Op, args.NoSubnum, args.Subnum, args.Mv, args.Rune,
+	)
+	if ok {
+		p.Ok = true
+		return c, true
+	}
 
 	if len(args.Op) < 2 {
-		_, ok := isHeadOfCompound[opFirst]
+		_, ok := isCompound[opFirst]
 		if ok {
 			return CmdPair{}, false
 		}

@@ -38,13 +38,6 @@ func (ed *Editor) ParseView(num int, op string) (Cmd, bool) {
 	case "\x05": // Ctrl-E
 		return Cmd{Kind: ViewUpLine, Num: num}, true
 
-	case "z\r":
-		return Cmd{Kind: ViewToTop}, true
-	case "z.":
-		return Cmd{Kind: ViewToMiddle}, true
-	case "z-":
-		return Cmd{Kind: ViewToBottom}, true
-
 	case "\x0c": // Ctrl-L
 		return Cmd{Kind: Redraw}, true
 
@@ -88,8 +81,6 @@ func (ed *Editor) ParseMisc(num int, op string) (Cmd, bool) {
 		return Cmd{Kind: Undo, Num: num}, true
 	case "U":
 		return Cmd{Kind: Restore}, true
-	case "ZZ":
-		return Cmd{Kind: SaveAndClose}, true
 	case "\x1a": // Ctrl-Z
 		return Cmd{Kind: Suspend}, true
 
@@ -242,6 +233,61 @@ func (ed *Editor) ParseEdit(
 			}
 		}
 		return CmdPair{}, false
+
+	}
+
+	return CmdPair{}, false
+}
+
+func (ed *Editor) ParseCompound(
+	num int, op string, noSubnum bool, subnum int, mv string, r rune,
+) (CmdPair, bool) {
+	switch op {
+
+	case "]":
+		if mv == "" {
+			return CmdPair{}, false
+		}
+		if mv != "]" {
+			ed.Ring("Usage: ]]")
+			return CmdPair{}, true
+		}
+		return CmdPair{Mv: Cmd{Kind: MoveBySection, Num: num}}, true
+	case "[":
+		if mv == "" {
+			return CmdPair{}, false
+		}
+		if mv != "[" {
+			ed.Ring("Usage: [[")
+			return CmdPair{}, true
+		}
+		return CmdPair{Mv: Cmd{Kind: MoveBackwardBySection, Num: num}}, true
+
+	case "z":
+		if mv == "" {
+			return CmdPair{}, false
+		}
+		switch mv {
+		case "\r":
+			return CmdPair{Op: Cmd{Kind: ViewToTop}}, true
+		case ".":
+			return CmdPair{Op: Cmd{Kind: ViewToMiddle}}, true
+		case "-":
+			return CmdPair{Op: Cmd{Kind: ViewToBottom}}, true
+		default:
+			ed.Ring("Usage: [line]z[window_size][-|.|+|^|<CR>]")
+			return CmdPair{}, true
+		}
+
+	case "Z":
+		if mv == "" {
+			return CmdPair{}, false
+		}
+		if mv != "Z" {
+			ed.Ring("Usage: ZZ")
+			return CmdPair{}, true
+		}
+		return CmdPair{Op: Cmd{Kind: SaveAndClose}}, true
 
 	}
 
