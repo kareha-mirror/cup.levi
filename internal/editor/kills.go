@@ -2,28 +2,33 @@ package editor
 
 import (
 	"unicode/utf8"
+
+	"tea.kareha.org/cup/levi/internal/kill"
 )
 
-func (ed *Editor) RegMode(name rune) KillMode {
-	mode, err := ed.regs.Mode(name)
+func (ed *Editor) KillMode(name rune) kill.Mode {
+	mode, err := ed.kills.Mode(name)
 	if err != nil {
 		ed.Error("%v", err)
-		return KillNone
+		return kill.None
 	}
 	return mode
 }
 
-func (ed *Editor) RegKilled(name rune) []string {
-	killed, err := ed.regs.Killed(name)
+func (ed *Editor) KilledContent(name rune) []string {
+	killed, err := ed.kills.Content(name)
 	if err != nil {
 		ed.Error("%v", err)
+		return []string{""}
+	}
+	if len(killed) < 1 {
 		return []string{""}
 	}
 	return killed
 }
 
-func (ed *Editor) ApplyRegLines(name rune, killed []string) bool {
-	err := ed.regs.ApplyLines(name, killed, ed.Buf().CRLF)
+func (ed *Editor) StoreLines(name rune, killed []string) bool {
+	err := ed.kills.ApplyLines(name, killed)
 	if err != nil {
 		ed.Error("%v", err)
 		return false
@@ -36,8 +41,8 @@ func (ed *Editor) ApplyRegLines(name rune, killed []string) bool {
 	return true
 }
 
-func (ed *Editor) ApplyRegRunes(name rune, killed []string) bool {
-	err := ed.regs.ApplyRunes(name, killed, ed.Buf().CRLF)
+func (ed *Editor) StoreRunes(name rune, killed []string) bool {
+	err := ed.kills.ApplyRunes(name, killed)
 	if err != nil {
 		ed.Error("%v", err)
 		return false

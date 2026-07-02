@@ -10,6 +10,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/cmd"
 	"tea.kareha.org/cup/levi/internal/color"
 	"tea.kareha.org/cup/levi/internal/config"
+	"tea.kareha.org/cup/levi/internal/kill"
 	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
@@ -46,7 +47,7 @@ type Editor struct {
 	prompt   termi.RuneBuf
 	searchs  searchState
 	finds    findState
-	regs     Regs
+	kills    kill.Store
 	lastCmd  cmd.Pair
 	undo     bool
 
@@ -100,7 +101,7 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	ed.RenderMsg(true)        // errors
 
 	// setup shared registers
-	ed.regs.SyncWithConfig(cfgDir, cfg)
+	ed.kills.Init(cfgDir, cfg.Shared)
 
 	// preferences
 	termi.EscapeTimeout =

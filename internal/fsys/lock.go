@@ -1,4 +1,4 @@
-package editor
+package fsys
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ func getLockPath(cfgDir string) string {
 	return filepath.Join(cfgDir, "lock")
 }
 
-func lock(cfgDir string) error {
+func Lock(cfgDir string) error {
 	path := getLockPath(cfgDir)
 	for i := 0; i < 8; i++ {
 		err := os.Mkdir(path, 0777)

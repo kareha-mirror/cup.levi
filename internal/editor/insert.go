@@ -254,7 +254,7 @@ func (ed *Editor) ChangeLineRegion(
 		ed.Notice("Out of range")
 		return false
 	}
-	ed.ApplyRegLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
+	ed.StoreLines(reg, b.Lines[b.Loc.Row:b.Loc.Row+n])
 
 	// above
 	lines := append([]string{}, b.Lines[:b.Loc.Row]...)

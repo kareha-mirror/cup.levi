@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"tea.kareha.org/cup/levi/internal/editor"
+	"tea.kareha.org/cup/levi/internal/fsys"
 )
 
 const appName = "levi"
@@ -30,7 +31,7 @@ func realMain() (totalErr error) {
 	}
 
 	if *unlock {
-		err := editor.Unlock(*cfgDir)
+		err := fsys.Unlock(*cfgDir)
 		if err != nil {
 			return err
 		}

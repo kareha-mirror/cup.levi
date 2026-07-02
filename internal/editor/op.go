@@ -5,6 +5,7 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/kill"
 	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
@@ -23,7 +24,7 @@ func (ed *Editor) CopyRegion(
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive, false)
 	lines := b.RegionRunewise(start, end)
-	ed.ApplyRegRunes(reg, lines)
+	ed.StoreRunes(reg, lines)
 	b.Loc = start
 }
 
@@ -37,7 +38,7 @@ func (ed *Editor) CopyLineRegion(
 		ed.Notice("Out of range")
 		return
 	}
-	ed.ApplyRegLines(reg, b.Lines[start.Row:end.Row+1])
+	ed.StoreLines(reg, b.Lines[start.Row:end.Row+1])
 	b.Loc = start
 }
 
@@ -51,7 +52,7 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 		ed.Error("Paste: n < 1")
 		return false
 	}
-	if ed.RegMode(reg) == KillNone {
+	if ed.KillMode(reg) == kill.None {
 		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
@@ -59,10 +60,10 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 		}
 		return false
 	}
-	killed := ed.RegKilled(reg)
+	killed := ed.KilledContent(reg)
 	b := ed.Buf()
-	switch ed.RegMode(reg) {
-	case KillRunes:
+	switch ed.KillMode(reg) {
+	case kill.Runes:
 		if len(killed) < 2 {
 			line := b.CurrentLine()
 			sb := strings.Builder{}
@@ -94,7 +95,7 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 
 			b.Lines = lines
 		}
-	case KillLines:
+	case kill.Lines:
 		lines := []string{}
 		if b.Loc.Row+1 <= b.NumLines() {
 			lines = append(lines, b.Lines[:b.Loc.Row+1]...)
@@ -124,7 +125,7 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 		return false
 	}
 	b := ed.Buf()
-	if ed.RegMode(reg) == KillNone {
+	if ed.KillMode(reg) == kill.None {
 		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
@@ -132,9 +133,9 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 		}
 		return false
 	}
-	killed := ed.RegKilled(reg)
-	switch ed.RegMode(reg) {
-	case KillRunes:
+	killed := ed.KilledContent(reg)
+	switch ed.KillMode(reg) {
+	case kill.Runes:
 		if len(killed) < 2 {
 			sb := strings.Builder{}
 			head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
@@ -164,7 +165,7 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 
 			b.Lines = lines
 		}
-	case KillLines:
+	case kill.Lines:
 		lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 		for i := 0; i < n; i++ {
 			lines = append(lines, killed...)
@@ -190,7 +191,7 @@ func (ed *Editor) internalDelete(reg rune, n int) bool {
 	rc := utf8.RuneCountInString(line)
 	n = min(n, rc-b.Loc.Col)
 	head, body, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
-	ed.ApplyRegRunes(reg, []string{body})
+	ed.StoreRunes(reg, []string{body})
 	b.SetCurrentLine(head + tail)
 	return true
 }
@@ -230,7 +231,7 @@ func (ed *Editor) DeleteRegion(
 		end.Col++
 	}
 	lines := b.RegionRunewise(start, end)
-	ed.ApplyRegRunes(reg, lines)
+	ed.StoreRunes(reg, lines)
 
 	lines = append([]string{}, b.Lines[:start.Row]...)
 
@@ -258,7 +259,7 @@ func (ed *Editor) DeleteLineRegion(
 		return false
 	}
 	lines := append([]string{}, b.Lines[:start.Row]...)
-	ed.ApplyRegLines(reg, b.Lines[start.Row:end.Row+1])
+	ed.StoreLines(reg, b.Lines[start.Row:end.Row+1])
 	if end.Row+1 < b.NumLines() {
 		lines = append(lines, b.Lines[end.Row+1:]...)
 	}
