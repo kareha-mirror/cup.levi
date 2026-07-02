@@ -101,7 +101,7 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	ed.RenderMsg(true)        // errors
 
 	// setup shared registers
-	ed.regs.SyncWithConfig(ed.cfg)
+	ed.regs.SyncWithConfig(cfgDir, cfg)
 
 	// preferences
 	termi.EscapeTimeout =

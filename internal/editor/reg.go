@@ -7,7 +7,6 @@ import (
 	"golang.design/x/clipboard"
 
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/levi/internal/config"
 )
 
 type KillMode int
@@ -28,6 +27,7 @@ type Regs struct {
 	DefMode   KillMode
 	DefKilled []string
 	Map       map[rune]*Reg
+	cfgDir    string
 }
 
 func (regs *Regs) SetReg(name rune, reg *Reg) {
@@ -214,18 +214,6 @@ func (regs *Regs) ApplyRunes(name rune, killed []string) {
 	regs.SetRunes(name, killed)
 }
 
-func (regs *Regs) SyncWithConfig(cfg *config.Config) {
-	for _, reg := range regs.Map {
-		reg.Shared = false
-	}
-	for _, name := range cfg.Shared {
-		if !IsValidRegName(name) {
-			continue
-		}
-		regs.SetShared(name, true)
-	}
-}
-
 func (ed *Editor) EnsureClipboard() error {
 	if ed.clipUsed {
 		return nil
@@ -245,6 +233,15 @@ func (ed *Editor) RegMode(name rune) KillMode {
 		}
 		return KillRunes
 	}
+
+	reg, ok := ed.regs.Map[name]
+	if ok && reg.Shared {
+		err := ed.regs.Load(name)
+		if err != nil {
+			ed.Error("%v", err)
+		}
+	}
+
 	return ed.regs.Mode(name)
 }
 
@@ -271,6 +268,19 @@ func (ed *Editor) ApplyRegLines(name rune, killed []string) bool {
 	} else {
 		ed.regs.ApplyLines(name, killed)
 	}
+
+	addName := ToDestRegName(name)
+	if name != 0 {
+		name = addName
+	}
+	reg, ok := ed.regs.Map[name]
+	if ok && reg.Shared {
+		err := ed.regs.Save(name)
+		if err != nil {
+			ed.Error("%v", err)
+		}
+	}
+
 	numLines := len(killed)
 	if numLines >= 5 {
 		ed.Message("%d lines yanked", numLines)
@@ -289,6 +299,19 @@ func (ed *Editor) ApplyRegRunes(name rune, killed []string) bool {
 	} else {
 		ed.regs.ApplyRunes(name, killed)
 	}
+
+	addName := ToDestRegName(name)
+	if name != 0 {
+		name = addName
+	}
+	reg, ok := ed.regs.Map[name]
+	if ok && reg.Shared {
+		err := ed.regs.Save(name)
+		if err != nil {
+			ed.Error("%v", err)
+		}
+	}
+
 	numLines := len(killed)
 	if numLines >= 5 {
 		ed.Message("%d lines yanked", numLines)

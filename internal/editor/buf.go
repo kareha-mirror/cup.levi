@@ -1,179 +1,72 @@
 package editor
 
-import (
-	"os"
-	"unicode/utf8"
+///////////////////////////////////////////
+// Commands for Selecting Current Buffer //
+///////////////////////////////////////////
 
-	"tea.kareha.org/cup/levi/internal/buf"
-)
-
-// Creates new buffer and place it last of buffer list.
-func (ed *Editor) NewBuf() {
-	b := buf.New(ed.cfg.CRLF, ed.cfg.Depth)
-
-	if ed.bufIdx < len(ed.bufs) {
-		ed.bufs[ed.bufIdx] = b
-	} else {
-		if ed.bufIdx != len(ed.bufs) {
-			ed.Error("Invalid buffer index")
-		}
-		ed.bufs = append(ed.bufs, b)
-		ed.bufIdx = len(ed.bufs) - 1
+// :next, :n : Go to next buffer in list.
+// Also available as 'zj' (levi enhancement).
+func (ed *Editor) NextBuf() {
+	if ed.bufIdx+1 >= len(ed.bufs) {
+		ed.Ring("No more files to edit.")
+		return
 	}
-}
-
-// Returns current buffer.
-func (ed *Editor) Buf() *buf.Buf {
-	return ed.bufs[ed.bufIdx]
-}
-
-// Returns number of buffers.
-func (ed *Editor) NumBufs() int {
-	return len(ed.bufs)
-}
-
-// Activates quit flag if buffer list is empty.
-func (ed *Editor) CheckQuit() {
-	if len(ed.bufs) < 1 {
-		ed.alive = false
+	if !ed.bufMove {
+		ed.lastBufIdx = ed.bufIdx
+		ed.bufMove = true
 	}
+	ed.bufIdx++
+	ed.undo = false
+	ed.ShowFileInfo()
 }
 
-// Closes current buffer and remove from buffer list.
-func (ed *Editor) Close(force bool) bool {
-	if !force && ed.Buf().Modified {
-		ed.Ring(
-			"File modified since last complete write;" +
-				" write or use ! to override.",
-		)
+// :prev : Go to previous buffer in list.
+// Also available as 'zk' (levi enhancement).
+func (ed *Editor) PrevBuf() {
+	if ed.bufIdx-1 < 0 {
+		ed.Ring("No previous files to edit.")
+		return
+	}
+	if !ed.bufMove {
+		ed.lastBufIdx = ed.bufIdx
+		ed.bufMove = true
+	}
+	ed.bufIdx--
+	ed.undo = false
+	ed.ShowFileInfo()
+}
+
+// Ctrl-^, Ctrl-_ : Go to last visited buffer.
+func (ed *Editor) LastBuf() {
+	if ed.lastBufIdx == ed.bufIdx {
+		//ed.Ring("No previous files to edit.") // nvi
+		ed.Ring("No last files to edit.")
+		return
+	}
+	ed.bufIdx, ed.lastBufIdx = ed.lastBufIdx, ed.bufIdx
+	ed.undo = false
+	ed.ShowFileInfo()
+}
+
+// <num> Ctrl-^, <num> Ctrl-_ : Go to buffer specified by <num>.
+// Not available in nvi.
+// Available in Vim.
+func (ed *Editor) GoToBuf(n int) bool { // n is 1-based
+	if n < 1 {
+		ed.Error("GoToBuf: n < 1")
 		return false
 	}
-
-	bufs := append([]*buf.Buf{}, ed.bufs[:ed.bufIdx]...)
-	if ed.bufIdx+1 < len(ed.bufs) {
-		bufs = append(bufs, ed.bufs[ed.bufIdx+1:]...)
+	n-- // to 0-based
+	if n >= ed.NumBufs() {
+		ed.Ring("Out of range") // levi
+		return false
 	}
-	ed.bufs = bufs
-
-	if ed.lastBufIdx >= ed.bufIdx {
-		ed.lastBufIdx = max(ed.lastBufIdx-1, 0)
+	if !ed.bufMove {
+		ed.lastBufIdx = ed.bufIdx
+		ed.bufMove = true
 	}
-
-	numBufs := len(ed.bufs)
-	if ed.bufIdx >= numBufs {
-		ed.bufIdx = max(numBufs-1, 0)
-	}
-
+	ed.bufIdx = n
+	ed.undo = false
+	ed.ShowFileInfo()
 	return true
-}
-
-// Loads text from file to current buffer.
-func (ed *Editor) Load(path string, force bool) bool {
-	if !force && ed.Buf().Modified {
-		ed.Ring(
-			"File modified since last complete write;" +
-				" write or use ! to override.",
-		)
-		return false
-	}
-
-	ed.NewBuf()
-	b := ed.Buf()
-	b.Path = path
-	if path == "" {
-		return true
-	}
-	info, err := os.Stat(path)
-	if err != nil {
-		return true
-	}
-	stamp := buf.Stamp{
-		Time: info.ModTime(),
-		Size: info.Size(),
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		ed.Error("%v", err)
-		return false
-	}
-	b.SetText(string(data))
-	b.Stamp = stamp
-	b.NewFile = false
-	b.Marks = nil
-	b.Modified = false
-	b.StoreLine()
-	return true
-}
-
-// Creates new buffer and loads text from file to it.
-func (ed *Editor) Open(path string) bool {
-	ed.lastBufIdx = ed.bufIdx
-
-	ed.bufIdx = ed.NumBufs()
-	return ed.Load(path, true)
-}
-
-// Saves current buffer to named file.
-func (ed *Editor) SaveAs(path string, force bool) bool {
-	if path == "" {
-		ed.Ring("No filename specified")
-		return false
-	}
-	info, err := os.Stat(path)
-	newFile := ""
-	stamp := buf.Stamp{}
-	if err != nil {
-		newFile = " new file:"
-	} else {
-		stamp = buf.Stamp{
-			Time: info.ModTime(),
-			Size: info.Size(),
-		}
-	}
-	b := ed.Buf()
-	if !force && path == b.Path && stamp != b.Stamp {
-		ed.Ring(
-			"%s: file modified more recently than this copy;"+
-				" use ! to override.",
-			path,
-		)
-		return false
-	}
-
-	text := b.Text(b.CRLF)
-	err = os.WriteFile(path, []byte(text), 0666)
-	if err != nil {
-		ed.Error("%v", err)
-		return false
-	}
-	info, err = os.Stat(path)
-	if err != nil {
-		ed.Error("%v", err)
-		return false
-	}
-	stamp = buf.Stamp{
-		Time: info.ModTime(),
-		Size: info.Size(),
-	}
-
-	ed.Message(
-		"%s:%s %d lines, %d bytes, %d runes.",
-		path, newFile, b.NumLines(), len(text), utf8.RuneCountInString(text),
-	)
-
-	if b.Path == "" {
-		b.Path = path
-	}
-	if path == b.Path {
-		b.Stamp = stamp
-	}
-	b.NewFile = false
-	b.Modified = false
-	return true
-}
-
-// Saves current buffer to original file.
-func (ed *Editor) Save(force bool) bool {
-	return ed.SaveAs(ed.Buf().Path, force)
 }

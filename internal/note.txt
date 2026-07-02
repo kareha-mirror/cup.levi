@@ -42,8 +42,6 @@ enhancements
   * show rune count when saved/inserted/yanked
   * some friendly messages not shown in nvi
 * special register supports system clipboard
-
-planned
 * registers shared around levi processes intermediated by local file system
 
 omitted

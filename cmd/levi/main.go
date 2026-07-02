@@ -17,6 +17,7 @@ const failure = 1
 func realMain() (totalErr error) {
 	// parse options
 	cfgDir := flag.String("d", "", "config directory")
+	unlock := flag.Bool("unlock", false, "unlock")
 	flag.Parse()
 
 	if *cfgDir == "" {
@@ -26,6 +27,14 @@ func realMain() (totalErr error) {
 		}
 		// default config directory
 		*cfgDir = filepath.Join(dir, appName)
+	}
+
+	if *unlock {
+		err := editor.Unlock(*cfgDir)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	paths := flag.Args()
