@@ -64,7 +64,7 @@ func (regs *Regs) SharedTextPath(name rune) string {
 	return filepath.Join(regs.cfgDir, "regs", string(name)+".txt")
 }
 
-func (regs *Regs) Load(name rune) error {
+func (regs *Regs) LoadMeta(name rune) error {
 	reg, ok := regs.Map[name]
 	if !ok {
 		return fmt.Errorf("Reg not found")
@@ -97,8 +97,12 @@ func (regs *Regs) Load(name rune) error {
 	text := strings.ReplaceAll(string(data), "\r\n", "\n")
 	reg.Killed = strings.Split(text, "\n")
 
-	regs.Map[name] = reg
+	regs.SetReg(name, reg)
+	return nil
+}
 
+func (regs *Regs) LoadContent(name rune) error {
+	// omitted
 	return nil
 }
 

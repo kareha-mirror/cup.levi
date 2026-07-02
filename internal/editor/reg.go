@@ -1,8 +1,8 @@
 package editor
 
 import (
+	"fmt"
 	"strings"
-	"unicode/utf8"
 
 	"golang.design/x/clipboard"
 
@@ -26,43 +26,134 @@ type Reg struct {
 type Regs struct {
 	DefMode   KillMode
 	DefKilled []string
-	Map       map[rune]*Reg
+	Map       map[rune]Reg
 	cfgDir    string
 }
 
-func (regs *Regs) SetReg(name rune, reg *Reg) {
+func IsValidRegName(name rune) bool {
+	if name == 0 { // default
+		return true
+	}
+	if name >= 'a' && name <= 'z' { // normal
+		return true
+	}
+	if name >= 'A' && name <= 'Z' { // append
+		return true
+	}
+	if name == '+' { // clipboard
+		return true
+	}
+	return false
+}
+
+func NormalizeRegName(name rune) rune {
+	if name >= 'A' && name <= 'Z' {
+		return name + 'a' - 'A'
+	}
+	return name
+}
+
+func (regs *Regs) SetReg(name rune, reg Reg) bool {
+	if !IsValidRegName(name) {
+		return false
+	}
+	if name == 0 {
+		regs.DefMode = reg.Mode
+		regs.DefKilled = reg.Killed
+		return true
+	}
+	if name == '+' {
+		// omitted
+		return true
+	}
+	name = NormalizeRegName(name)
 	if regs.Map == nil {
-		regs.Map = make(map[rune]*Reg)
+		regs.Map = make(map[rune]Reg)
 	}
 	regs.Map[name] = reg
+	return true
 }
 
-func (regs *Regs) Mode(name rune) KillMode {
-	if name == 0 {
-		return regs.DefMode
+func (regs *Regs) Mode(name rune) (KillMode, error) {
+	if !IsValidRegName(name) {
+		return KillNone, fmt.Errorf("Invalid reg name")
 	}
+	if name == 0 {
+		return regs.DefMode, nil
+	}
+	if name == '+' {
+		return KillRunes, nil
+	}
+	name = NormalizeRegName(name)
 	reg, ok := regs.Map[name]
 	if !ok {
-		return KillNone
+		return KillNone, nil
 	}
-	return reg.Mode
+	if reg.Shared {
+		err := regs.LoadMeta(name)
+		if err != nil {
+			return KillNone, err
+		}
+		reg, _ = regs.Map[name]
+	}
+	return reg.Mode, nil
 }
 
-func (regs *Regs) Killed(name rune) []string {
-	if name == 0 {
-		return regs.DefKilled
-	}
-	reg, ok := regs.Map[name]
-	if !ok {
+var clipboardInitialized = false
+
+func EnsureClipboard() error {
+	if clipboardInitialized {
 		return nil
 	}
-	return reg.Killed
+	if err := clipboard.Init(); err != nil {
+		return err
+	}
+	clipboardInitialized = true
+	return nil
+}
+
+func (regs *Regs) Killed(name rune) ([]string, error) {
+	if !IsValidRegName(name) {
+		return nil, fmt.Errorf("Invalid reg name")
+	}
+	if name == 0 {
+		return regs.DefKilled, nil
+	}
+	if name == '+' {
+		err := EnsureClipboard()
+		if err != nil {
+			return nil, err
+		}
+		text := string(clipboard.Read(clipboard.FmtText))
+		text = strings.ReplaceAll(text, "\r\n", "\n")
+		return strings.Split(text, "\n"), nil
+	}
+	name = NormalizeRegName(name)
+	reg, ok := regs.Map[name]
+	if !ok {
+		return nil, nil
+	}
+	if reg.Shared {
+		err := regs.LoadContent(name)
+		if err != nil {
+			return nil, err
+		}
+		reg, _ = regs.Map[name]
+	}
+	return reg.Killed, nil
 }
 
 func (regs *Regs) Shared(name rune) bool {
+	if !IsValidRegName(name) {
+		return false
+	}
 	if name == 0 {
 		return false
 	}
+	if name == '+' {
+		return false
+	}
+	name = NormalizeRegName(name)
 	reg, ok := regs.Map[name]
 	if !ok {
 		return false
@@ -70,117 +161,133 @@ func (regs *Regs) Shared(name rune) bool {
 	return reg.Shared
 }
 
-func IsValidRegName(name rune) bool {
-	return name >= 'a' && name <= 'z'
-}
-
-func (regs *Regs) SetShared(name rune, shared bool) {
+func (regs *Regs) SetShared(name rune, shared bool) bool {
 	if !IsValidRegName(name) {
-		return
+		return false
 	}
-	reg, ok := regs.Map[name]
-	if !ok {
-		reg = &Reg{
-			Mode:   KillNone,
-			Killed: nil,
-			Shared: shared,
-		}
-		regs.SetReg(name, reg)
-		return
+	if name == 0 {
+		return true
 	}
+	if name == '+' {
+		return true
+	}
+	name = NormalizeRegName(name)
+	reg, _ := regs.Map[name]
 	reg.Shared = shared
+	regs.SetReg(name, reg)
+	return true
 }
 
-func ToDestRegName(name rune) rune {
-	if name < 'A' || name > 'Z' {
-		return 0
+func (regs *Regs) SetLines(name rune, killed []string, crlf bool) error {
+	if !IsValidRegName(name) {
+		return fmt.Errorf("Invalid reg name")
 	}
-	return name + 'a' - 'A'
-}
-
-func (regs *Regs) SetLines(name rune, killed []string) {
 	lines := append([]string{}, killed...)
 	regs.DefMode = KillLines
 	regs.DefKilled = lines
-
-	if !IsValidRegName(name) {
-		return
+	if name == 0 {
+		return nil
 	}
-
-	reg, ok := regs.Map[name]
-	if !ok {
-		reg = &Reg{
-			Mode:   KillLines,
-			Killed: lines,
-			Shared: false,
-		}
-		regs.SetReg(name, reg)
-		return
+	if name == '+' {
+		lines := append([]string{}, killed...)
+		lines = append(lines, "")
+		return regs.SetRunes(name, lines, crlf)
 	}
+	name = NormalizeRegName(name)
+	reg, _ := regs.Map[name]
 	reg.Mode = KillLines
 	reg.Killed = lines
+	regs.SetReg(name, reg)
+	if reg.Shared {
+		return regs.Save(name)
+	}
+	return nil
 }
 
-func (regs *Regs) SetRunes(name rune, killed []string) {
+func (regs *Regs) SetRunes(name rune, killed []string, crlf bool) error {
+	if !IsValidRegName(name) {
+		return fmt.Errorf("Invalid reg name")
+	}
 	lines := append([]string{}, killed...)
 	regs.DefMode = KillRunes
 	regs.DefKilled = lines
-
-	if !IsValidRegName(name) {
-		return
+	if name == 0 {
+		return nil
 	}
-
-	reg, ok := regs.Map[name]
-	if !ok {
-		reg = &Reg{
-			Mode:   KillRunes,
-			Killed: lines,
-			Shared: false,
+	if name == '+' {
+		err := EnsureClipboard()
+		if err != nil {
+			return err
 		}
-		regs.SetReg(name, reg)
-		return
+		text := strings.Join(killed, buf.LineSep(crlf))
+		clipboard.Write(clipboard.FmtText, []byte(text))
+		return nil
 	}
+	name = NormalizeRegName(name)
+	reg, _ := regs.Map[name]
 	reg.Mode = KillRunes
 	reg.Killed = lines
+	regs.SetReg(name, reg)
+	if reg.Shared {
+		return regs.Save(name)
+	}
+	return nil
 }
 
-func (regs *Regs) AddLines(name rune, killed []string) {
-	name = ToDestRegName(name)
-	if name == 0 {
-		return
+func (regs *Regs) AddLines(name rune, killed []string) error {
+	if !IsValidRegName(name) {
+		return fmt.Errorf("Invalid reg name")
 	}
+	if name == 0 {
+		return nil
+	}
+	if name == '+' {
+		return fmt.Errorf("Not supported")
+	}
+	name = NormalizeRegName(name)
 	reg, ok := regs.Map[name]
 	if !ok {
-		reg = &Reg{
+		reg = Reg{
 			Mode:   KillLines,
 			Killed: append([]string{}, killed...),
 			Shared: false,
 		}
 		regs.SetReg(name, reg)
-		return
+		return nil
 	}
 	if reg.Mode == KillLines {
 		reg.Killed = append(reg.Killed, killed...)
-		return
+	} else {
+		reg.Mode = KillLines
+		reg.Killed = append([]string{}, killed...)
 	}
-	reg.Mode = KillLines
-	reg.Killed = append([]string{}, killed...)
+	regs.SetReg(name, reg)
+	if reg.Shared {
+		return regs.Save(name)
+	}
+	return nil
 }
 
-func (regs *Regs) AddRunes(name rune, killed []string) {
-	name = ToDestRegName(name)
-	if name == 0 {
-		return
+func (regs *Regs) AddRunes(name rune, killed []string) error {
+	if !IsValidRegName(name) {
+		return fmt.Errorf("Invalid reg name")
 	}
+	if name == 0 {
+		return nil
+	}
+	if name == '+' {
+		return fmt.Errorf("Not supported")
+	}
+	name = NormalizeRegName(name)
 	reg, ok := regs.Map[name]
 	if !ok {
-		reg = &Reg{
+		reg = Reg{
 			Mode:   KillRunes,
 			Killed: append([]string{}, killed...),
 			Shared: false,
 		}
 		regs.SetReg(name, reg)
-		return
+		return nil
 	}
 	if reg.Mode == KillRunes {
 		lines := append([]string{}, reg.Killed[:len(reg.Killed)-1]...)
@@ -190,136 +297,35 @@ func (regs *Regs) AddRunes(name rune, killed []string) {
 			lines = append(lines, killed[1:]...)
 		}
 		reg.Killed = lines
-		return
+	} else {
+		reg.Mode = KillRunes
+		reg.Killed = append([]string{}, killed...)
 	}
-	reg.Mode = KillRunes
-	reg.Killed = append([]string{}, killed...)
-}
-
-func (regs *Regs) ApplyLines(name rune, killed []string) {
-	addName := ToDestRegName(name)
-	if addName != 0 {
-		regs.AddLines(name, killed)
-		return
+	regs.SetReg(name, reg)
+	if reg.Shared {
+		return regs.Save(name)
 	}
-	regs.SetLines(name, killed)
-}
-
-func (regs *Regs) ApplyRunes(name rune, killed []string) {
-	addName := ToDestRegName(name)
-	if addName != 0 {
-		regs.AddRunes(name, killed)
-		return
-	}
-	regs.SetRunes(name, killed)
-}
-
-func (ed *Editor) EnsureClipboard() error {
-	if ed.clipUsed {
-		return nil
-	}
-	if err := clipboard.Init(); err != nil {
-		return err
-	}
-	ed.clipUsed = true
 	return nil
 }
 
-func (ed *Editor) RegMode(name rune) KillMode {
-	if name == '+' {
-		if err := ed.EnsureClipboard(); err != nil {
-			ed.Error("%v", err)
-			return KillNone
-		}
-		return KillRunes
+func (regs *Regs) ApplyLines(name rune, killed []string, crlf bool) error {
+	if !IsValidRegName(name) {
+		return fmt.Errorf("Invalid reg name")
 	}
-
-	reg, ok := ed.regs.Map[name]
-	if ok && reg.Shared {
-		err := ed.regs.Load(name)
-		if err != nil {
-			ed.Error("%v", err)
-		}
+	normalized := NormalizeRegName(name)
+	if normalized != name {
+		return regs.AddLines(name, killed)
 	}
-
-	return ed.regs.Mode(name)
+	return regs.SetLines(name, killed, crlf)
 }
 
-func (ed *Editor) RegKilled(name rune) []string {
-	if name == '+' {
-		if err := ed.EnsureClipboard(); err != nil {
-			ed.Error("%v", err)
-			return []string{""}
-		}
-		text := string(clipboard.Read(clipboard.FmtText))
-		text = strings.ReplaceAll(text, "\r\n", "\n")
-		return strings.Split(text, "\n")
+func (regs *Regs) ApplyRunes(name rune, killed []string, crlf bool) error {
+	if !IsValidRegName(name) {
+		return fmt.Errorf("Invalid reg name")
 	}
-	return ed.regs.Killed(name)
-}
-
-func (ed *Editor) ApplyRegLines(name rune, killed []string) bool {
-	if name == '+' {
-		lines := append([]string{}, killed...)
-		lines = append(lines, "")
-		if !ed.ApplyRegRunes(name, lines) {
-			return false
-		}
-	} else {
-		ed.regs.ApplyLines(name, killed)
+	normalized := NormalizeRegName(name)
+	if normalized != name {
+		return regs.AddRunes(name, killed)
 	}
-
-	addName := ToDestRegName(name)
-	if name != 0 {
-		name = addName
-	}
-	reg, ok := ed.regs.Map[name]
-	if ok && reg.Shared {
-		err := ed.regs.Save(name)
-		if err != nil {
-			ed.Error("%v", err)
-		}
-	}
-
-	numLines := len(killed)
-	if numLines >= 5 {
-		ed.Message("%d lines yanked", numLines)
-	}
-	return true
-}
-
-func (ed *Editor) ApplyRegRunes(name rune, killed []string) bool {
-	if name == '+' {
-		if err := ed.EnsureClipboard(); err != nil {
-			ed.Error("%v", err)
-			return false
-		}
-		text := strings.Join(killed, buf.LineSep(ed.Buf().CRLF))
-		clipboard.Write(clipboard.FmtText, []byte(text))
-	} else {
-		ed.regs.ApplyRunes(name, killed)
-	}
-
-	addName := ToDestRegName(name)
-	if name != 0 {
-		name = addName
-	}
-	reg, ok := ed.regs.Map[name]
-	if ok && reg.Shared {
-		err := ed.regs.Save(name)
-		if err != nil {
-			ed.Error("%v", err)
-		}
-	}
-
-	numLines := len(killed)
-	if numLines >= 5 {
-		ed.Message("%d lines yanked", numLines)
-	} else if numLines == 1 {
-		rc := utf8.RuneCountInString(killed[0])
-		if rc >= 25 {
-			ed.Message("%d bytes, %d runes yanked", len(killed[0]), rc)
-		}
-	}
-	return true
+	return regs.SetRunes(name, killed, crlf)
 }

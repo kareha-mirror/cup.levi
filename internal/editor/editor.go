@@ -47,7 +47,6 @@ type Editor struct {
 	searchs  searchState
 	finds    findState
 	regs     Regs
-	clipUsed bool
 	lastCmd  cmd.Pair
 	undo     bool
 
