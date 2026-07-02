@@ -88,10 +88,10 @@ func (a Args) compileMove(sub bool) (Cmd, bool) {
 	case '-':
 		return Cmd{Kind: MoveBackwardByLine, Num: a.Num}, true
 	case 'G':
-		if a.NoNum {
-			return Cmd{Kind: MoveToLastLine}, true
-		} else {
+		if a.Has {
 			return Cmd{Kind: MoveToLine, Num: a.Num}, true
+		} else {
+			return Cmd{Kind: MoveToLastLine}, true
 		}
 
 	case ')':
@@ -106,18 +106,18 @@ func (a Args) compileMove(sub bool) (Cmd, bool) {
 	// MoveBySection and MoveBackwardBySection are compound
 
 	case 'H':
-		if a.NoNum {
-			return Cmd{Kind: MoveToTopOfView}, true
-		} else {
+		if a.Has {
 			return Cmd{Kind: MoveToBelowTopOfView, Num: a.Num}, true
+		} else {
+			return Cmd{Kind: MoveToTopOfView}, true
 		}
 	case 'M':
 		return Cmd{Kind: MoveToMiddleOfView}, true
 	case 'L':
-		if a.NoNum {
-			return Cmd{Kind: MoveToBottomOfView}, true
-		} else {
+		if a.Has {
 			return Cmd{Kind: MoveToAboveBottomOfView, Num: a.Num}, true
+		} else {
+			return Cmd{Kind: MoveToBottomOfView}, true
 		}
 
 	// XXX search pattern

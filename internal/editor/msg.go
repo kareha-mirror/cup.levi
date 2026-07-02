@@ -106,11 +106,11 @@ func (ed *Editor) Notice(format string, a ...any) {
 }
 
 func (ed *Editor) Unimplemented(name string) {
-	ed.Ring("Not implemented yet (" + name + ")")
+	ed.Ring("Not implemented yet (%s)", name)
 }
 
 func (ed *Editor) Unsupported(name string) {
-	ed.Ring("Unsupported (" + name + ")")
+	ed.Ring("Unsupported (%s)", name)
 }
 
 func (ed *Editor) ShowFileInfo() {

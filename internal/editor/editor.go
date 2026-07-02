@@ -22,17 +22,21 @@ const (
 )
 
 type Editor struct {
-	// config and state
+	// config
 	cfgDir string
 	cfg    *Config
+
+	// buffers
 	bufs   []*buf.Buf
 	bufIdx int
-	mode   Mode
-	alive  bool
-	msg    *Msg
 
-	// parser and input
-	parser   cmd.Parser
+	// state
+	alive bool
+	mode  Mode
+	msg   *Msg
+
+	// input
+	cmdInp   CmdInput
 	args     cmd.Args
 	cmdOk    bool
 	inp      Input
@@ -82,8 +86,9 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	ed := &Editor{
 		cfgDir: cfgDir,
 		cfg:    cfg,
-		alive:  true,
-		msg:    msg,
+
+		alive: true,
+		msg:   msg,
 
 		redraw: true,
 		colors: cs,
@@ -177,7 +182,7 @@ func (ed *Editor) Line(row int) string {
 }
 
 func (ed *Editor) Reset() {
-	ed.parser.ResetAll()
+	ed.cmdInp.ResetAll()
 	ed.args = cmd.Args{}
 }
 

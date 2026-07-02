@@ -266,7 +266,7 @@ func (ed *Editor) DrawStatus() {
 			mode = "ins:"
 		}
 
-		seq := ed.parser.Cache
+		seq := ed.cmdInp.LastString()
 		cursor := ""
 		if !ed.cmdOk {
 			cursor = "_"

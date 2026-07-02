@@ -13,14 +13,14 @@ func (ed *Editor) MainCommand(key termi.Key) {
 	switch key.Kind {
 	case termi.KeyRune:
 		if key.Rune == termi.RuneEscape {
-			if ed.parser.String() == "" {
+			if ed.cmdInp.String() == "" {
 				ed.Notice("Already in command mode")
 			}
 			ed.Reset()
 			return
 		}
 
-		if ed.parser.String() == "" {
+		if ed.cmdInp.String() == "" {
 			switch key.Rune {
 			case ':':
 				ed.Reset()
@@ -40,15 +40,15 @@ func (ed *Editor) MainCommand(key termi.Key) {
 		}
 
 		if key.Rune == termi.RuneBackspace || key.Rune == termi.RuneDelete {
-			if !ed.parser.Backspace() {
+			if !ed.cmdInp.Backspace() {
 				ed.Notice("No tokens left")
 				return
 			}
 		} else {
-			ed.parser.WriteRune(key.Rune)
+			ed.cmdInp.WriteRune(key.Rune)
 		}
 
-		a := ed.parser.Parse()
+		a := cmd.Parse(ed.cmdInp.buf)
 		ed.args = a
 		c, ok := a.Compile()
 		ed.cmdOk = ok
@@ -87,7 +87,7 @@ func (ed *Editor) MainCommand(key termi.Key) {
 				if _, ok := cmd.IsBufMove[c.Op.Kind]; !ok {
 					ed.bufMove = false
 				}
-				ed.parser.Reset()
+				ed.cmdInp.Reset()
 			} else {
 				ed.Error("Failed to run")
 				if _, ok := cmd.IsModifying[c.Op.Kind]; ok {

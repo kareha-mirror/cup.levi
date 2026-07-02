@@ -53,71 +53,39 @@ var isMove = map[rune]struct{}{
 	'g': {}, // XXX debug
 }
 
-type Parser struct {
-	buf   []rune
-	Cache string
-}
-
-func (p *Parser) String() string {
-	return string(p.buf)
-}
-
-func (p *Parser) WriteRune(r rune) {
-	p.buf = append(p.buf, r)
-	p.Cache = p.String()
-}
-
-func (p *Parser) Backspace() bool {
-	if len(p.buf) < 1 {
-		return false
-	}
-	p.buf = p.buf[:len(p.buf)-1]
-	p.Cache = p.String()
-	return true
-}
-
-func (p *Parser) Reset() {
-	p.buf = p.buf[:0]
-}
-
-func (p *Parser) ResetAll() {
-	p.Reset()
-	p.Cache = ""
-}
-
-func (p *Parser) Parse() Args {
+func Parse(buf []rune) Args {
 	a := Args{}
-	if len(p.buf) < 1 {
+	if len(buf) < 1 {
 		return a
 	}
 	i := 0
 
-	if p.buf[i] == '0' { // special
-		a.Mv = p.buf[i]
+	if buf[i] == '0' { // special
+		a.Mv = buf[i]
 		return a
 	}
 
 	// register
-	if p.buf[i] == '"' {
+	if buf[i] == '"' {
 		i++
-		if i < len(p.buf) {
-			a.Reg = p.buf[i]
+		if i < len(buf) {
+			a.Reg = buf[i]
 			i++
 		}
 	}
 
 	// main number
 	iPrev := i
-	for i < len(p.buf) {
-		if p.buf[i] < '0' || p.buf[i] > '9' {
+	for i < len(buf) {
+		if buf[i] < '0' || buf[i] > '9' {
 			break
 		}
 		i++
 	}
-	a.NoNum = i <= iPrev
+	a.Has = i > iPrev
 	a.Num = 1
 	if i > iPrev {
-		s := string(p.buf[iPrev:i])
+		s := string(buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
@@ -126,34 +94,34 @@ func (p *Parser) Parse() Args {
 	}
 
 	// register again
-	if a.Reg == 0 && i < len(p.buf) {
-		if p.buf[i] == '"' {
+	if a.Reg == 0 && i < len(buf) {
+		if buf[i] == '"' {
 			i++
-			if i < len(p.buf) {
-				a.Reg = p.buf[i]
+			if i < len(buf) {
+				a.Reg = buf[i]
 				i++
 			}
 		}
 	}
 
 	// rune command
-	if i < len(p.buf) {
-		_, ok := isRuneOp[p.buf[i]]
+	if i < len(buf) {
+		_, ok := isRuneOp[buf[i]]
 		if ok {
-			a.Op = p.buf[i]
-			if i+1 >= len(p.buf) {
+			a.Op = buf[i]
+			if i+1 >= len(buf) {
 				return a
 			}
-			a.Rune = p.buf[i+1]
+			a.Rune = buf[i+1]
 			return a
 		}
-		_, ok = isRuneMove[p.buf[i]]
+		_, ok = isRuneMove[buf[i]]
 		if ok {
-			a.Mv = p.buf[i]
-			if i+1 >= len(p.buf) {
+			a.Mv = buf[i]
+			if i+1 >= len(buf) {
 				return a
 			}
-			a.Rune = p.buf[i+1]
+			a.Rune = buf[i+1]
 			return a
 		}
 		if a.Rune != 0 {
@@ -164,11 +132,11 @@ func (p *Parser) Parse() Args {
 
 	// detect non number
 	iPrev = i
-	for i < len(p.buf) {
+	for i < len(buf) {
 		if i+1-iPrev == 2 {
 			break
 		}
-		if p.buf[i] >= '0' && p.buf[i] <= '9' {
+		if buf[i] >= '0' && buf[i] <= '9' {
 			break
 		}
 		i++
@@ -178,7 +146,7 @@ func (p *Parser) Parse() Args {
 	}
 
 	// detect motion command
-	a.Mv = p.buf[iPrev]
+	a.Mv = buf[iPrev]
 	_, ok := isMove[a.Mv]
 	if ok {
 		return a
@@ -190,30 +158,30 @@ func (p *Parser) Parse() Args {
 
 	// sub number
 	iPrev = i
-	for i < len(p.buf) {
-		if p.buf[i] < '0' || p.buf[i] > '9' {
+	for i < len(buf) {
+		if buf[i] < '0' || buf[i] > '9' {
 			break
 		}
 		i++
 	}
-	a.NoSubnum = i <= iPrev
-	a.Subnum = 1
+	a.HasSub = i > iPrev
+	a.SubNum = 1
 	if i > iPrev {
-		s := string(p.buf[iPrev:i])
+		s := string(buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
 		}
-		a.Subnum = n
+		a.SubNum = n
 	}
 
 	// rune motion command
-	if i < len(p.buf) {
-		_, ok := isRuneMove[p.buf[i]]
+	if i < len(buf) {
+		_, ok := isRuneMove[buf[i]]
 		if ok {
-			if i+1 < len(p.buf) {
-				a.Mv = p.buf[i]
-				a.Rune = p.buf[i+1]
+			if i+1 < len(buf) {
+				a.Mv = buf[i]
+				a.Rune = buf[i+1]
 				return a
 			}
 		}
@@ -221,8 +189,8 @@ func (p *Parser) Parse() Args {
 
 	// last motion command
 	if a.Mv == 0 {
-		if i < len(p.buf) {
-			a.Mv = p.buf[i]
+		if i < len(buf) {
+			a.Mv = buf[i]
 		}
 	}
 	return a

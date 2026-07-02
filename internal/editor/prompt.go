@@ -255,7 +255,7 @@ func (ed *Editor) PromptColors(name string) {
 
 	// colors : list registered colorschemes
 	if name == "" {
-		ed.Message(strings.Join(list.Names, " "))
+		ed.Message("%s", strings.Join(list.Names, " "))
 		return
 	}
 
@@ -309,7 +309,7 @@ func (ed *Editor) PromptMem() {
 	sb.WriteRune('\n')
 	sb.WriteString(fmt.Sprintf("NumGC     = % 6d\n", m.NumGC))
 
-	ed.Message(sb.String())
+	ed.Message("%s", sb.String())
 }
 
 // :hello Enter

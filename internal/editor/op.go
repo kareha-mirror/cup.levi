@@ -55,7 +55,7 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
-			ed.Ring("Buffer %s is empty", reg)
+			ed.Ring("Buffer %c is empty", reg)
 		}
 		return false
 	}
@@ -128,7 +128,7 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
-			ed.Ring("Buffer %s is empty", reg)
+			ed.Ring("Buffer %c is empty", reg)
 		}
 		return false
 	}

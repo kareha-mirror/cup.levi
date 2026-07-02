@@ -38,7 +38,7 @@ func (ed *Editor) Run(c cmd.Pair, replay bool) (bool, bool) {
 			return false, true
 		}
 
-		ed.Notice("Not a levi command [%s]", ed.parser.String())
+		ed.Notice("Not a levi command [%s]", ed.cmdInp.String())
 		return false, true
 	}
 

@@ -212,10 +212,10 @@ func (a Args) compileOp() (Pair, bool) {
 	//
 
 	case 0x1e, 0x1f: // Ctrl-^, Ctrl-_
-		if a.NoNum {
-			return Pair{Op: Cmd{Kind: LastBuf}}, true
-		} else {
+		if a.Has {
 			return Pair{Op: Cmd{Kind: GoToBuf, Num: a.Num}}, true
+		} else {
+			return Pair{Op: Cmd{Kind: LastBuf}}, true
 		}
 
 	//
