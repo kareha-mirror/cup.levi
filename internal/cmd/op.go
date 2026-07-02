@@ -1,7 +1,6 @@
 package cmd
 
-// Simple Commands
-func (a Args) compileOp() (Pair, bool) {
+func (a Args) parseOp() (Pair, bool) {
 	//
 	// Rune Commands
 	//
@@ -41,7 +40,7 @@ func (a Args) compileOp() (Pair, bool) {
 		return Pair{Op: Cmd{Kind: InsertLineAbove, Num: a.Num}}, true
 
 	case 'c':
-		mv, ok := a.sub().compileMove(true)
+		mv, ok := a.sub().parseMove(true)
 		if ok {
 			return Pair{
 				Reg: a.Reg,
@@ -90,7 +89,7 @@ func (a Args) compileOp() (Pair, bool) {
 			Op:  Cmd{Kind: DeleteBefore, Num: a.Num},
 		}, true
 	case 'd':
-		mv, ok := a.sub().compileMove(true)
+		mv, ok := a.sub().parseMove(true)
 		if ok {
 			return Pair{
 				Reg: a.Reg,
@@ -109,7 +108,7 @@ func (a Args) compileOp() (Pair, bool) {
 	case 'J':
 		return Pair{Op: Cmd{Kind: Join, Num: a.Num}}, true
 	case '>':
-		mv, ok := a.sub().compileMove(true)
+		mv, ok := a.sub().parseMove(true)
 		if ok {
 			attr, ok := AttrOf[mv.Kind]
 			if !ok {
@@ -129,7 +128,7 @@ func (a Args) compileOp() (Pair, bool) {
 		}
 		return Pair{}, false
 	case '<':
-		mv, ok := a.sub().compileMove(true)
+		mv, ok := a.sub().parseMove(true)
 		if ok {
 			attr, ok := AttrOf[mv.Kind]
 			if !ok {
@@ -157,7 +156,7 @@ func (a Args) compileOp() (Pair, bool) {
 	//
 
 	case 'y':
-		mv, ok := a.sub().compileMove(true)
+		mv, ok := a.sub().parseMove(true)
 		if ok {
 			return Pair{
 				Reg: a.Reg,

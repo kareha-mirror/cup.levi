@@ -53,7 +53,8 @@ var isMove = map[rune]struct{}{
 	'g': {}, // XXX debug
 }
 
-func Parse(buf []rune) Args {
+func Parse(input string) Args {
+	buf := []rune(input)
 	a := Args{}
 	if len(buf) < 1 {
 		return a

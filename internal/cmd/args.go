@@ -27,13 +27,13 @@ func (a Args) sub() Args {
 	return sub
 }
 
-// Compiles into command.
-func (a Args) Compile() (Pair, bool) {
-	op, ok := a.compileOp()
+// Parses into command.
+func (a Args) Parse() (Pair, bool) {
+	op, ok := a.parseOp()
 	if ok {
 		return op, true
 	}
-	mv, ok := a.compileMove(false)
+	mv, ok := a.parseMove(false)
 	if ok {
 		return Pair{Mv: mv}, true
 	}

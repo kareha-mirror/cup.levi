@@ -7,6 +7,7 @@ import (
 	"tea.kareha.org/cup/termi"
 
 	"tea.kareha.org/cup/levi/internal/cmd"
+	"tea.kareha.org/cup/levi/internal/prompt"
 )
 
 func (ed *Editor) MainCommand(key termi.Key) {
@@ -48,9 +49,9 @@ func (ed *Editor) MainCommand(key termi.Key) {
 			ed.cmdInp.WriteRune(key.Rune)
 		}
 
-		a := cmd.Parse(ed.cmdInp.buf)
+		a := cmd.Parse(ed.cmdInp.String())
 		ed.args = a
-		c, ok := a.Compile()
+		c, ok := a.Parse()
 		ed.cmdOk = ok
 		if ok {
 			b := ed.Buf()
@@ -142,20 +143,19 @@ func (ed *Editor) MainPrompt(key termi.Key) {
 			ed.prompt.Reset()
 			ed.mode = ModeCommand
 		case termi.RuneEnter, termi.RuneNewline:
-			c, ok := ed.ParsePrompt()
-			ed.prompt.Reset()
+			c, ok := prompt.Parse(ed.prompt.String())
 			if ok {
-				ok = ed.RunPrompt(c)
-				if !ok {
-					ed.Error("Prompt command failed")
-				}
-				// reset buffer select mode
-				if _, ok := IsBufMovePcmd[c.Kind]; !ok {
-					ed.bufMove = false
-				}
-			} else {
-				ed.mode = ModeCommand
+				ed.prompt.Reset()
 			}
+			ok = ed.RunPrompt(c)
+			if !ok {
+				//ed.Error("Prompt command failed")
+			}
+			// reset buffer select mode
+			if _, ok := prompt.IsBufMove[c.Kind]; !ok {
+				ed.bufMove = false
+			}
+			ed.mode = ModeCommand
 		case termi.RuneBackspace, termi.RuneDelete:
 			if !ed.prompt.RemoveTail() {
 				ed.mode = ModeCommand

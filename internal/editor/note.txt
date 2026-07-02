@@ -19,8 +19,6 @@ move.go
 msg.go
 note.txt # myself
 op.go
-pcmd.go
-pparser.go
 prompt.go
 prun.go
 reg.go - see planned and enhancements

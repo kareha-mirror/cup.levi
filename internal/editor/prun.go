@@ -1,84 +1,93 @@
 package editor
 
-func (ed *Editor) RunPrompt(c Pcmd) bool {
+import (
+	"tea.kareha.org/cup/levi/internal/prompt"
+)
+
+func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 	ed.Commit()
 	switch c.Kind {
 
-	case PcmdMoveToLine:
+	case prompt.MoveToLine:
 		ed.PromptMoveToLine(c.Num)
 		return true
 
-	case PcmdSaveAndQuit:
+	case prompt.SaveAndQuit:
 		ed.PromptSaveAndQuit()
 		return true
-	case PcmdSave:
+	case prompt.Save:
 		ed.PromptSave(c.Name)
 		return true
-	case PcmdForceSave:
+	case prompt.ForceSave:
 		ed.PromptForceSave(c.Name)
 		return true
-	case PcmdQuit:
+	case prompt.Quit:
 		ed.PromptQuit()
 		return true
-	case PcmdForceQuit:
+	case prompt.ForceQuit:
 		ed.PromptForceQuit()
 		return true
-	case PcmdLoad:
+	case prompt.Load:
 		ed.PromptLoad(c.Name)
 		return true
-	case PcmdForceLoad:
+	case prompt.ForceLoad:
 		ed.PromptForceLoad(c.Name)
 		return true
-	case PcmdRead:
+	case prompt.Read:
 		ed.PromptRead()
 		return true
-	case PcmdNext:
+	case prompt.Next:
 		ed.NextBuf()
 		return true
-	case PcmdPrev:
+	case prompt.Prev:
 		ed.PrevBuf()
 		return true
 
-	case PcmdShell:
+	case prompt.Shell:
 		ed.PromptShell()
 		return true
 
-	case PcmdSaveAll:
+	case prompt.SaveAll:
 		ed.PromptSaveAll()
 		return true
-	case PcmdQuitAll:
+	case prompt.QuitAll:
 		ed.PromptQuitAll()
 		return true
-	case PcmdForceQuitAll:
+	case prompt.ForceQuitAll:
 		ed.PromptForceQuitAll()
 		return true
 
-	case PcmdTabStop:
+	case prompt.TabStop:
 		ed.PromptTabStop(c.Num)
 		return true
-	case PcmdAutoIndent:
+	case prompt.AutoIndent:
 		ed.PromptAutoIndent()
 		return true
-	case PcmdNoAutoIndent:
+	case prompt.NoAutoIndent:
 		ed.PromptNoAutoIndent()
 		return true
 
-	case PcmdOpen:
+	case prompt.Open:
 		ed.PromptOpen(c.Name)
 		return true
-	case PcmdNewline:
+	case prompt.Newline:
 		ed.PromptNewline(c.Name)
 		return true
-	case PcmdColors:
+	case prompt.Colors:
 		ed.PromptColors(c.Name)
 		return true
 
-	case PcmdMem:
+	case prompt.Mem:
 		ed.PromptMem()
 		return true
-	case PcmdHello:
+	case prompt.Hello:
 		ed.PromptHello(c.Num)
 		return true
+
+	case prompt.Ring:
+		ed.Ring("%s", c.Name)
+	case prompt.Error:
+		ed.Error("%s", c.Name)
 
 	}
 	return false

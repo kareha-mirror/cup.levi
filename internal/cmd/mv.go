@@ -1,6 +1,6 @@
 package cmd
 
-func (a Args) compileMove(sub bool) (Cmd, bool) {
+func (a Args) parseMove(sub bool) (Cmd, bool) {
 	if a.Rune != 0 {
 		switch a.Mv {
 

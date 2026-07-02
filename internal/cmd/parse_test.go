@@ -20,7 +20,7 @@ func TestParse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotArgs := Parse([]rune(tt.input))
+			gotArgs := Parse(tt.input)
 			if gotArgs != tt.wantArgs {
 				t.Errorf(
 					"Parse([]rune(\"%s\") = %v; wanted %v",

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestCompile(t *testing.T) {
+func TestParseArgs(t *testing.T) {
 	tests := []struct {
 		name     string
 		args     Args
@@ -16,10 +16,10 @@ func TestCompile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotPair, gotOk := tt.args.Compile()
+			gotPair, gotOk := tt.args.Parse()
 			if gotPair != tt.wantPair || gotOk != tt.wantOk {
 				t.Errorf(
-					"%v.Compile() = %v, %v; wanted %v, %v",
+					"%v.Parse() = %v, %v; wanted %v, %v",
 					tt.args, gotPair, gotOk, tt.wantPair, tt.wantOk,
 				)
 			}
