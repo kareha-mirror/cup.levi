@@ -7,6 +7,7 @@ import (
 	"golang.design/x/clipboard"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/internal/config"
 )
 
 type KillMode int
@@ -213,7 +214,7 @@ func (regs *Regs) ApplyRunes(name rune, killed []string) {
 	regs.SetRunes(name, killed)
 }
 
-func (regs *Regs) SyncWithConfig(cfg *Config) {
+func (regs *Regs) SyncWithConfig(cfg *config.Config) {
 	for _, reg := range regs.Map {
 		reg.Shared = false
 	}

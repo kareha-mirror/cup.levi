@@ -9,6 +9,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/cmd"
 	"tea.kareha.org/cup/levi/internal/color"
+	"tea.kareha.org/cup/levi/internal/config"
 	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
@@ -24,7 +25,7 @@ const (
 type Editor struct {
 	// config
 	cfgDir string
-	cfg    *Config
+	cfg    *config.Config
 
 	// buffers
 	bufs   []*buf.Buf
@@ -71,7 +72,7 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 	msg := new(Msg)
 
 	// load config file
-	cfg, err := PrepareConfig(cfgDir)
+	cfg, err := config.Prepare(cfgDir)
 	if err != nil {
 		msg.Error("%v", err)
 	}

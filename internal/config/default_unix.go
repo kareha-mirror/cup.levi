@@ -1,8 +1,8 @@
 //go:build unix
 
-package editor
+package config
 
-func DefaultConfig() *Config {
+func Default() *Config {
 	return &Config{
 		AutoIndent: true,
 		TabStop:    4,

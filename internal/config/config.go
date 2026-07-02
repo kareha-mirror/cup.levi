@@ -1,4 +1,4 @@
-package editor
+package config
 
 import (
 	"os"
@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const ConfigFilename = "editor.yaml"
+const Filename = "editor.yaml"
 
 type Config struct {
 	AutoIndent bool `yaml:"auto-indent"`
@@ -22,12 +22,12 @@ type Config struct {
 	EscapeTimeout int `yaml:"escape-timeout"`
 }
 
-func ConfigPath(cfgDir string) string {
-	return filepath.Join(cfgDir, ConfigFilename)
+func Path(cfgDir string) string {
+	return filepath.Join(cfgDir, Filename)
 }
 
-func LoadConfig(cfgDir string) (*Config, error) {
-	path := ConfigPath(cfgDir)
+func Load(cfgDir string) (*Config, error) {
+	path := Path(cfgDir)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func LoadConfig(cfgDir string) (*Config, error) {
 	return &cfg, nil
 }
 
-func SaveConfig(cfgDir string, cfg *Config) error {
-	path := ConfigPath(cfgDir)
+func Save(cfgDir string, cfg *Config) error {
+	path := Path(cfgDir)
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
@@ -57,18 +57,18 @@ func SaveConfig(cfgDir string, cfg *Config) error {
 }
 
 // return default on error
-func PrepareConfig(cfgDir string) (*Config, error) {
-	path := ConfigPath(cfgDir)
+func Prepare(cfgDir string) (*Config, error) {
+	path := Path(cfgDir)
 	_, err := os.Stat(path)
 	if err == nil {
-		cfg, err := LoadConfig(cfgDir)
+		cfg, err := Load(cfgDir)
 		if err != nil {
-			return DefaultConfig(), err
+			return Default(), err
 		}
 		return cfg, nil
 	} else {
-		cfg := DefaultConfig()
-		err := SaveConfig(cfgDir, cfg)
+		cfg := Default()
+		err := Save(cfgDir, cfg)
 		return cfg, err
 	}
 }
