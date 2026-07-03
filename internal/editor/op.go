@@ -217,8 +217,21 @@ func (ed *Editor) DeleteBefore(reg rune, n int) bool {
 		ed.Error("DeleteBefore: n < 1")
 		return false
 	}
-	ed.Unimplemented("DeleteBefore")
-	return false
+	b := ed.Buf()
+	if n > b.Loc.Col {
+		n = b.Loc.Col
+	}
+	if n < 1 {
+		ed.Notice("Nothing to delete")
+		return false
+	}
+	b.Loc.Col -= n
+	if !ed.internalDelete(reg, n) {
+		ed.Notice("Nothing to delete")
+		return false
+	}
+	b.Loc = b.ConfineInclusive(b.Loc)
+	return true
 }
 
 // d<mv> : Delete region from current cursor to destination of motion <mv>.

@@ -29,6 +29,7 @@ const (
 	Shell
 
 	SaveAll
+	ForceSaveAll
 	QuitAll
 	ForceQuitAll
 

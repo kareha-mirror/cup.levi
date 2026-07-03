@@ -306,6 +306,6 @@ func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
 // Switches to insert mode and overwrites current line.
 // Key: R
 func (ed *Editor) Overwrite() bool {
-	ed.Unsupported("Overwrite")
+	ed.Unsupported("Overwrite") // Unimplemented
 	return false
 }

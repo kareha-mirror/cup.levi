@@ -185,6 +185,7 @@ func (ed *Editor) Line(row int) string {
 func (ed *Editor) Reset() {
 	ed.cmdInp.ResetAll()
 	ed.args = cmd.Args{}
+	ed.cmdOk = false
 }
 
 func (ed *Editor) Commit() {

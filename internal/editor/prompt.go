@@ -167,7 +167,41 @@ func (ed *Editor) PromptShell() {
 
 // :wa Enter : Save all files.
 func (ed *Editor) PromptSaveAll() {
-	ed.Unimplemented("PromptSaveAll")
+	bufIdx := ed.bufIdx
+	for i := 0; i < ed.NumBufs(); i++ {
+		ed.bufIdx = i
+		b := ed.Buf()
+		if b.Modified {
+			if !ed.Save(false) {
+				break
+			}
+		} else {
+			if b.Path == "" {
+				ed.Message("(memory) is not modified")
+			} else {
+				ed.Message("%s is not modified", b.Path)
+			}
+		}
+	}
+	if ed.bufIdx < ed.NumBufs()-1 {
+		ed.Ring("Not all files processed") // levi
+	}
+	ed.bufIdx = bufIdx
+}
+
+// :wa! Enter : Save all files.
+func (ed *Editor) PromptForceSaveAll() {
+	bufIdx := ed.bufIdx
+	for i := 0; i < ed.NumBufs(); i++ {
+		ed.bufIdx = i
+		if !ed.Save(true) {
+			break
+		}
+	}
+	if ed.bufIdx < ed.NumBufs()-1 {
+		ed.Ring("Not all files processed") // levi
+	}
+	ed.bufIdx = bufIdx
 }
 
 // :qa Enter : Close all files and quit editor.

@@ -83,6 +83,8 @@ func Parse(prompt string) (Cmd, bool) {
 
 	case "wa":
 		return Cmd{Kind: SaveAll}, true
+	case "wa!":
+		return Cmd{Kind: ForceSaveAll}, true
 	case "qa":
 		return Cmd{Kind: QuitAll}, true
 	case "qa!":

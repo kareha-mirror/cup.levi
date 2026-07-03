@@ -12,7 +12,6 @@ import (
 
 // Ctrl-G : Show info about states of current buffer.
 func (ed *Editor) ShowInfo() {
-	// don't send info directly as format, which can have % character
 	ed.Message("%s", ed.Buf().Info())
 }
 

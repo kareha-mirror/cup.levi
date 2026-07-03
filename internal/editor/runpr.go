@@ -50,6 +50,9 @@ func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 	case prompt.SaveAll:
 		ed.PromptSaveAll()
 		return true
+	case prompt.ForceSaveAll:
+		ed.PromptForceSaveAll()
+		return true
 	case prompt.QuitAll:
 		ed.PromptQuitAll()
 		return true
