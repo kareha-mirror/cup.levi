@@ -171,7 +171,12 @@ func (ed *Editor) PromptShell() {
 		shell = DefaultShell
 	}
 	cmd := exec.Command(shell)
-	setup(cmd)
+	stdio, err := termi.DupStdio()
+	if err != nil {
+		ed.Error("%v", err)
+		return
+	}
+	stdio.AttachTo(cmd)
 
 	termi.StopKey()
 	fmt.Print(termi.Clear)
@@ -180,8 +185,8 @@ func (ed *Editor) PromptShell() {
 	termi.Cooked()
 	fmt.Print(termi.ShowCursor)
 
-	err := cmd.Run()
-	terminate()
+	err = cmd.Run()
+	stdio.Close()
 
 	fmt.Print(termi.HideCursor)
 	termi.Raw()
