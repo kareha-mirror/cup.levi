@@ -1,10 +1,10 @@
 package editor
 
 import (
-	"os"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/levi/internal/buf"
+	"tea.kareha.org/cup/levi/lock"
 )
 
 // Creates new buffer and place it last of buffer list.
@@ -83,7 +83,15 @@ func (ed *Editor) Load(path string, force bool) bool {
 	if path == "" {
 		return true
 	}
-	info, err := os.Stat(path)
+
+	err := lock.Lock(ed.cfgDir)
+	if err != nil {
+		ed.Error("%v", err)
+		return false
+	}
+	defer lock.Unlock(ed.cfgDir)
+
+	info, err := ed.hooks.Stat(path)
 	if err != nil {
 		return true
 	}
@@ -92,7 +100,7 @@ func (ed *Editor) Load(path string, force bool) bool {
 		Size: info.Size(),
 	}
 
-	data, err := os.ReadFile(path)
+	data, err := ed.hooks.ReadFile(path)
 	if err != nil {
 		ed.Error("%v", err)
 		return false
@@ -120,7 +128,15 @@ func (ed *Editor) SaveAs(path string, force bool) bool {
 		ed.Ring("No filename specified")
 		return false
 	}
-	info, err := os.Stat(path)
+
+	err := lock.Lock(ed.cfgDir)
+	if err != nil {
+		ed.Error("%v", err)
+		return false
+	}
+	defer lock.Unlock(ed.cfgDir)
+
+	info, err := ed.hooks.Stat(path)
 	newFile := ""
 	stamp := buf.Stamp{}
 	if err != nil {
@@ -142,12 +158,12 @@ func (ed *Editor) SaveAs(path string, force bool) bool {
 	}
 
 	text := b.Text(b.CRLF)
-	err = os.WriteFile(path, []byte(text), 0666)
+	err = ed.hooks.WriteFile(path, []byte(text), 0666)
 	if err != nil {
 		ed.Error("%v", err)
 		return false
 	}
-	info, err = os.Stat(path)
+	info, err = ed.hooks.Stat(path)
 	if err != nil {
 		ed.Error("%v", err)
 		return false

@@ -8,17 +8,20 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"tea.kareha.org/cup/levi/internal/fsys"
+	"tea.kareha.org/cup/levi/lock"
 )
 
 var SharedDirName = "kills"
+
+var ReadFile func(string) ([]byte, error) = os.ReadFile
+var WriteFile func(string, []byte, os.FileMode) error = os.WriteFile
 
 type meta struct {
 	lines bool `yaml:"lines"`
 }
 
 func loadMeta(path string) (meta, error) {
-	data, err := os.ReadFile(path)
+	data, err := ReadFile(path)
 	if err != nil {
 		return meta{}, err
 	}
@@ -38,7 +41,7 @@ func (m *meta) save(path string) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(path, data, 0666)
+	err = WriteFile(path, data, 0666)
 	if err != nil {
 		return err
 	}
@@ -72,11 +75,11 @@ func (s *Store) loadMeta(name rune) error {
 		return fmt.Errorf("Slot not found")
 	}
 
-	err := fsys.Lock(s.cfgDir)
+	err := lock.Lock(s.cfgDir)
 	if err != nil {
 		return err
 	}
-	defer fsys.Unlock(s.cfgDir)
+	defer lock.Unlock(s.cfgDir)
 
 	metaPath := s.sharedMetaPath(name)
 	m, err := loadMeta(metaPath)
@@ -102,14 +105,14 @@ func (s *Store) loadContent(name rune) error {
 		return fmt.Errorf("Slot not found")
 	}
 
-	err := fsys.Lock(s.cfgDir)
+	err := lock.Lock(s.cfgDir)
 	if err != nil {
 		return err
 	}
-	defer fsys.Unlock(s.cfgDir)
+	defer lock.Unlock(s.cfgDir)
 
 	textPath := s.sharedTextPath(name)
-	data, err := os.ReadFile(textPath)
+	data, err := ReadFile(textPath)
 	if err != nil {
 		return err
 	}
@@ -130,11 +133,11 @@ func (s *Store) save(name rune) error {
 		return fmt.Errorf("Slot not found")
 	}
 
-	err := fsys.Lock(s.cfgDir)
+	err := lock.Lock(s.cfgDir)
 	if err != nil {
 		return err
 	}
-	defer fsys.Unlock(s.cfgDir)
+	defer lock.Unlock(s.cfgDir)
 
 	m := meta{lines: sl.mode == Lines}
 	metaPath := s.sharedMetaPath(name)
@@ -149,7 +152,7 @@ func (s *Store) save(name rune) error {
 		return err
 	}
 	text := strings.Join(sl.content, "\n") + "\n"
-	err = os.WriteFile(textPath, []byte(text), 0666)
+	err = WriteFile(textPath, []byte(text), 0666)
 	if err != nil {
 		return err
 	}

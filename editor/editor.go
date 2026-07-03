@@ -27,6 +27,7 @@ type Editor struct {
 	// config
 	cfgDir string
 	cfg    *config.Config
+	hooks  Hooks
 
 	// buffers
 	bufs   []*buf.Buf
@@ -67,7 +68,7 @@ type Editor struct {
 	bufMove    bool
 }
 
-func Init(cfgDir string, paths []string) (*Editor, error) {
+func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	// for storing bootup errors
 	msg := new(Msg)
 
@@ -83,10 +84,15 @@ func Init(cfgDir string, paths []string) (*Editor, error) {
 		msg.Error("%v", err)
 	}
 
+	// setup hooks
+	kill.ReadFile = hooks.ReadKillFile
+	kill.WriteFile = hooks.WriteKillFile
+
 	// create and init editor struct
 	ed := &Editor{
 		cfgDir: cfgDir,
 		cfg:    cfg,
+		hooks:  hooks,
 
 		alive: true,
 		msg:   msg,

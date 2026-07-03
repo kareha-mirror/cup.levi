@@ -1,4 +1,4 @@
-package fsys
+package lock
 
 import (
 	"fmt"
