@@ -2,6 +2,8 @@ package editor
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 
@@ -160,9 +162,36 @@ func (ed *Editor) PromptRead() {
 	ed.Unimplemented("PromptRead")
 }
 
+var DefaultShell = "/bin/sh"
+
 // :sh Enter : Execute shell.
 func (ed *Editor) PromptShell() {
-	ed.Unimplemented("PromptShell")
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = DefaultShell
+	}
+	cmd := exec.Command(shell)
+	setup(cmd)
+
+	termi.StopKey()
+	fmt.Print(termi.Clear)
+	fmt.Print(termi.HomeCursor)
+	fmt.Printf(termi.ResetAlternate)
+	termi.Cooked()
+	fmt.Print(termi.ShowCursor)
+
+	err := cmd.Run()
+	terminate()
+
+	fmt.Print(termi.HideCursor)
+	termi.Raw()
+	fmt.Printf(termi.SetAlternate)
+	termi.StartKey()
+	ed.redraw = true
+
+	if err != nil {
+		ed.Error("%v", err)
+	}
 }
 
 // :wa Enter : Save all files.
