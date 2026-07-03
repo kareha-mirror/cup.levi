@@ -32,7 +32,7 @@ var AttrOf = map[Kind]Attr{
 	MoveByLine:         {Linewise: true},
 	MoveBackwardByLine: {Linewise: true},
 	MoveToLastLine:     {Linewise: true},
-	MoveToLine:         {Linewise: true},
+	MoveToLine:         {Linewise: true, Locate: true},
 
 	MoveBySentence:          {Linewise: true},
 	MoveBackwardBySentence:  {Linewise: true},
@@ -47,10 +47,10 @@ var AttrOf = map[Kind]Attr{
 	MoveToBelowTopOfView:    {Linewise: true},
 	MoveToAboveBottomOfView: {Linewise: true},
 
-	MoveToMark:     {},
-	MoveToMarkLine: {Linewise: true},
-	BackToMark:     {},
-	BackToMarkLine: {Linewise: true},
+	MoveToMark:     {Locate: true},
+	MoveToMarkLine: {Linewise: true, Locate: true},
+	BackToMark:     {Locate: true},
+	BackToMarkLine: {Linewise: true, Locate: true},
 
 	Search:               {Locate: true},
 	SearchBackward:       {Locate: true},

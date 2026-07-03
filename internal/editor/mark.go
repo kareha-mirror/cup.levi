@@ -48,12 +48,20 @@ func (ed *Editor) MoveToMarkLine(r rune) (buf.Loc, bool) {
 
 // “ : Move cursor to previous position in context.
 func (ed *Editor) BackToMark() (buf.Loc, bool) {
-	ed.Unimplemented("MoveBackToMark")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Context
+	bLoc := b.Loc
+	b.Context = bLoc
+	return loc, true
 }
 
 // ” : Move cursor to previous line in context.
 func (ed *Editor) BackToMarkLine() (buf.Loc, bool) {
-	ed.Unimplemented("MarkBackToLine")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Context
+	loc.Col = b.NonBlankColOfLine(loc.Row)
+	bLoc := b.Loc
+	bLoc.Col = b.NonBlankColOfLine(bLoc.Row)
+	b.Context = bLoc
+	return loc, true
 }

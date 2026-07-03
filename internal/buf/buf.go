@@ -36,7 +36,9 @@ type Buf struct {
 	NewFile bool
 	CRLF    bool
 
-	Marks map[rune]Loc
+	Marks   map[rune]Loc
+	Context Loc
+
 	ss    snaps
 	Depth int
 
