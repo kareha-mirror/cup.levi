@@ -10,6 +10,13 @@ type FileInfo struct {
 	modTime time.Time
 }
 
+func NewFileInfo(size int64, modTime time.Time) FileInfo {
+	return FileInfo{
+		size:    size,
+		modTime: modTime,
+	}
+}
+
 func (fi *FileInfo) Size() int64 {
 	return fi.size
 }
