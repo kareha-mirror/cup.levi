@@ -43,6 +43,8 @@ type Hooks struct {
 
 	ReadKillFile  func(string) ([]byte, error)
 	WriteKillFile func(string, []byte, os.FileMode) error
+
+	Shell func() error
 }
 
 func DefaultHooks() Hooks {

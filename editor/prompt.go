@@ -166,6 +166,28 @@ var DefaultShell = "/bin/sh"
 
 // :sh Enter : Execute shell.
 func (ed *Editor) PromptShell() {
+	if ed.hooks.Shell != nil {
+		termi.StopKey()
+		fmt.Print(termi.Clear)
+		fmt.Print(termi.HomeCursor)
+		fmt.Printf(termi.ResetAlternate)
+		termi.Cooked()
+		fmt.Print(termi.ShowCursor)
+
+		err := ed.hooks.Shell()
+
+		fmt.Print(termi.HideCursor)
+		termi.Raw()
+		fmt.Printf(termi.SetAlternate)
+		termi.StartKey()
+		ed.redraw = true
+
+		if err != nil {
+			ed.Error("%v", err)
+		}
+		return
+	}
+
 	shell := os.Getenv("SHELL")
 	if shell == "" {
 		shell = DefaultShell
