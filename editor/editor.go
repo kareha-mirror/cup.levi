@@ -5,13 +5,15 @@ import (
 	"time"
 
 	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/rbuf"
+	"tea.kareha.org/cup/termi/rkind"
+	"tea.kareha.org/cup/termi/suspend"
 
 	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/cmd"
 	"tea.kareha.org/cup/levi/internal/color"
 	"tea.kareha.org/cup/levi/internal/config"
 	"tea.kareha.org/cup/levi/internal/kill"
-	"tea.kareha.org/cup/levi/internal/rkind"
 )
 
 type Mode int
@@ -45,7 +47,7 @@ type Editor struct {
 	inp      Input
 	inpRow   int // 0-based
 	inserted []string
-	prompt   termi.RuneBuf
+	prompt   rbuf.RuneBuf
 	searchs  searchState
 	finds    findState
 	kills    kill.Store
@@ -117,13 +119,13 @@ func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	// init terminal framework and terminal state
 	termi.Raw()
 	fmt.Print(termi.SetAlternate)
-	err = termi.StartKey() // setup key handler
+	err = termi.InitKey() // setup key handler
 	if err != nil {
 		fmt.Print(termi.ResetAlternate)
 		termi.Cooked()
 		return nil, err
 	}
-	termi.StartSig() // setup signal handler
+	suspend.Init() // setup signal handler
 
 	// init escape key indicator
 	listener := func(esc bool) {
@@ -158,8 +160,8 @@ func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 func (ed *Editor) Finish() error {
 	// shutdown terminal framework
 	termi.SetEscapeListener(nil)
-	termi.StopSig()
-	err := termi.StopKey()
+	suspend.Finish()
+	err := termi.FinishKey()
 
 	// reset terminal mode
 	fmt.Print(termi.Clear)

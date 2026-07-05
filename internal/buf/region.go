@@ -3,7 +3,7 @@ package buf
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/cup/levi/internal/rutil"
+	"tea.kareha.org/cup/termi/rutil"
 )
 
 // not care if inclusive or not

@@ -1,7 +1,7 @@
 package editor
 
 import (
-	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/suspend"
 
 	"tea.kareha.org/cup/levi/internal/cmd"
 )
@@ -94,5 +94,5 @@ func (ed *Editor) SaveAndClose() {
 
 // Ctrl-Z : Suspend editor process.
 func (ed *Editor) Suspend() {
-	termi.Suspend()
+	suspend.Suspend()
 }

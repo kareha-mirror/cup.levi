@@ -1,8 +1,9 @@
 package editor
 
 import (
+	"tea.kareha.org/cup/termi/rutil"
+
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 type findState struct {

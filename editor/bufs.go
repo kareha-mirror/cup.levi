@@ -3,8 +3,9 @@ package editor
 import (
 	"unicode/utf8"
 
+	"tea.kareha.org/cup/termi/lock"
+
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/termi"
 )
 
 // Creates new buffer and place it last of buffer list.
@@ -84,12 +85,12 @@ func (ed *Editor) Load(path string, force bool) bool {
 		return true
 	}
 
-	err := termi.Lock(ed.cfgDir)
+	err := lock.Lock(ed.cfgDir)
 	if err != nil {
 		ed.Error("%v", err)
 		return false
 	}
-	defer termi.Unlock(ed.cfgDir)
+	defer lock.Unlock(ed.cfgDir)
 
 	info, err := ed.hooks.Stat(path)
 	if err != nil {
@@ -129,12 +130,12 @@ func (ed *Editor) SaveAs(path string, force bool) bool {
 		return false
 	}
 
-	err := termi.Lock(ed.cfgDir)
+	err := lock.Lock(ed.cfgDir)
 	if err != nil {
 		ed.Error("%v", err)
 		return false
 	}
-	defer termi.Unlock(ed.cfgDir)
+	defer lock.Unlock(ed.cfgDir)
 
 	info, err := ed.hooks.Stat(path)
 	newFile := ""

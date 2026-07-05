@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/suspend"
 
 	"tea.kareha.org/cup/levi/internal/cmd"
 	"tea.kareha.org/cup/levi/internal/prompt"
@@ -224,23 +225,23 @@ func (ed *Editor) Main() error {
 			case ModeSearch:
 				ed.MainSearch(key)
 			}
-		case sig := <-termi.Sigs():
-			if sig == termi.SigStop {
+		case sig := <-suspend.Sigs():
+			if sig == suspend.SigStop {
 				fmt.Print(termi.Clear)
 				fmt.Print(termi.HomeCursor)
-				termi.StopKey()
+				termi.FinishKey()
 				fmt.Print(termi.ResetAlternate)
 				termi.Cooked()
 				fmt.Print(termi.ShowCursor)
 				ed.redraw = true
 
-				termi.ForceSuspend()
+				suspend.ForceSuspend()
 				for {
-					sig := <-termi.Sigs()
-					if sig == termi.SigCont {
+					sig := <-suspend.Sigs()
+					if sig == suspend.SigCont {
 						termi.Raw()
 						fmt.Print(termi.SetAlternate)
-						termi.StartKey()
+						termi.InitKey()
 						break
 					}
 				}

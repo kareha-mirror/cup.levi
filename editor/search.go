@@ -4,15 +4,15 @@ import (
 	"regexp"
 	"unicode/utf8"
 
-	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/rbuf"
+	"tea.kareha.org/cup/termi/rutil"
 
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 type searchState struct {
 	backward bool
-	pattern  termi.RuneBuf
+	pattern  rbuf.RuneBuf
 	regexp   *regexp.Regexp
 }
 

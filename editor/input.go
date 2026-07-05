@@ -3,22 +3,21 @@ package editor
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/cup/termi"
-
-	"tea.kareha.org/cup/levi/internal/rkind"
-	"tea.kareha.org/cup/levi/internal/rutil"
+	"tea.kareha.org/cup/termi/rbuf"
+	"tea.kareha.org/cup/termi/rkind"
+	"tea.kareha.org/cup/termi/rutil"
 )
 
 type Input struct {
 	head, tail string
-	bodies     []termi.RuneBuf
+	bodies     []rbuf.RuneBuf
 	offset     int
 }
 
 func (inp *Input) Reset() {
 	inp.head = ""
 	inp.tail = ""
-	inp.bodies = []termi.RuneBuf{termi.RuneBuf{}}
+	inp.bodies = []rbuf.RuneBuf{rbuf.RuneBuf{}}
 	inp.offset = 0
 }
 
@@ -32,7 +31,7 @@ func (inp *Input) Init(line string, col int, ai bool) {
 	}
 }
 
-func (inp *Input) body() *termi.RuneBuf {
+func (inp *Input) body() *rbuf.RuneBuf {
 	return &inp.bodies[len(inp.bodies)-1]
 }
 
@@ -98,7 +97,7 @@ func (inp *Input) Newline(ai bool) {
 			indent = rkind.IndentOf(inp.bodies[len(inp.bodies)-1].String())
 		}
 	}
-	body := termi.RuneBuf{}
+	body := rbuf.RuneBuf{}
 	body.WriteString(indent)
 	inp.bodies = append(inp.bodies, body)
 	if ai {

@@ -4,9 +4,10 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"tea.kareha.org/cup/termi/rutil"
+
 	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/kill"
-	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 //////////////////////////////////////

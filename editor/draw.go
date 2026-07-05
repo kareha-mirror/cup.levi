@@ -6,9 +6,9 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/rutil"
 
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/levi/internal/rutil"
 )
 
 type ViewMeta struct {

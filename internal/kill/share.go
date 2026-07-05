@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/lock"
 )
 
 var SharedDirName = "kills"
@@ -75,11 +75,11 @@ func (s *Store) loadMeta(name rune) error {
 		return fmt.Errorf("Slot not found")
 	}
 
-	err := termi.Lock(s.cfgDir)
+	err := lock.Lock(s.cfgDir)
 	if err != nil {
 		return err
 	}
-	defer termi.Unlock(s.cfgDir)
+	defer lock.Unlock(s.cfgDir)
 
 	metaPath := s.sharedMetaPath(name)
 	m, err := loadMeta(metaPath)
@@ -105,11 +105,11 @@ func (s *Store) loadContent(name rune) error {
 		return fmt.Errorf("Slot not found")
 	}
 
-	err := termi.Lock(s.cfgDir)
+	err := lock.Lock(s.cfgDir)
 	if err != nil {
 		return err
 	}
-	defer termi.Unlock(s.cfgDir)
+	defer lock.Unlock(s.cfgDir)
 
 	textPath := s.sharedTextPath(name)
 	data, err := ReadFile(textPath)
@@ -133,11 +133,11 @@ func (s *Store) save(name rune) error {
 		return fmt.Errorf("Slot not found")
 	}
 
-	err := termi.Lock(s.cfgDir)
+	err := lock.Lock(s.cfgDir)
 	if err != nil {
 		return err
 	}
-	defer termi.Unlock(s.cfgDir)
+	defer lock.Unlock(s.cfgDir)
 
 	m := meta{lines: sl.mode == Lines}
 	metaPath := s.sharedMetaPath(name)

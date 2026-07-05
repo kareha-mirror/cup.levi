@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"tea.kareha.org/cup/levi/editor"
-	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/lock"
 )
 
 const appName = "levi"
@@ -31,7 +31,7 @@ func realMain() (totalErr error) {
 	}
 
 	if *unlock {
-		err := termi.Unlock(*cfgDir)
+		err := lock.Unlock(*cfgDir)
 		if err != nil {
 			return err
 		}

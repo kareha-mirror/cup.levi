@@ -7,7 +7,7 @@ require golang.org/x/term v0.41.0 // indirect
 require (
 	golang.design/x/clipboard v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
-	tea.kareha.org/cup/termi v0.0.0-20260704022824-0463de487479
+	tea.kareha.org/cup/termi v0.0.0-20260705184233-f4fa7adaa40d
 )
 
 require (

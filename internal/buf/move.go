@@ -3,7 +3,7 @@ package buf
 import (
 	"unicode/utf8"
 
-	"tea.kareha.org/cup/levi/internal/rkind"
+	"tea.kareha.org/cup/termi/rkind"
 )
 
 func (b *Buf) CheckRowInclusive(row int) bool {

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/stdio"
 
 	"tea.kareha.org/cup/levi/internal/color"
 )
@@ -167,7 +168,7 @@ var DefaultShell = "/bin/sh"
 // :sh Enter : Execute shell.
 func (ed *Editor) PromptShell() {
 	if ed.hooks.Shell != nil {
-		termi.StopKey()
+		termi.FinishKey()
 		fmt.Print(termi.Clear)
 		fmt.Print(termi.HomeCursor)
 		fmt.Printf(termi.ResetAlternate)
@@ -179,7 +180,7 @@ func (ed *Editor) PromptShell() {
 		fmt.Print(termi.HideCursor)
 		termi.Raw()
 		fmt.Printf(termi.SetAlternate)
-		termi.StartKey()
+		termi.InitKey()
 		ed.redraw = true
 
 		if err != nil {
@@ -193,14 +194,14 @@ func (ed *Editor) PromptShell() {
 		shell = DefaultShell
 	}
 	cmd := exec.Command(shell)
-	stdio, err := termi.DupStdio()
+	sio, err := stdio.Dup()
 	if err != nil {
 		ed.Error("%v", err)
 		return
 	}
-	stdio.AttachTo(cmd)
+	sio.AttachTo(cmd)
 
-	termi.StopKey()
+	termi.FinishKey()
 	fmt.Print(termi.Clear)
 	fmt.Print(termi.HomeCursor)
 	fmt.Printf(termi.ResetAlternate)
@@ -208,12 +209,12 @@ func (ed *Editor) PromptShell() {
 	fmt.Print(termi.ShowCursor)
 
 	err = cmd.Run()
-	stdio.Close()
+	sio.Close()
 
 	fmt.Print(termi.HideCursor)
 	termi.Raw()
 	fmt.Printf(termi.SetAlternate)
-	termi.StartKey()
+	termi.InitKey()
 	ed.redraw = true
 
 	if err != nil {
