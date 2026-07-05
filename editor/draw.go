@@ -261,7 +261,7 @@ func (ed *Editor) DrawStatus() {
 		mode := ""
 		switch ed.mode {
 		case ModeCommand:
-			mode = "levi"
+			mode = ed.hooks.Name
 		case ModeInsert:
 			mode = "ins:"
 		}

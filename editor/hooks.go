@@ -37,6 +37,8 @@ func DefaultStat(name string) (FileInfo, error) {
 }
 
 type Hooks struct {
+	Name string
+
 	ReadFile  func(string) ([]byte, error)
 	Stat      func(string) (FileInfo, error)
 	WriteFile func(string, []byte, os.FileMode) error
@@ -49,6 +51,8 @@ type Hooks struct {
 
 func DefaultHooks() Hooks {
 	return Hooks{
+		Name: "levi",
+
 		ReadFile:  os.ReadFile,
 		Stat:      DefaultStat,
 		WriteFile: os.WriteFile,
