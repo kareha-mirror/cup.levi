@@ -75,3 +75,18 @@ On most platforms, the configuration file is located at
 ```text
 $HOME/.config/levi/editor.yaml
 ```
+
+## Build
+
+This project uses [Task](https://taskfile.dev/) as task runner.
+To build levi, first install Task by:
+
+```sh
+go install github.com/go-task/task/v3/cmd/task@latest
+```
+
+Next, run `task` in project tree.
+
+```sh
+task
+```

@@ -1,0 +1,38 @@
+version: "3"
+env:
+  CGO_ENABLED: 0
+tasks:
+  default:
+    cmds:
+      - go build -o levi ./cmd/levi
+  clean:
+    cmds:
+      - rm -f levi
+      - rm -f levi.exe
+      - rm -f levi-light
+  test:
+    cmds:
+      - go test ./...
+  run:
+    deps: [default]
+    cmds:
+      - ./levi
+  fmt:
+    cmds:
+      - go fmt ./...
+  tidy:
+    env:
+      GOPRIVATE: tea.kareha.org
+    cmds:
+      - go get tea.kareha.org/cup/termi@latest
+      - go mod tidy
+  windows:
+    env:
+      GOOS: windows
+      GOARCH: amd64
+    cmds:
+      - go build -o levi.exe ./cmd/levi
+  light:
+    cmds:
+      - go build -ldflags="-s -w" -o levi-light ./cmd/levi
+

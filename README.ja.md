@@ -73,3 +73,18 @@ leviには、いくつかの色スキームが組み込まれている。
 ```text
 $HOME/.config/levi/editor.yaml
 ```
+
+## Build
+
+このプロジェクトでは [Task](https://taskfile.dev/) をタスクランナーとして使っている。
+leviをビルドするには、まず以下ようにTaskをインストールする。
+
+```sh
+go install github.com/go-task/task/v3/cmd/task@latest
+```
+
+次にプロジェクトツリーの中で `task` を実行する。
+
+```sh
+task
+```

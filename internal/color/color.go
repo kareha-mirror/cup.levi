@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -179,8 +180,8 @@ func LoadCustomScheme(cfgDir string, name string) (*SchemeConfig, error) {
 }
 
 func LoadBuiltinScheme(name string) (*SchemeConfig, error) {
-	path := filepath.Join(colorsDir, name+dotYAML)
-	b, err := fs.ReadFile(BuiltinsFS, path)
+	p := path.Join(colorsDir, name+dotYAML)
+	b, err := fs.ReadFile(BuiltinsFS, p)
 	if err != nil {
 		return nil, err
 	}
