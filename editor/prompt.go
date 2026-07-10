@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"tea.kareha.org/cup/termi"
+	"tea.kareha.org/cup/termi/shutil"
 
 	"tea.kareha.org/cup/levi/internal/color"
 )
@@ -162,8 +163,6 @@ func (ed *Editor) PromptRead() {
 	ed.Unimplemented("PromptRead")
 }
 
-var DefaultShell = "/bin/sh"
-
 // :sh Enter : Execute shell.
 func (ed *Editor) PromptShell() {
 	if ed.hooks.Shell != nil {
@@ -188,10 +187,7 @@ func (ed *Editor) PromptShell() {
 		return
 	}
 
-	shell := os.Getenv("SHELL")
-	if shell == "" {
-		shell = DefaultShell
-	}
+	shell := shutil.Path()
 	cmd := exec.Command(shell)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
