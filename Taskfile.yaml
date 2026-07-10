@@ -14,9 +14,8 @@ tasks:
     cmds:
       - go test ./...
   run:
-    deps: [default]
     cmds:
-      - ./levi
+      - go run ./cmd/levi
   fmt:
     cmds:
       - go fmt ./...
