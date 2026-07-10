@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"tea.kareha.org/cup/termi"
-	"tea.kareha.org/cup/termi/stdio"
 
 	"tea.kareha.org/cup/levi/internal/color"
 )
@@ -194,12 +193,9 @@ func (ed *Editor) PromptShell() {
 		shell = DefaultShell
 	}
 	cmd := exec.Command(shell)
-	sio, err := stdio.Dup()
-	if err != nil {
-		ed.Error("%v", err)
-		return
-	}
-	sio.AttachTo(cmd)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	termi.FinishKey()
 	fmt.Print(termi.Clear)
@@ -208,8 +204,7 @@ func (ed *Editor) PromptShell() {
 	termi.Cooked()
 	fmt.Print(termi.ShowCursor)
 
-	err = cmd.Run()
-	sio.Close()
+	err := cmd.Run()
 
 	fmt.Print(termi.HideCursor)
 	termi.Raw()
