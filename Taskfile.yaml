@@ -4,7 +4,7 @@ env:
 tasks:
   default:
     cmds:
-      - go build -o levi ./cmd/levi
+      - go build ./cmd/levi
   clean:
     cmds:
       - rm -f levi
