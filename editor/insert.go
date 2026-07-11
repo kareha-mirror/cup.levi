@@ -56,7 +56,7 @@ func (ed *Editor) Insert(n int, replay bool) bool {
 		return false
 	}
 	if replay {
-		if len(ed.inserted) < 0 {
+		if len(ed.inserted) < 1 {
 			ed.Notice("Not inserted yet")
 			return false
 		}
@@ -84,7 +84,7 @@ func (ed *Editor) InsertAfter(n int, replay bool) bool {
 		return false
 	}
 	if replay {
-		if len(ed.inserted) < 0 {
+		if len(ed.inserted) < 1 {
 			ed.Notice("Not inserted yet")
 			return false
 		}
@@ -222,7 +222,7 @@ func (ed *Editor) ChangeRegion(
 		b.Loc.Col++
 	}
 	if replay {
-		if len(ed.inserted) < 0 {
+		if len(ed.inserted) < 1 {
 			ed.Notice("Not inserted yet")
 			return false
 		}
@@ -284,7 +284,7 @@ func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
 	ed.internalDelete(reg, n)
 	b := ed.Buf()
 	if replay {
-		if len(ed.inserted) < 0 {
+		if len(ed.inserted) < 1 {
 			ed.Notice("Not inserted yet")
 			return false
 		}

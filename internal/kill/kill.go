@@ -78,7 +78,7 @@ func (s *Store) setSlot(name rune, sl slot) bool {
 
 func (s *Store) Mode(name rune) (Mode, error) {
 	if !IsValidName(name) {
-		return None, fmt.Errorf("Invalid slot name")
+		return None, fmt.Errorf("invalid slot name")
 	}
 	if name == 0 {
 		return s.defMode, nil
@@ -96,7 +96,7 @@ func (s *Store) Mode(name rune) (Mode, error) {
 		if err != nil {
 			return None, err
 		}
-		sl, _ = s.set[name]
+		sl = s.set[name]
 	}
 	return sl.mode, nil
 }
@@ -114,7 +114,7 @@ func ensureClipboard() error {
 
 func (s *Store) Content(name rune) ([]string, error) {
 	if !IsValidName(name) {
-		return nil, fmt.Errorf("Invalid slot name")
+		return nil, fmt.Errorf("invalid slot name")
 	}
 	if name == 0 {
 		return s.defContent, nil
@@ -138,7 +138,7 @@ func (s *Store) Content(name rune) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		sl, _ = s.set[name]
+		sl = s.set[name]
 	}
 	return sl.content, nil
 }
@@ -172,7 +172,7 @@ func (s *Store) SetShared(name rune, shared bool) bool {
 		return true
 	}
 	name = NormalizeName(name)
-	sl, _ := s.set[name]
+	sl := s.set[name]
 	sl.shared = shared
 	s.setSlot(name, sl)
 	return true
@@ -180,7 +180,7 @@ func (s *Store) SetShared(name rune, shared bool) bool {
 
 func (s *Store) SetLines(name rune, killed []string) error {
 	if !IsValidName(name) {
-		return fmt.Errorf("Invalid slot name")
+		return fmt.Errorf("invalid slot name")
 	}
 	lines := append([]string{}, killed...)
 	s.defMode = Lines
@@ -194,7 +194,7 @@ func (s *Store) SetLines(name rune, killed []string) error {
 		return s.SetRunes(name, lines)
 	}
 	name = NormalizeName(name)
-	sl, _ := s.set[name]
+	sl := s.set[name]
 	sl.mode = Lines
 	sl.content = append([]string{}, lines...)
 	s.setSlot(name, sl)
@@ -206,7 +206,7 @@ func (s *Store) SetLines(name rune, killed []string) error {
 
 func (s *Store) SetRunes(name rune, killed []string) error {
 	if !IsValidName(name) {
-		return fmt.Errorf("Invalid slot name")
+		return fmt.Errorf("invalid slot name")
 	}
 	lines := append([]string{}, killed...)
 	s.defMode = Runes
@@ -224,7 +224,7 @@ func (s *Store) SetRunes(name rune, killed []string) error {
 		return nil
 	}
 	name = NormalizeName(name)
-	sl, _ := s.set[name]
+	sl := s.set[name]
 	sl.mode = Runes
 	sl.content = append([]string{}, lines...)
 	s.setSlot(name, sl)
@@ -236,13 +236,13 @@ func (s *Store) SetRunes(name rune, killed []string) error {
 
 func (s *Store) AddLines(name rune, killed []string) error {
 	if !IsValidName(name) {
-		return fmt.Errorf("Invalid slot name")
+		return fmt.Errorf("invalid slot name")
 	}
 	if name == 0 {
 		return nil
 	}
 	if name == '+' {
-		return fmt.Errorf("Not supported")
+		return fmt.Errorf("not supported")
 	}
 	name = NormalizeName(name)
 	sl, ok := s.set[name]
@@ -270,13 +270,13 @@ func (s *Store) AddLines(name rune, killed []string) error {
 
 func (s *Store) AddRunes(name rune, killed []string) error {
 	if !IsValidName(name) {
-		return fmt.Errorf("Invalid slot name")
+		return fmt.Errorf("invalid slot name")
 	}
 	if name == 0 {
 		return nil
 	}
 	if name == '+' {
-		return fmt.Errorf("Not supported")
+		return fmt.Errorf("not supported")
 	}
 	name = NormalizeName(name)
 	sl, ok := s.set[name]
@@ -317,7 +317,7 @@ func (s *Store) AddRunes(name rune, killed []string) error {
 
 func (s *Store) ApplyLines(name rune, killed []string) error {
 	if !IsValidName(name) {
-		return fmt.Errorf("Invalid slot name")
+		return fmt.Errorf("invalid slot name")
 	}
 	normalized := NormalizeName(name)
 	if normalized != name {
@@ -328,7 +328,7 @@ func (s *Store) ApplyLines(name rune, killed []string) error {
 
 func (s *Store) ApplyRunes(name rune, killed []string) error {
 	if !IsValidName(name) {
-		return fmt.Errorf("Invalid slot name")
+		return fmt.Errorf("invalid slot name")
 	}
 	normalized := NormalizeName(name)
 	if normalized != name {

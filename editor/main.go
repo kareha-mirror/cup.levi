@@ -150,7 +150,7 @@ func (ed *Editor) MainPrompt(key termi.Key) {
 			}
 			ok = ed.RunPrompt(c)
 			if !ok {
-				//ed.Error("Prompt command failed")
+				ed.Error("Prompt command failed")
 			}
 			// reset buffer select mode
 			if _, ok := prompt.IsBufMove[c.Kind]; !ok {

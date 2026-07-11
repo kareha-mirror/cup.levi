@@ -162,7 +162,7 @@ func (ed *Editor) renderBuffer(
 				view = append(view, sb.String())
 				sb.Reset()
 			}
-			loc := buf.Loc{col, row}
+			loc := buf.Loc{Col: col, Row: row}
 			viewMeta = append(viewMeta, ViewMeta{loc})
 			col += rc
 

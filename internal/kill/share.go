@@ -72,7 +72,7 @@ func (s *Store) sharedTextPath(name rune) string {
 func (s *Store) loadMeta(name rune) error {
 	sl, ok := s.set[name]
 	if !ok {
-		return fmt.Errorf("Slot not found")
+		return fmt.Errorf("slot not found")
 	}
 
 	err := lock.Lock(s.cfgDir)
@@ -102,7 +102,7 @@ func (s *Store) loadMeta(name rune) error {
 func (s *Store) loadContent(name rune) error {
 	sl, ok := s.set[name]
 	if !ok {
-		return fmt.Errorf("Slot not found")
+		return fmt.Errorf("slot not found")
 	}
 
 	err := lock.Lock(s.cfgDir)
@@ -130,7 +130,7 @@ func (s *Store) loadContent(name rune) error {
 func (s *Store) save(name rune) error {
 	sl, ok := s.set[name]
 	if !ok {
-		return fmt.Errorf("Slot not found")
+		return fmt.Errorf("slot not found")
 	}
 
 	err := lock.Lock(s.cfgDir)

@@ -59,7 +59,7 @@ func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 		if row == b.Loc.Row {
 			col += b.Loc.Col + 1
 		}
-		return buf.Loc{col, row}, true
+		return buf.Loc{Col: col, Row: row}, true
 	}
 	for row := 0; row <= b.Loc.Row; row++ {
 		line := b.Line(row)
@@ -69,7 +69,7 @@ func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 		}
 		col := utf8.RuneCountInString(line[:loc[0]])
 		ed.Ring("Search wrapped")
-		return buf.Loc{col, row}, true
+		return buf.Loc{Col: col, Row: row}, true
 	}
 	ed.Ring("Pattern not found")
 	return buf.Loc{}, false
@@ -109,7 +109,7 @@ func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
 			continue
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
-		return buf.Loc{col, row}, true
+		return buf.Loc{Col: col, Row: row}, true
 	}
 	for row := b.NumLines() - 1; row >= b.Loc.Row; row-- {
 		line := b.Line(row)
@@ -133,7 +133,7 @@ func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
 		}
 		col := utf8.RuneCountInString(line[:found[0]])
 		ed.Ring("Search wrapped")
-		return buf.Loc{col, row}, true
+		return buf.Loc{Col: col, Row: row}, true
 	}
 	ed.Ring("Pattern not found")
 	return buf.Loc{}, false

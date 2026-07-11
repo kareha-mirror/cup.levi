@@ -6,13 +6,11 @@ import (
 )
 
 type Loc struct {
-	// order matters
 	Col int // 0-based
 	Row int // 0-based
 }
 
 type Pos struct {
-	// order matters
 	X int // 0-based
 	Y int // 0-based
 }
@@ -122,7 +120,7 @@ func (b *Buf) SetText(text string) {
 			text = text[:len(text)-1]
 			b.CRLF = true
 		}
-	} else if strings.Index(text, "\r\n") != -1 {
+	} else if strings.Contains(text, "\r\n") {
 		b.CRLF = true
 	}
 

@@ -33,7 +33,7 @@ func (ed *Editor) ViewUp(n int) {
 	if viewRow < 0 {
 		viewRow = 0
 	}
-	viewMeta := ed.RenderMeta(buf.Loc{0, viewRow})
+	viewMeta := ed.RenderMeta(buf.Loc{Col: 0, Row: viewRow})
 	if len(viewMeta) < 1 {
 		return
 	}
@@ -84,7 +84,7 @@ func (ed *Editor) ViewUpHalf(n int) {
 	if viewRow < 0 {
 		viewRow = 0
 	}
-	viewMeta := ed.RenderMeta(buf.Loc{0, viewRow})
+	viewMeta := ed.RenderMeta(buf.Loc{Col: 0, Row: viewRow})
 	if len(viewMeta) < 1 {
 		return
 	}

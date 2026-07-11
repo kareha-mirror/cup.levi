@@ -23,7 +23,7 @@ func (ed *Editor) find(loc buf.Loc, r rune) (buf.Loc, bool) {
 	if col < 0 {
 		return loc, false
 	}
-	return buf.Loc{col, loc.Row}, true
+	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
 // f<char> : Find character <char> in current line and move to it.
@@ -53,7 +53,7 @@ func (ed *Editor) findBackward(loc buf.Loc, r rune) (buf.Loc, bool) {
 	if col < 0 {
 		return loc, false
 	}
-	return buf.Loc{col, loc.Row}, true
+	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
 // F<char> : Find character <char> backward in current line and move to it.
@@ -84,7 +84,7 @@ func (ed *Editor) findBefore(loc buf.Loc, r rune) (buf.Loc, bool) {
 		return loc, false
 	}
 	col = max(col-1, 0)
-	return buf.Loc{col, loc.Row}, true
+	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
 // t<char> : Find character <char> in current line and move to before it.
@@ -115,7 +115,7 @@ func (ed *Editor) findBeforeBackward(loc buf.Loc, r rune) (buf.Loc, bool) {
 		return loc, false
 	}
 	col++
-	return buf.Loc{col, loc.Row}, true
+	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
 // T<char> : Find character <char> backward in current line and move before it.
