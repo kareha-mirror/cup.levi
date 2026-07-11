@@ -7,9 +7,9 @@ tasks:
       - go build ./cmd/levi
   clean:
     cmds:
-      - rm -f levi
-      - rm -f levi.exe
-      - rm -f levi-light
+      - go run ./cmd/rm levi
+      - go run ./cmd/rm levi.exe
+      - go run ./cmd/rm levi-light
   test:
     cmds:
       - go test ./...
