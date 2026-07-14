@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"golang.design/x/clipboard"
+	"tea.kareha.org/cup/termi/copi"
 
 	"tea.kareha.org/cup/levi/internal/buf"
 )
-
-var ClipboardInitialized = false
 
 type Mode int
 
@@ -101,17 +99,6 @@ func (s *Store) Mode(name rune) (Mode, error) {
 	return sl.mode, nil
 }
 
-func ensureClipboard() error {
-	if ClipboardInitialized {
-		return nil
-	}
-	if err := clipboard.Init(); err != nil {
-		return err
-	}
-	ClipboardInitialized = true
-	return nil
-}
-
 func (s *Store) Content(name rune) ([]string, error) {
 	if !IsValidName(name) {
 		return nil, fmt.Errorf("invalid slot name")
@@ -120,11 +107,10 @@ func (s *Store) Content(name rune) ([]string, error) {
 		return s.defContent, nil
 	}
 	if name == '+' {
-		err := ensureClipboard()
+		text, err := copi.Read()
 		if err != nil {
 			return nil, err
 		}
-		text := string(clipboard.Read(clipboard.FmtText))
 		text = strings.ReplaceAll(text, "\r\n", "\n")
 		return strings.Split(text, "\n"), nil
 	}
@@ -215,12 +201,11 @@ func (s *Store) SetRunes(name rune, killed []string) error {
 		return nil
 	}
 	if name == '+' {
-		err := ensureClipboard()
+		text := strings.Join(killed, buf.LineSep(ClipboardCRLF))
+		err := copi.Write(text)
 		if err != nil {
 			return err
 		}
-		text := strings.Join(killed, buf.LineSep(ClipboardCRLF))
-		clipboard.Write(clipboard.FmtText, []byte(text))
 		return nil
 	}
 	name = NormalizeName(name)
