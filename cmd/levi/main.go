@@ -11,9 +11,10 @@ import (
 	"tea.kareha.org/cup/termi/lock"
 )
 
-const appName = "levi"
-
-const failure = 1
+const (
+	appName = "levi"
+	failure = 1
+)
 
 func realMain() (totalErr error) {
 	// parse options

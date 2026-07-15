@@ -1,8 +1,6 @@
 package editor
 
-import (
-	"tea.kareha.org/cup/levi/internal/cmd"
-)
+import "tea.kareha.org/cup/levi/internal/cmd"
 
 func (ed *Editor) Run(c cmd.Pair, replay bool) (bool, bool) {
 	ed.Commit()

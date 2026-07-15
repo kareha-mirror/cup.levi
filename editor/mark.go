@@ -1,8 +1,6 @@
 package editor
 
-import (
-	"tea.kareha.org/cup/levi/internal/buf"
-)
+import "tea.kareha.org/cup/levi/internal/buf"
 
 //////////////////////
 // Marking Commands //

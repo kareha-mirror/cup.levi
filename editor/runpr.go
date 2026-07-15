@@ -1,8 +1,6 @@
 package editor
 
-import (
-	"tea.kareha.org/cup/levi/internal/prompt"
-)
+import "tea.kareha.org/cup/levi/internal/prompt"
 
 func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 	ed.Commit()
