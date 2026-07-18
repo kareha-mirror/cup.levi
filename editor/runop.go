@@ -28,9 +28,10 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 	case cmd.ChangeRegion:
 		start := ed.Buf().Loc
 		mv := c.Mv
-		if mv.Kind == cmd.MoveByWord {
+		if mv.Kind == cmd.MoveByWord || mv.Kind == cmd.MoveToEndOfWord {
 			mv.Kind = cmd.MoveByChangeWord
-		} else if mv.Kind == cmd.MoveByLooseWord {
+		} else if mv.Kind == cmd.MoveByLooseWord ||
+			mv.Kind == cmd.MoveToEndOfLooseWord {
 			mv.Kind = cmd.MoveByChangeLooseWord
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
@@ -76,6 +77,10 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 			mv.Kind = cmd.MoveByDeleteWord
 		} else if mv.Kind == cmd.MoveByLooseWord {
 			mv.Kind = cmd.MoveByDeleteLooseWord
+		} else if mv.Kind == cmd.MoveToEndOfWord {
+			mv.Kind = cmd.MoveByChangeWord
+		} else if mv.Kind == cmd.MoveToEndOfLooseWord {
+			mv.Kind = cmd.MoveByChangeLooseWord
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
@@ -100,9 +105,10 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 	case cmd.IndentRegion:
 		start := ed.Buf().Loc
 		mv := c.Mv
-		if mv.Kind == cmd.MoveByWord {
+		if mv.Kind == cmd.MoveByWord || mv.Kind == cmd.MoveToEndOfWord {
 			mv.Kind = cmd.MoveByChangeWord // XXX or cmd.MoveByDeleteWord?
-		} else if mv.Kind == cmd.MoveByLooseWord {
+		} else if mv.Kind == cmd.MoveByLooseWord ||
+			mv.Kind == cmd.MoveToEndOfLooseWord {
 			mv.Kind = cmd.MoveByChangeLooseWord // XXX or cmd.MoveByDeleteWord?
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
@@ -114,9 +120,10 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 	case cmd.OutdentRegion:
 		start := ed.Buf().Loc
 		mv := c.Mv
-		if mv.Kind == cmd.MoveByWord {
+		if mv.Kind == cmd.MoveByWord || mv.Kind == cmd.MoveToEndOfWord {
 			mv.Kind = cmd.MoveByChangeWord // XXX or cmd.MoveByDeleteWord?
-		} else if mv.Kind == cmd.MoveByLooseWord {
+		} else if mv.Kind == cmd.MoveByLooseWord ||
+			mv.Kind == cmd.MoveToEndOfLooseWord {
 			mv.Kind = cmd.MoveByChangeLooseWord // XXX or cmd.MoveByDeleteWord?
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
