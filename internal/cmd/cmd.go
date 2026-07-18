@@ -41,6 +41,8 @@ const (
 	MoveBackwardByWord
 	MoveToEndOfWord
 	MoveByLooseWord
+	MoveByChangeLooseWord
+	MoveByDeleteLooseWord
 	MoveBackwardByLooseWord
 	MoveToEndOfLooseWord
 

@@ -26,6 +26,8 @@ var AttrOf = map[Kind]Attr{
 	MoveBackwardByWord:      {},
 	MoveToEndOfWord:         {},
 	MoveByLooseWord:         {},
+	MoveByChangeLooseWord:   {},
+	MoveByDeleteLooseWord:   {},
 	MoveBackwardByLooseWord: {},
 	MoveToEndOfLooseWord:    {},
 

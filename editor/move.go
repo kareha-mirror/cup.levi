@@ -191,7 +191,6 @@ func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// TODO
 // internal use : Move cursor forward by word used by dw.
 func (ed *Editor) MoveByDeleteWord(n int) (buf.Loc, bool) {
 	if n < 1 {
@@ -270,6 +269,56 @@ func (ed *Editor) MoveByLooseWord(n int) (buf.Loc, bool) {
 	for i := 0; i < n; i++ {
 		if loc, found = b.MoveByLooseWord(loc); found {
 			continue
+		}
+		loc.Row++
+		loc.Col = 0
+		if loc, found = b.SkipBlanks(loc); !found {
+			return loc, true
+		}
+	}
+	return loc, true
+}
+
+// internal use : Move cursor forward by loose word used by cW.
+func (ed *Editor) MoveByChangeLooseWord(n int) (buf.Loc, bool) {
+	if n < 1 {
+		ed.Error("MoveByChangeLooseWord: n < 1")
+		return buf.Loc{}, false
+	}
+	b := ed.Buf()
+	loc := b.Loc
+	var found bool
+	for i := 1; i < n; i++ {
+		if loc, found = b.MoveByLooseWord(loc); found {
+			continue
+		}
+		loc.Row++
+		loc.Col = 0
+		if loc, found = b.SkipBlanks(loc); !found {
+			return loc, true
+		}
+	}
+	if loc, found = b.MoveByLooseWordAlt(loc); found {
+		return loc, true
+	}
+	return loc, true
+}
+
+// internal use : Move cursor forward by word used by dW.
+func (ed *Editor) MoveByDeleteLooseWord(n int) (buf.Loc, bool) {
+	if n < 1 {
+		ed.Error("MoveByDeleteLooseWord: n < 1")
+		return buf.Loc{}, false
+	}
+	b := ed.Buf()
+	loc := b.Loc
+	var found bool
+	for i := 0; i < n; i++ {
+		if loc, found = b.MoveByLooseWord(loc); found {
+			continue
+		}
+		if i == n-1 && b.Line(loc.Row) != "" {
+			break
 		}
 		loc.Row++
 		loc.Col = 0

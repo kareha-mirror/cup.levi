@@ -70,14 +70,18 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 		return Cmd{Kind: MoveByWord, Num: a.Num}, true
 	//case 'g': // XXX debug
 	//	return Cmd{Kind: MoveByChangeWord, Num: a.Num}, true
-	case 'g': // XXX debug
-		return Cmd{Kind: MoveByDeleteWord, Num: a.Num}, true
+	//case 'g': // XXX debug
+	//	return Cmd{Kind: MoveByDeleteWord, Num: a.Num}, true
 	case 'b':
 		return Cmd{Kind: MoveBackwardByWord, Num: a.Num}, true
 	case 'e':
 		return Cmd{Kind: MoveToEndOfWord, Num: a.Num}, true
 	case 'W':
 		return Cmd{Kind: MoveByLooseWord, Num: a.Num}, true
+	//case 'g': // XXX debug
+	//	return Cmd{Kind: MoveByChangeLooseWord, Num: a.Num}, true
+	//case 'g': // XXX debug
+	//	return Cmd{Kind: MoveByDeleteLooseWord, Num: a.Num}, true
 	case 'B':
 		return Cmd{Kind: MoveBackwardByLooseWord, Num: a.Num}, true
 	case 'E':

@@ -42,6 +42,10 @@ func (ed *Editor) RunMove(c cmd.Cmd, num int) (buf.Loc, bool) {
 		return ed.MoveToEndOfWord(num)
 	case cmd.MoveByLooseWord:
 		return ed.MoveByLooseWord(num)
+	case cmd.MoveByChangeLooseWord:
+		return ed.MoveByChangeLooseWord(num)
+	case cmd.MoveByDeleteLooseWord:
+		return ed.MoveByDeleteLooseWord(num)
 	case cmd.MoveBackwardByLooseWord:
 		return ed.MoveBackwardByLooseWord(num)
 	case cmd.MoveToEndOfLooseWord:

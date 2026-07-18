@@ -217,6 +217,41 @@ func (b *Buf) MoveByLooseWord(loc Loc) (Loc, bool) {
 	return loc, line != ""
 }
 
+// input row is inclusive
+// output is not inclusive
+func (b *Buf) MoveByLooseWordAlt(loc Loc) (Loc, bool) {
+	line := b.Line(loc.Row)
+	if line == "" {
+		return loc, false
+	}
+	for col := 0; line != ""; col++ {
+		if col >= loc.Col {
+			break
+		}
+		_, size := utf8.DecodeRuneInString(line)
+		line = line[size:]
+	}
+	if line == "" {
+		return loc, false
+	}
+	r, size := utf8.DecodeRuneInString(line)
+	line = line[size:]
+	kind := rkind.Kind(r)
+	loc.Col++
+	k := kind
+	for ; line != ""; loc.Col++ {
+		r, size = utf8.DecodeRuneInString(line)
+		k = rkind.Kind(r)
+		if kind == rkind.Blank && k != rkind.Blank {
+			break
+		} else if kind != rkind.Blank && k == rkind.Blank {
+			break
+		}
+		line = line[size:]
+	}
+	return loc, line != ""
+}
+
 // input row inclusive
 // output is not inclusive
 func (b *Buf) MoveBackwardByLooseWord(loc Loc) (Loc, bool) {
