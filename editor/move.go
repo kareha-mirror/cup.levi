@@ -264,8 +264,20 @@ func (ed *Editor) MoveByLooseWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveByLooseWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveByLooseWord")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	var found bool
+	for i := 0; i < n; i++ {
+		if loc, found = b.MoveByLooseWord(loc); found {
+			continue
+		}
+		loc.Row++
+		loc.Col = 0
+		if loc, found = b.SkipBlanks(loc); !found {
+			return loc, true
+		}
+	}
+	return loc, true
 }
 
 // B : Move cursor backward by loose word.
@@ -274,8 +286,29 @@ func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardByLooseWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveBackwardByLooseWord")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	var found bool
+	for i := 0; i < n; i++ {
+		if loc.Col > 0 {
+			loc.Col--
+		} else {
+			if loc.Row < 1 {
+				return loc, true
+			}
+			loc.Row--
+			line := b.Line(loc.Row)
+			rc := utf8.RuneCountInString(line)
+			loc.Col = max(rc-1, 0)
+		}
+		if loc, found = b.SkipBackwardBlanks(loc); !found {
+			return loc, true
+		}
+		if loc, found = b.MoveBackwardByLooseWord(loc); !found {
+			return loc, true
+		}
+	}
+	return loc, true
 }
 
 // E : Move cursor to end of loose word.
