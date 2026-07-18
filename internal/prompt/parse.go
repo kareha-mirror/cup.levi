@@ -72,7 +72,11 @@ func Parse(prompt string) (Cmd, bool) {
 			return Cmd{Kind: ForceLoad}, true
 		}
 	case "r":
-		return Cmd{Kind: Read}, true
+		if len(parts) > 1 {
+			return Cmd{Kind: Read, Name: parts[1]}, true
+		} else {
+			return Cmd{Kind: Read}, true
+		}
 	case "n", "next":
 		return Cmd{Kind: Next}, true
 	case "prev", "previous":

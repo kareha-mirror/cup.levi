@@ -105,26 +105,30 @@ func (b *Buf) Text(crlf bool) string {
 	return strings.Join(b.Lines, sep) + sep
 }
 
-func (b *Buf) SetText(text string) {
+func TextToLines(text string) ([]string, bool) {
 	// empty case
 	if text == "" {
-		b.Lines = b.Lines[:0]
-		return
+		return nil, false
 	}
 
 	// clip last newline if exists
+	var crlf bool
 	if text[len(text)-1] == '\n' {
 		text = text[:len(text)-1]
-		b.CRLF = false
+		crlf = false
 		if text != "" && text[len(text)-1] == '\r' {
 			text = text[:len(text)-1]
-			b.CRLF = true
+			crlf = true
 		}
 	} else if strings.Contains(text, "\r\n") {
-		b.CRLF = true
+		crlf = true
 	}
 
-	b.Lines = strings.Split(text, LineSep(b.CRLF))
+	return strings.Split(text, LineSep(crlf)), crlf
+}
+
+func (b *Buf) SetText(text string) {
+	b.Lines, b.CRLF = TextToLines(text)
 }
 
 func (b *Buf) Mark(r rune) {

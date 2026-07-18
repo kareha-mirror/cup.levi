@@ -162,3 +162,21 @@ func (ed *Editor) ShowStatOfInserted() {
 		}
 	}
 }
+
+func (ed *Editor) ShowTextInfo(path string, lines []string, crlf bool) {
+	numLines := len(lines)
+	numBytes := numLines - 1
+	numRunes := numLines - 1
+	if crlf {
+		numBytes *= 2
+		numRunes *= 2
+	}
+	for _, line := range lines {
+		numBytes += len(line)
+		numRunes += utf8.RuneCountInString(line)
+	}
+	ed.Message(
+		"%s: %d lines, %d characters, %d runes.",
+		path, numLines, numBytes, numRunes,
+	)
+}

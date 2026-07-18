@@ -32,7 +32,7 @@ func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 		ed.PromptForceLoad(c.Name)
 		return true
 	case prompt.Read:
-		ed.PromptRead()
+		ed.PromptRead(c.Name)
 		return true
 	case prompt.Next:
 		ed.NextBuf()

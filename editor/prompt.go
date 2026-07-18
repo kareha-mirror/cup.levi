@@ -10,6 +10,7 @@ import (
 	"tea.kareha.org/cup/termi"
 	"tea.kareha.org/cup/termi/shutil"
 
+	"tea.kareha.org/cup/levi/internal/buf"
 	"tea.kareha.org/cup/levi/internal/color"
 )
 
@@ -159,8 +160,28 @@ func (ed *Editor) PromptForceLoad(name string) {
 }
 
 // :r Enter : Read file and insert to current buffer.
-func (ed *Editor) PromptRead() {
-	ed.Unimplemented("PromptRead")
+func (ed *Editor) PromptRead(name string) {
+	b := ed.Buf()
+	if name == "" {
+		name = b.Path
+	}
+	data, err := ed.hooks.ReadFile(name)
+	if err != nil {
+		ed.Error("%v", err)
+		return
+	}
+	ed.BeginUndoRecord()
+	inserts, _ := buf.TextToLines(string(data))
+	lines := append([]string(nil), b.Lines[:b.Loc.Row+1]...)
+	lines = append(lines, inserts...)
+	if b.Loc.Row+1 <= b.NumLines() {
+		lines = append(lines, b.Lines[b.Loc.Row+1:]...)
+	}
+	b.Lines = lines
+	b.Loc.Row++
+	b.Loc = b.ConfineInclusive(b.Loc)
+	ed.EndUndoRecord()
+	ed.ShowTextInfo(name, inserts, b.CRLF)
 }
 
 // :sh Enter : Execute shell.
