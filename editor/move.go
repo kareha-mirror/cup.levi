@@ -253,8 +253,38 @@ func (ed *Editor) MoveToEndOfWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveToEndOfWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveToEndOfWord")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	var found bool
+	for i := 1; i < n; i++ {
+		if loc, found = b.MoveByWord(loc); found {
+			continue
+		}
+		loc.Row++
+		loc.Col = 0
+		if loc, found = b.SkipBlanks(loc); !found {
+			return loc, true
+		}
+	}
+	loc.Col++
+	rc := utf8.RuneCountInString(b.Line(loc.Row))
+	if loc.Col >= rc {
+		if loc.Row < b.NumLines()-1 {
+			loc.Col = 0
+			loc.Row++
+		} else {
+			loc.Col = rc
+			return loc, true
+		}
+	}
+	if loc, found = b.SkipBlanks(loc); !found {
+		return loc, true
+	}
+	if loc, found = b.MoveByWordAlt(loc); found {
+		loc.Col = max(loc.Col-1, 0)
+		return loc, true
+	}
+	return loc, true
 }
 
 // W : Move cursor forward by loose word.
@@ -366,8 +396,38 @@ func (ed *Editor) MoveToEndOfLooseWord(n int) (buf.Loc, bool) {
 		ed.Error("MoveToEndOfLooseWord: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveToEndOfLooseWord")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	var found bool
+	for i := 1; i < n; i++ {
+		if loc, found = b.MoveByLooseWord(loc); found {
+			continue
+		}
+		loc.Row++
+		loc.Col = 0
+		if loc, found = b.SkipBlanks(loc); !found {
+			return loc, true
+		}
+	}
+	loc.Col++
+	rc := utf8.RuneCountInString(b.Line(loc.Row))
+	if loc.Col >= rc {
+		if loc.Row < b.NumLines()-1 {
+			loc.Col = 0
+			loc.Row++
+		} else {
+			loc.Col = rc
+			return loc, true
+		}
+	}
+	if loc, found = b.SkipBlanks(loc); !found {
+		return loc, true
+	}
+	if loc, found = b.MoveByLooseWordAlt(loc); found {
+		loc.Col = max(loc.Col-1, 0)
+		return loc, true
+	}
+	return loc, true
 }
 
 //
