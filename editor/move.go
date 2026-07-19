@@ -504,12 +504,12 @@ func (ed *Editor) moveBySentence(loc buf.Loc) buf.Loc {
 	b := ed.Buf()
 	first := true
 	for loc.Row < b.NumLines() {
-		if first {
-			loc, _ = b.SkipBlanks(loc)
-		}
 		line := b.Line(loc.Row)
-		if !first {
-			if rkind.IsBlankLine(line) {
+		if rkind.IsBlankLine(line) {
+			if first {
+				loc, _ = b.SkipBlanks(loc)
+				return loc
+			} else {
 				return buf.Loc{Col: 0, Row: loc.Row}
 			}
 		}
@@ -562,14 +562,84 @@ func (ed *Editor) MoveBySentence(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
+func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
+	b := ed.Buf()
+	first := true
+	line := b.Line(loc.Row)
+	col := 0
+	found := false
+	for {
+		orig := b.Loc
+		nbCol := b.NonBlankColOfLine(loc.Row)
+		list := []int{nbCol}
+		if rkind.IsBlankLine(line) {
+			if first {
+				loc, _ = b.SkipBackwardBlanks(loc)
+				break
+			}
+		}
+		first = false
+		for _, r := range line {
+			if col >= loc.Col {
+				break
+			}
+			if found {
+				switch r {
+				case ' ', '\t':
+					list = append(list, col-1)
+					found = false
+					col++
+					continue
+				case ')', ']', '}', '"', '\'':
+					col++
+					continue
+				default:
+					found = false
+					col++
+					continue
+				}
+			}
+			if r == '.' || r == '?' || r == '!' {
+				found = true
+			}
+			col++
+		}
+		for i := len(list) - 1; i >= 0; i-- {
+			f := list[i]
+			l := buf.Loc{Col: f, Row: loc.Row}
+			if f > nbCol {
+				l = ed.moveBySentence(l)
+			}
+			if l != orig {
+				return l
+			}
+		}
+		loc.Row--
+		if loc.Row < 0 {
+			break
+		}
+		line = b.Line(loc.Row)
+		loc.Col = utf8.RuneCountInString(line)
+	}
+	if loc.Row < 0 {
+		loc.Row = 0
+	}
+	col = ed.Buf().NonBlankColOfLine(loc.Row)
+	return buf.Loc{Col: col, Row: loc.Row}
+}
+
 // ( : Move cursor backward by sentence.
 func (ed *Editor) MoveBackwardBySentence(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBackwardBySentence: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveBackwardBySentence")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	for i := 0; i < n; i++ {
+		loc = ed.moveBackwardBySentence(loc)
+	}
+	return loc, true
 }
 
 // } : Move cursor forward by paragraph.
