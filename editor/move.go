@@ -664,6 +664,10 @@ func (ed *Editor) MoveBackwardBySentence(n int) (buf.Loc, bool) {
 
 func (ed *Editor) moveByParagraph(loc buf.Loc) buf.Loc {
 	b := ed.Buf()
+	if loc.Row >= b.NumLines()-1 {
+		loc.Col = max(utf8.RuneCountInString(b.Line(loc.Row))-1, 0)
+		return loc
+	}
 	loc, ok := b.SkipBlanks(loc)
 	if !ok {
 		return loc
@@ -677,7 +681,7 @@ func (ed *Editor) moveByParagraph(loc buf.Loc) buf.Loc {
 	}
 	if loc.Row >= b.NumLines() {
 		loc.Row = max(b.NumLines()-1, 0)
-		loc.Col = max(utf8.RuneCountInString(b.Line(loc.Row))-1, 0)
+		loc.Col = 0
 	}
 	return loc
 }
