@@ -662,14 +662,58 @@ func (ed *Editor) MoveBackwardBySentence(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
+func (ed *Editor) moveByParagraph(loc buf.Loc) buf.Loc {
+	b := ed.Buf()
+	loc, ok := b.SkipBlanks(loc)
+	if !ok {
+		return loc
+	}
+	loc.Col = 0
+	for ; loc.Row < b.NumLines(); loc.Row++ {
+		line := b.Line(loc.Row)
+		if rkind.IsBlankLine(line) {
+			return loc
+		}
+	}
+	if loc.Row >= b.NumLines() {
+		loc.Row = max(b.NumLines()-1, 0)
+		loc.Col = max(utf8.RuneCountInString(b.Line(loc.Row))-1, 0)
+	}
+	return loc
+}
+
 // } : Move cursor forward by paragraph.
 func (ed *Editor) MoveByParagraph(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByParagraph: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveByParagraph")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	for i := 0; i < n; i++ {
+		loc = ed.moveByParagraph(loc)
+	}
+	return loc, true
+}
+
+func (ed *Editor) moveBackwardByParagraph(loc buf.Loc) buf.Loc {
+	b := ed.Buf()
+	loc, ok := b.SkipBackwardBlanks(loc)
+	if !ok {
+		return loc
+	}
+	loc.Col = 0
+	for ; loc.Row >= 0; loc.Row-- {
+		line := b.Line(loc.Row)
+		if rkind.IsBlankLine(line) {
+			return loc
+		}
+	}
+	if loc.Row < 0 {
+		loc.Row = 0
+		loc.Col = 0
+	}
+	return loc
 }
 
 // { : Move cursor backward by paragraph.
@@ -678,8 +722,12 @@ func (ed *Editor) MoveBackwardByParagraph(n int) (buf.Loc, bool) {
 		ed.Error("MoveBackwardByParagraph: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveBackwardByParagraph")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	for i := 0; i < n; i++ {
+		loc = ed.moveBackwardByParagraph(loc)
+	}
+	return loc, true
 }
 
 // ]] : Move cursor forward by section.
