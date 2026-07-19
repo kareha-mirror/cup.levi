@@ -3,6 +3,8 @@ package editor
 import (
 	"unicode/utf8"
 
+	"tea.kareha.org/cup/termi/rkind"
+
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
@@ -498,14 +500,66 @@ func (ed *Editor) MoveToLine(n int) (buf.Loc, bool) { // n: 1-based
 // Move by Block
 //
 
+func (ed *Editor) moveBySentence(loc buf.Loc) buf.Loc {
+	b := ed.Buf()
+	first := true
+	for loc.Row < b.NumLines() {
+		if first {
+			loc, _ = b.SkipBlanks(loc)
+		}
+		line := b.Line(loc.Row)
+		if !first {
+			if rkind.IsBlankLine(line) {
+				return buf.Loc{Col: 0, Row: loc.Row}
+			}
+		}
+		first = false
+
+		col := 0
+		found := false
+	loop:
+		for _, r := range line {
+			if col < loc.Col {
+				col++
+				continue
+			}
+			if found {
+				col++
+				switch r {
+				case ' ', '\t':
+					break loop
+				case ')', ']', '}', '"', '\'':
+					continue
+				default:
+					found = false
+					continue
+				}
+			}
+			found = r == '.' || r == '?' || r == '!'
+			col++
+		}
+		if found {
+			loc, _ = b.SkipBlanks(buf.Loc{Col: col, Row: loc.Row})
+			return loc
+		}
+		loc.Col = 0
+		loc.Row++
+	}
+	return loc
+}
+
 // ) : Move cursor forward by sentence.
 func (ed *Editor) MoveBySentence(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBySentence: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveBySentence")
-	return buf.Loc{}, false
+	b := ed.Buf()
+	loc := b.Loc
+	for i := 0; i < n; i++ {
+		loc = ed.moveBySentence(loc)
+	}
+	return loc, true
 }
 
 // ( : Move cursor backward by sentence.

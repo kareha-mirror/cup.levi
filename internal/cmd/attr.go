@@ -36,8 +36,8 @@ var AttrOf = map[Kind]Attr{
 	MoveToLastLine:     {Linewise: true},
 	MoveToLine:         {Linewise: true, Locate: true},
 
-	MoveBySentence:          {Linewise: true},
-	MoveBackwardBySentence:  {Linewise: true},
+	MoveBySentence:          {},
+	MoveBackwardBySentence:  {},
 	MoveByParagraph:         {Linewise: true},
 	MoveBackwardByParagraph: {Linewise: true},
 	MoveBySection:           {Linewise: true},
