@@ -20,6 +20,7 @@ func realMain() (totalErr error) {
 	// parse options
 	cfgDir := flag.String("d", "", "config directory")
 	unlock := flag.Bool("unlock", false, "unlock")
+	clear := flag.Bool("clear", false, "clear shared registers")
 	flag.Parse()
 
 	if *cfgDir == "" {
@@ -39,9 +40,17 @@ func realMain() (totalErr error) {
 		return nil
 	}
 
+	if *clear {
+		err := editor.Clear(*cfgDir)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	paths := flag.Args()
 
-	// init editor
+	// initialize editor
 	ed, err := editor.Init(*cfgDir, paths, editor.DefaultHooks())
 	if err != nil {
 		return err
@@ -52,7 +61,7 @@ func realMain() (totalErr error) {
 		}
 	}()
 
-	// enter main loop
+	// enter main loop of editor
 	if err := ed.Main(); err != nil {
 		return err
 	}

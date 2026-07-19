@@ -265,3 +265,7 @@ func (ed *Editor) Commit() {
 		return
 	}
 }
+
+func Clear(cfgDir string) error {
+	return kill.Clear(cfgDir)
+}

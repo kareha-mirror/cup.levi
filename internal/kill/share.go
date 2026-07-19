@@ -159,3 +159,14 @@ func (s *Store) save(name rune) error {
 
 	return nil
 }
+
+func Clear(cfgDir string) error {
+	err := lock.Lock(cfgDir)
+	if err != nil {
+		return err
+	}
+	defer lock.Unlock(cfgDir)
+
+	path := filepath.Join(cfgDir, SharedDirName)
+	return os.RemoveAll(path)
+}
