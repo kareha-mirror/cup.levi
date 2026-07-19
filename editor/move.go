@@ -569,36 +569,42 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 	b := ed.Buf()
 	first := true
 	line := b.Line(loc.Row)
-	col := 0
-	found := false
+	head := false
+	var headLoc buf.Loc
 	for {
-		orig := b.Loc
-		nbCol := b.NonBlankColOfLine(loc.Row)
-		list := []int{nbCol}
-		if rkind.IsBlankLine(line) {
-			if first {
+		if first {
+			if line == "" || rkind.IsBlank(rutil.RuneAt(line, loc.Col)) {
 				loc, _ = b.SkipBackwardBlanks(loc)
-				break
+			}
+		} else {
+			if rkind.IsBlankLine(line) {
+				if head {
+					return headLoc
+				}
+				return buf.Loc{Col: 0, Row: loc.Row}
 			}
 		}
 		first = false
+		col := 0
+		found := false
+		orig := b.Loc
+		nbCol := b.NonBlankColOfLine(loc.Row)
+		list := []int{nbCol}
 		for _, r := range line {
 			if col >= loc.Col {
 				break
 			}
 			if found {
+				col++
 				switch r {
 				case ' ', '\t':
-					list = append(list, col-1)
+					list = append(list, col-2)
 					found = false
-					col++
 					continue
 				case ')', ']', '}', '"', '\'':
-					col++
 					continue
 				default:
 					found = false
-					col++
 					continue
 				}
 			}
@@ -607,6 +613,12 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 			}
 			col++
 		}
+		if found {
+			list = append(list, col-1)
+		}
+		if found && head {
+			return headLoc
+		}
 		for i := len(list) - 1; i >= 0; i-- {
 			f := list[i]
 			l := buf.Loc{Col: f, Row: loc.Row}
@@ -614,7 +626,12 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 				l = ed.moveBySentence(l)
 			}
 			if l != orig {
-				return l
+				if f <= nbCol {
+					head = true
+					headLoc = l
+				} else {
+					return l
+				}
 			}
 		}
 		loc.Row--
@@ -627,7 +644,7 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 	if loc.Row < 0 {
 		loc.Row = 0
 	}
-	col = ed.Buf().NonBlankColOfLine(loc.Row)
+	col := ed.Buf().NonBlankColOfLine(loc.Row)
 	return buf.Loc{Col: col, Row: loc.Row}
 }
 
