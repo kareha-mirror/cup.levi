@@ -4,6 +4,7 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi/rkind"
+	"tea.kareha.org/cup/termi/rutil"
 
 	"tea.kareha.org/cup/levi/internal/buf"
 )
@@ -505,11 +506,13 @@ func (ed *Editor) moveBySentence(loc buf.Loc) buf.Loc {
 	first := true
 	for loc.Row < b.NumLines() {
 		line := b.Line(loc.Row)
-		if rkind.IsBlankLine(line) {
-			if first {
+		if first {
+			if line == "" || rkind.IsBlank(rutil.RuneAt(line, loc.Col)) {
 				loc, _ = b.SkipBlanks(loc)
 				return loc
-			} else {
+			}
+		} else {
+			if rkind.IsBlankLine(line) {
 				return buf.Loc{Col: 0, Row: loc.Row}
 			}
 		}
