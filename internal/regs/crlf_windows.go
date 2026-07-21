@@ -1,5 +1,5 @@
 //go:build windows
 
-package kill
+package regs
 
 var ClipboardCRLF = true

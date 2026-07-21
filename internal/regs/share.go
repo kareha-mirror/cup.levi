@@ -1,4 +1,4 @@
-package kill
+package regs
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"tea.kareha.org/cup/termi/lock"
 )
 
-var SharedDirName = "kills"
+var SharedDirName = "shared"
 
 var ReadFile func(string) ([]byte, error) = os.ReadFile
 var WriteFile func(string, []byte, os.FileMode) error = os.WriteFile

@@ -13,7 +13,7 @@ import (
 	"tea.kareha.org/cup/levi/internal/cmd"
 	"tea.kareha.org/cup/levi/internal/color"
 	"tea.kareha.org/cup/levi/internal/config"
-	"tea.kareha.org/cup/levi/internal/kill"
+	"tea.kareha.org/cup/levi/internal/regs"
 )
 
 type Mode int
@@ -50,7 +50,7 @@ type Editor struct {
 	prompt   rbuf.RuneBuf
 	searchs  searchState
 	finds    findState
-	kills    kill.Store
+	regs     regs.Store
 	lastCmd  cmd.Pair
 	undo     bool
 
@@ -87,8 +87,8 @@ func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	}
 
 	// setup hooks
-	kill.ReadFile = hooks.ReadKillFile
-	kill.WriteFile = hooks.WriteKillFile
+	regs.ReadFile = hooks.ReadSharedFile
+	regs.WriteFile = hooks.WriteSharedFile
 
 	// create and init editor struct
 	ed := &Editor{
@@ -109,7 +109,7 @@ func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	ed.RenderMsg(true)        // errors
 
 	// setup shared registers
-	ed.kills.Init(cfgDir, cfg.Shared)
+	ed.regs.Init(cfgDir, cfg.Shared)
 
 	// preferences
 	termi.EscapeTimeout =
@@ -267,5 +267,5 @@ func (ed *Editor) Commit() {
 }
 
 func Clear(cfgDir string) error {
-	return kill.Clear(cfgDir)
+	return regs.Clear(cfgDir)
 }

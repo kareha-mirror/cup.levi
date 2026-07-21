@@ -43,8 +43,8 @@ type Hooks struct {
 	Stat      func(string) (FileInfo, error)
 	WriteFile func(string, []byte, os.FileMode) error
 
-	ReadKillFile  func(string) ([]byte, error)
-	WriteKillFile func(string, []byte, os.FileMode) error
+	ReadSharedFile  func(string) ([]byte, error)
+	WriteSharedFile func(string, []byte, os.FileMode) error
 
 	Shell func() error
 }
@@ -57,7 +57,7 @@ func DefaultHooks() Hooks {
 		Stat:      DefaultStat,
 		WriteFile: os.WriteFile,
 
-		ReadKillFile:  os.ReadFile,
-		WriteKillFile: os.WriteFile,
+		ReadSharedFile:  os.ReadFile,
+		WriteSharedFile: os.WriteFile,
 	}
 }

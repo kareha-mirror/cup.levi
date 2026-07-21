@@ -1,4 +1,4 @@
-package kill
+package regs
 
 import (
 	"fmt"
@@ -164,18 +164,18 @@ func (s *Store) SetShared(name rune, shared bool) bool {
 	return true
 }
 
-func (s *Store) SetLines(name rune, killed []string) error {
+func (s *Store) SetLines(name rune, copied []string) error {
 	if !IsValidName(name) {
 		return fmt.Errorf("invalid slot name")
 	}
-	lines := append([]string{}, killed...)
+	lines := append([]string{}, copied...)
 	s.defMode = Lines
 	s.defContent = lines
 	if name == 0 {
 		return nil
 	}
 	if name == '+' {
-		lines := append([]string{}, killed...)
+		lines := append([]string{}, copied...)
 		lines = append(lines, "")
 		return s.SetRunes(name, lines)
 	}
@@ -190,18 +190,18 @@ func (s *Store) SetLines(name rune, killed []string) error {
 	return nil
 }
 
-func (s *Store) SetRunes(name rune, killed []string) error {
+func (s *Store) SetRunes(name rune, copied []string) error {
 	if !IsValidName(name) {
 		return fmt.Errorf("invalid slot name")
 	}
-	lines := append([]string{}, killed...)
+	lines := append([]string{}, copied...)
 	s.defMode = Runes
 	s.defContent = lines
 	if name == 0 {
 		return nil
 	}
 	if name == '+' {
-		text := strings.Join(killed, buf.LineSep(ClipboardCRLF))
+		text := strings.Join(copied, buf.LineSep(ClipboardCRLF))
 		err := copi.Write(text)
 		if err != nil {
 			return err
@@ -219,7 +219,7 @@ func (s *Store) SetRunes(name rune, killed []string) error {
 	return nil
 }
 
-func (s *Store) AddLines(name rune, killed []string) error {
+func (s *Store) AddLines(name rune, copied []string) error {
 	if !IsValidName(name) {
 		return fmt.Errorf("invalid slot name")
 	}
@@ -234,17 +234,17 @@ func (s *Store) AddLines(name rune, killed []string) error {
 	if !ok {
 		sl = slot{
 			mode:    Lines,
-			content: append([]string{}, killed...),
+			content: append([]string{}, copied...),
 			shared:  false,
 		}
 		s.setSlot(name, sl)
 		return nil
 	}
 	if sl.mode == Lines {
-		sl.content = append(sl.content, killed...)
+		sl.content = append(sl.content, copied...)
 	} else {
 		sl.mode = Lines
-		sl.content = append([]string{}, killed...)
+		sl.content = append([]string{}, copied...)
 	}
 	s.setSlot(name, sl)
 	if sl.shared {
@@ -253,7 +253,7 @@ func (s *Store) AddLines(name rune, killed []string) error {
 	return nil
 }
 
-func (s *Store) AddRunes(name rune, killed []string) error {
+func (s *Store) AddRunes(name rune, copied []string) error {
 	if !IsValidName(name) {
 		return fmt.Errorf("invalid slot name")
 	}
@@ -268,30 +268,30 @@ func (s *Store) AddRunes(name rune, killed []string) error {
 	if !ok {
 		sl = slot{
 			mode:    Runes,
-			content: append([]string{}, killed...),
+			content: append([]string{}, copied...),
 			shared:  false,
 		}
 		s.setSlot(name, sl)
 		return nil
 	}
 	if sl.mode == Runes {
-		if len(killed) > 0 {
+		if len(copied) > 0 {
 			lines := []string{}
 			if len(sl.content) > 0 {
 				lines = append(lines, sl.content[:len(sl.content)-1]...)
-				line := sl.content[len(sl.content)-1] + killed[0]
+				line := sl.content[len(sl.content)-1] + copied[0]
 				lines = append(lines, line)
 			} else {
-				lines = append(lines, killed[0])
+				lines = append(lines, copied[0])
 			}
-			if 1 < len(killed) {
-				lines = append(lines, killed[1:]...)
+			if 1 < len(copied) {
+				lines = append(lines, copied[1:]...)
 			}
 			sl.content = lines
 		}
 	} else {
 		sl.mode = Runes
-		sl.content = append([]string{}, killed...)
+		sl.content = append([]string{}, copied...)
 	}
 	s.setSlot(name, sl)
 	if sl.shared {
@@ -300,24 +300,24 @@ func (s *Store) AddRunes(name rune, killed []string) error {
 	return nil
 }
 
-func (s *Store) ApplyLines(name rune, killed []string) error {
+func (s *Store) ApplyLines(name rune, copied []string) error {
 	if !IsValidName(name) {
 		return fmt.Errorf("invalid slot name")
 	}
 	normalized := NormalizeName(name)
 	if normalized != name {
-		return s.AddLines(name, killed)
+		return s.AddLines(name, copied)
 	}
-	return s.SetLines(name, killed)
+	return s.SetLines(name, copied)
 }
 
-func (s *Store) ApplyRunes(name rune, killed []string) error {
+func (s *Store) ApplyRunes(name rune, copied []string) error {
 	if !IsValidName(name) {
 		return fmt.Errorf("invalid slot name")
 	}
 	normalized := NormalizeName(name)
 	if normalized != name {
-		return s.AddRunes(name, killed)
+		return s.AddRunes(name, copied)
 	}
-	return s.SetRunes(name, killed)
+	return s.SetRunes(name, copied)
 }

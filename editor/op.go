@@ -7,7 +7,7 @@ import (
 	"tea.kareha.org/cup/termi/rutil"
 
 	"tea.kareha.org/cup/levi/internal/buf"
-	"tea.kareha.org/cup/levi/internal/kill"
+	"tea.kareha.org/cup/levi/internal/regs"
 )
 
 //////////////////////////////////////
@@ -56,7 +56,7 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 		ed.Error("Paste: n < 1")
 		return false
 	}
-	if ed.KillMode(reg) == kill.None {
+	if ed.CopyMode(reg) == regs.None {
 		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
@@ -64,17 +64,17 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 		}
 		return false
 	}
-	killed := ed.KilledContent(reg)
+	copied := ed.CopiedContent(reg)
 	b := ed.Buf()
-	switch ed.KillMode(reg) {
-	case kill.Runes:
-		if len(killed) < 2 {
+	switch ed.CopyMode(reg) {
+	case regs.Runes:
+		if len(copied) < 2 {
 			line := b.CurrentLine()
 			sb := strings.Builder{}
 			head, tail := rutil.Split(line, b.Loc.Col+1)
 			sb.WriteString(head)
 			for i := 0; i < n; i++ {
-				sb.WriteString(killed[0])
+				sb.WriteString(copied[0])
 			}
 			sb.WriteString(tail)
 			b.SetCurrentLine(sb.String())
@@ -87,11 +87,11 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 			lines = append(lines, b.Lines[:b.Loc.Row]...)
 
 			head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col+1)
-			lines = append(lines, head+killed[0])
-			if len(killed) > 2 {
-				lines = append(lines, killed[1:len(killed)-1]...)
+			lines = append(lines, head+copied[0])
+			if len(copied) > 2 {
+				lines = append(lines, copied[1:len(copied)-1]...)
 			}
-			lines = append(lines, killed[len(killed)-1]+tail)
+			lines = append(lines, copied[len(copied)-1]+tail)
 
 			if b.Loc.Row+1 <= b.NumLines()-1 {
 				lines = append(lines, b.Lines[b.Loc.Row+1:]...)
@@ -99,13 +99,13 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 
 			b.Lines = lines
 		}
-	case kill.Lines:
+	case regs.Lines:
 		lines := []string{}
 		if b.Loc.Row+1 <= b.NumLines() {
 			lines = append(lines, b.Lines[:b.Loc.Row+1]...)
 		}
 		for i := 0; i < n; i++ {
-			lines = append(lines, killed...)
+			lines = append(lines, copied...)
 		}
 		if b.Loc.Row+1 <= b.NumLines()-1 {
 			lines = append(lines, b.Lines[b.Loc.Row+1:]...)
@@ -130,7 +130,7 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 		return false
 	}
 	b := ed.Buf()
-	if ed.KillMode(reg) == kill.None {
+	if ed.CopyMode(reg) == regs.None {
 		if reg == 0 {
 			ed.Ring("The default buffer is empty")
 		} else {
@@ -138,15 +138,15 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 		}
 		return false
 	}
-	killed := ed.KilledContent(reg)
-	switch ed.KillMode(reg) {
-	case kill.Runes:
-		if len(killed) < 2 {
+	copied := ed.CopiedContent(reg)
+	switch ed.CopyMode(reg) {
+	case regs.Runes:
+		if len(copied) < 2 {
 			sb := strings.Builder{}
 			head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
 			sb.WriteString(head)
 			for i := 0; i < n; i++ {
-				sb.WriteString(killed[0])
+				sb.WriteString(copied[0])
 			}
 			sb.WriteString(tail)
 			b.SetCurrentLine(sb.String())
@@ -154,15 +154,15 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 			lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 
 			head, tail := rutil.Split(b.CurrentLine(), b.Loc.Col)
-			lines = append(lines, head+killed[0])
+			lines = append(lines, head+copied[0])
 
-			if len(killed) > 2 {
+			if len(copied) > 2 {
 				lines = append(
-					lines, killed[1:len(killed)-1]...,
+					lines, copied[1:len(copied)-1]...,
 				)
 			}
 
-			lines = append(lines, killed[len(killed)-1]+tail)
+			lines = append(lines, copied[len(copied)-1]+tail)
 
 			if b.Loc.Row+1 < b.NumLines() {
 				lines = append(lines, b.Lines[b.Loc.Row+1:]...)
@@ -170,10 +170,10 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 
 			b.Lines = lines
 		}
-	case kill.Lines:
+	case regs.Lines:
 		lines := append([]string{}, b.Lines[:b.Loc.Row]...)
 		for i := 0; i < n; i++ {
-			lines = append(lines, killed...)
+			lines = append(lines, copied...)
 		}
 		lines = append(lines, b.Lines[b.Loc.Row:]...)
 		b.Lines = lines

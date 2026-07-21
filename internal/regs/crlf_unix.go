@@ -1,5 +1,5 @@
 //go:build unix
 
-package kill
+package regs
 
 var ClipboardCRLF = false
