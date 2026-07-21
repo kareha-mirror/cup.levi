@@ -10,17 +10,20 @@ import (
 // Miscellaneous Commands //
 ////////////////////////////
 
-// Ctrl-G : Show info about states of current buffer.
+// Show info about states of current buffer.
+// Key: Ctrl-G
 func (ed *Editor) ShowInfo() {
 	ed.Message("%s", ed.Buf().Info())
 }
 
-// Ctrl-L : Redraw view.
+// Redraw view.
+// Key: Ctrl-L
 func (ed *Editor) Redraw() {
 	ed.redraw = true
 }
 
-// . : Repeat last command which is repeatable.
+// Repeat last command which is repeatable.
+// Key: .
 func (ed *Editor) Repeat(n int) {
 	c := ed.lastCmd
 	b := ed.Buf()
@@ -49,7 +52,8 @@ func (ed *Editor) Repeat(n int) {
 	}
 }
 
-// u : Undo last modification or redo by undoing itself.
+// Undo last modification or redo by undoing itself.
+// Key: u
 func (ed *Editor) Undo(n int, replay bool) {
 	if !replay {
 		ed.undo = !ed.undo
@@ -70,12 +74,14 @@ func (ed *Editor) Undo(n int, replay bool) {
 	b.Modified = true
 }
 
-// U : Restore current line to previous state last visited.
+// Restore current line to previous state last visited.
+// Key: U
 func (ed *Editor) Restore() bool {
 	return ed.Buf().RestoreLine()
 }
 
-// ZZ : Save and close.
+// Save and close.
+// Key: ZZ
 func (ed *Editor) SaveAndClose() {
 	b := ed.Buf()
 	if b.Modified {
@@ -92,7 +98,8 @@ func (ed *Editor) SaveAndClose() {
 	ed.CheckQuit()
 }
 
-// Ctrl-Z : Suspend editor process.
+// Suspend editor process.
+// Key: Ctrl-Z
 func (ed *Editor) Suspend() {
 	suspend.Suspend()
 }

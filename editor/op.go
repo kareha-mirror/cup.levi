@@ -18,7 +18,8 @@ import (
 // Copy (Yank)
 //
 
-// y<mv> : Copy region from current cursor to destination of motion <mv>.
+// Copy region from current cursor to destination of motion <mv>.
+// Key: y<mv>
 func (ed *Editor) CopyRegion(
 	reg rune, start buf.Loc, end buf.Loc, inclusive bool,
 ) {
@@ -29,7 +30,8 @@ func (ed *Editor) CopyRegion(
 	b.Loc = start
 }
 
-// y<mv> : Copy region from current cursor to destination of motion <mv>.
+// Copy region from current cursor to destination of motion <mv>.
+// Key: y<mv>
 func (ed *Editor) CopyLineRegion(
 	reg rune, start buf.Loc, end buf.Loc,
 ) {
@@ -47,7 +49,8 @@ func (ed *Editor) CopyLineRegion(
 // Paste (Put)
 //
 
-// "<reg>p : Paste after cursor from register <reg>.
+// Paste after cursor from register <reg>.
+// Key: "<reg>p
 func (ed *Editor) Paste(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("Paste: n < 1")
@@ -119,7 +122,8 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 	return true
 }
 
-// "<reg>p : Paste before cursor from register <reg>.
+// Paste before cursor from register <reg>.
+// Key: "<reg>P
 func (ed *Editor) PasteBefore(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("PasteBefore: n < 1")
@@ -197,7 +201,8 @@ func (ed *Editor) internalDelete(reg rune, n int) bool {
 	return true
 }
 
-// x : Delete character under cursor.
+// Delete character under cursor.
+// Key: x
 func (ed *Editor) Delete(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("Delete: n < 1")
@@ -212,7 +217,8 @@ func (ed *Editor) Delete(reg rune, n int) bool {
 	return true
 }
 
-// X : Delete character before cursor.
+// Delete character before cursor.
+// Key: X
 func (ed *Editor) DeleteBefore(reg rune, n int) bool {
 	if n < 1 {
 		ed.Error("DeleteBefore: n < 1")
@@ -235,7 +241,8 @@ func (ed *Editor) DeleteBefore(reg rune, n int) bool {
 	return true
 }
 
-// d<mv> : Delete region from current cursor to destination of motion <mv>.
+// Delete region from current cursor to destination of motion <mv>.
+// Key: d<mv>
 func (ed *Editor) DeleteRegion(
 	reg rune, start buf.Loc, end buf.Loc, inclusive bool,
 ) bool {
@@ -262,7 +269,8 @@ func (ed *Editor) DeleteRegion(
 	return true
 }
 
-// d<mv> : Delete region from current cursor to destination of motion <mv>.
+// Delete region from current cursor to destination of motion <mv>.
+// Key: d<mv>
 func (ed *Editor) DeleteLineRegion(
 	reg rune, start buf.Loc, end buf.Loc,
 ) bool {

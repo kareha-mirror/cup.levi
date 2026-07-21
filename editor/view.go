@@ -10,7 +10,8 @@ import "tea.kareha.org/cup/levi/internal/buf"
 // Scroll by View Height / Scroll by Line
 //
 
-// Ctrl-F : Scroll down by view height.
+// Scroll down by view height.
+// Key: Ctrl-F
 func (ed *Editor) ViewDown(n int) {
 	i := len(ed.viewMeta) - 2
 	if i < 0 {
@@ -24,7 +25,8 @@ func (ed *Editor) ViewDown(n int) {
 	}
 }
 
-// Ctrl-B : Scroll up by view height.
+// Scroll up by view height.
+// Key: Ctrl-B
 func (ed *Editor) ViewUp(n int) {
 	b := ed.Buf()
 	viewRow := b.ViewLoc.Row - (ed.h - 3)
@@ -61,7 +63,8 @@ func (ed *Editor) ViewUp(n int) {
 	}
 }
 
-// Ctrl-D : Scroll down by half view height.
+// Scroll down by half view height.
+// Key: Ctrl-D
 func (ed *Editor) ViewDownHalf(n int) {
 	i := len(ed.viewMeta) / 2
 	if i < 0 {
@@ -75,7 +78,8 @@ func (ed *Editor) ViewDownHalf(n int) {
 	}
 }
 
-// Ctrl-U : Scroll up by half view height.
+// Scroll up by half view height.
+// Key: Ctrl-U
 func (ed *Editor) ViewUpHalf(n int) {
 	b := ed.Buf()
 	viewRow := b.ViewLoc.Row - (ed.h-1)/2
@@ -112,7 +116,8 @@ func (ed *Editor) ViewUpHalf(n int) {
 	}
 }
 
-// Ctrl-Y : Scroll down by line.
+// Scroll down by line.
+// Key: Ctrl-Y
 func (ed *Editor) ViewDownLine(n int) {
 	ed.Commit()
 
@@ -133,7 +138,8 @@ func (ed *Editor) ViewDownLine(n int) {
 	}
 }
 
-// Ctrl-E : Scroll up by line.
+// Scroll up by line.
+// Key: Ctrl-E
 func (ed *Editor) ViewUpLine(n int) {
 	ed.Commit()
 
@@ -158,7 +164,8 @@ func (ed *Editor) ViewUpLine(n int) {
 // Reposition
 //
 
-// z Enter : Reposition cursor line to top of view.
+// Reposition cursor line to top of view.
+// Key: z Enter
 func (ed *Editor) ViewToTop() {
 	b := ed.Buf()
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
@@ -166,7 +173,8 @@ func (ed *Editor) ViewToTop() {
 	b.ViewLoc.Col = 0
 }
 
-// z. : Reposition cursor line middle of view.
+// Reposition cursor line middle of view.
+// Key: z.
 func (ed *Editor) ViewToMiddle() {
 	b := ed.Buf()
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
@@ -174,7 +182,8 @@ func (ed *Editor) ViewToMiddle() {
 	b.ViewLoc.Col = 0
 }
 
-// z- : Reposition cursor line bottom of view.
+// Reposition cursor line bottom of view.
+// Key: z-
 func (ed *Editor) ViewToBottom() {
 	b := ed.Buf()
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)

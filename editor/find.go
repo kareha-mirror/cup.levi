@@ -26,7 +26,8 @@ func (ed *Editor) find(loc buf.Loc, r rune) (buf.Loc, bool) {
 	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
-// f<char> : Find character <char> in current line and move to it.
+// Find character <char> in current line and move to it.
+// Key: f<char>
 func (ed *Editor) Find(r rune, n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("Find: n < 1")
@@ -56,7 +57,8 @@ func (ed *Editor) findBackward(loc buf.Loc, r rune) (buf.Loc, bool) {
 	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
-// F<char> : Find character <char> backward in current line and move to it.
+// Find character <char> backward in current line and move to it.
+// Key: F<char>
 func (ed *Editor) FindBackward(r rune, n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("FindBackward: n < 1")
@@ -87,7 +89,8 @@ func (ed *Editor) findBefore(loc buf.Loc, r rune) (buf.Loc, bool) {
 	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
-// t<char> : Find character <char> in current line and move to before it.
+// Find character <char> in current line and move to before it.
+// Key: t<char>
 func (ed *Editor) FindBefore(r rune, n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("FindBefore: n < 1")
@@ -118,7 +121,8 @@ func (ed *Editor) findBeforeBackward(loc buf.Loc, r rune) (buf.Loc, bool) {
 	return buf.Loc{Col: col, Row: loc.Row}, true
 }
 
-// T<char> : Find character <char> backward in current line and move before it.
+// Find character <char> backward in current line and move before it.
+// Key: T<char>
 func (ed *Editor) FindBeforeBackward(r rune, n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("FindBeforeBackward: n < 1")
@@ -140,7 +144,8 @@ func (ed *Editor) FindBeforeBackward(r rune, n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// ; : Repeat find operation to find next match.
+// Repeat find operation to find next match.
+// Key: ;
 func (ed *Editor) FindNext(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("FindNext: n < 1")
@@ -176,7 +181,8 @@ func (ed *Editor) FindNext(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// , : Repeat find operation to find previous match.
+// Repeat find operation to find previous match.
+// Key: ,
 func (ed *Editor) FindPrev(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("FindPrev: n < 1")

@@ -14,7 +14,8 @@ import (
 // Editing Commands //
 //////////////////////
 
-// r : Replace single character under cursor.
+// Replace single character under cursor.
+// Key: r<char>
 func (ed *Editor) Replace(r rune, n int) bool {
 	if n < 1 {
 		ed.Error("Replace: n < 1")
@@ -40,7 +41,8 @@ func (ed *Editor) Replace(r rune, n int) bool {
 	return true
 }
 
-// J : Join current line with next line.
+// Join current line with next line.
+// Key: J
 func (ed *Editor) Join(n int) bool {
 	if n < 1 {
 		ed.Error("Join: n < 1")
@@ -83,7 +85,8 @@ func (ed *Editor) Join(n int) bool {
 	return true
 }
 
-// > <mv> : Indent region from current cursor to destination of motion <mv>.
+// Indent region from current cursor to destination of motion <mv>.
+// Key: > <mv>
 func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true, true)
@@ -102,7 +105,8 @@ func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 	return true
 }
 
-// < <mv> : Outdent region from current cursor to destination of motion <mv>.
+// Outdent region from current cursor to destination of motion <mv>.
+// Key: < <mv>
 func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true, true)

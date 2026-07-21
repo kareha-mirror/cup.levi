@@ -38,7 +38,8 @@ func (ed *Editor) Locate() {
 // Search Commands //
 /////////////////////
 
-// /<pattern> Enter : Search <pattern> and move to it.
+// Search <pattern> and move to it.
+// Key: /<pattern> Enter
 // func (ed *Editor) Search(pattern string) (buf.Loc, bool) {
 func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 	if ed.searchs.regexp == nil {
@@ -75,7 +76,8 @@ func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 	return buf.Loc{}, false
 }
 
-// ?<pattern> Enter : Search <pattern> backward and move to it.
+// Search <pattern> backward and move to it.
+// Key: ?<pattern> Enter
 // func (ed *Editor) SearchBackward(pattern string) (buf.Loc, bool) {
 func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
 	if ed.searchs.regexp == nil {
@@ -139,7 +141,8 @@ func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
 	return buf.Loc{}, false
 }
 
-// n : Repeat last search operation to search next match.
+// Repeat last search operation to search next match.
+// Key: n
 func (ed *Editor) SearchNext() (buf.Loc, bool) {
 	if ed.searchs.backward {
 		return ed.RepeatBackwardSearch()
@@ -148,7 +151,8 @@ func (ed *Editor) SearchNext() (buf.Loc, bool) {
 	}
 }
 
-// N : Repeat last search operation to search previous match.
+// Repeat last search operation to search previous match.
+// Key: N
 func (ed *Editor) SearchPrev() (buf.Loc, bool) {
 	if ed.searchs.backward {
 		return ed.RepeatSearch()
@@ -157,13 +161,15 @@ func (ed *Editor) SearchPrev() (buf.Loc, bool) {
 	}
 }
 
-// / Enter : Repeat last search.
+// Repeat last search.
+// Key: / Enter
 func (ed *Editor) RepeatSearch() (buf.Loc, bool) {
 	//return ed.Search(ed.searchs.pattern)
 	return ed.Search() // XXX
 }
 
-// ? Enter : Repeat last backward search.
+// Repeat last backward search.
+// Key: ? Enter
 func (ed *Editor) RepeatBackwardSearch() (buf.Loc, bool) {
 	//return ed.SearchBackward(ed.searchs.pattern)
 	return ed.SearchBackward() // XXX

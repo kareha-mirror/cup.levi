@@ -19,7 +19,8 @@ import (
 // Move by Character / Move by Line
 //
 
-// h : Move cursor left by character.
+// Move cursor left by character.
+// Key: h
 func (ed *Editor) MoveLeft(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveLeft: n < 1")
@@ -32,7 +33,8 @@ func (ed *Editor) MoveLeft(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// j : Move cursor down by line.
+// Move cursor down by line.
+// Key: j
 func (ed *Editor) MoveDown(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveDown: n < 1")
@@ -48,7 +50,8 @@ func (ed *Editor) MoveDown(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// internal use : Move cursor here.
+// Move cursor here.
+// internal use
 func (ed *Editor) MoveHere(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveHere: n < 1")
@@ -64,7 +67,8 @@ func (ed *Editor) MoveHere(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// k : Move cursor up by line.
+// Move cursor up by line.
+// Key: k
 func (ed *Editor) MoveUp(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveUp: n < 1")
@@ -80,7 +84,8 @@ func (ed *Editor) MoveUp(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// l : Move cursor right by character.
+// Move cursor right by character.
+// Key: l
 func (ed *Editor) MoveRight(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveRight: n < 1")
@@ -97,14 +102,16 @@ func (ed *Editor) MoveRight(n int) (buf.Loc, bool) {
 // Move in Line
 //
 
-// 0 : Move cursor to start of current line.
+// Move cursor to start of current line.
+// Key: 0
 func (ed *Editor) MoveToStart() (buf.Loc, bool) {
 	loc := ed.Buf().Loc
 	loc.Col = 0
 	return loc, true
 }
 
-// $ : Move cursor to end of current line.
+// Move cursor to end of current line.
+// Key: $
 func (ed *Editor) MoveToEnd(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveToEnd: n < 1")
@@ -121,7 +128,8 @@ func (ed *Editor) MoveToEnd(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// ^ : Move cursor to first non-blank character of current line.
+// Move cursor to first non-blank character of current line.
+// Key: ^
 func (ed *Editor) MoveToAfterIndent() (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
@@ -129,8 +137,9 @@ func (ed *Editor) MoveToAfterIndent() (buf.Loc, bool) {
 	return loc, true
 }
 
-// <num>| : Move cursor to column <num> of current line.
-// (Note: Proper vi's column number is visual-based, but levi' is rune-based.)
+// Move cursor to column <num> of current line.
+// Key: <num>|
+// Proper vi's column number is visual-based, but levi's is rune-based.
 func (ed *Editor) MoveToColumn(n int) (buf.Loc, bool) { // n: 1-based
 	if n < 1 {
 		ed.Error("MoveToColumn: n < 1")
@@ -147,7 +156,8 @@ func (ed *Editor) MoveToColumn(n int) (buf.Loc, bool) { // n: 1-based
 // Move by Word / Move by Loose Word
 //
 
-// w : Move cursor forward by word.
+// Move cursor forward by word.
+// Key: w
 func (ed *Editor) MoveByWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByWord: n < 1")
@@ -169,7 +179,8 @@ func (ed *Editor) MoveByWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// internal use : Move cursor forward by word used by cw.
+// Move cursor forward by word used by cw.
+// internal use
 func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByChangeWord: n < 1")
@@ -194,7 +205,8 @@ func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// internal use : Move cursor forward by word used by dw.
+// Move cursor forward by word used by dw.
+// internal use
 func (ed *Editor) MoveByDeleteWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByDeleteWord: n < 1")
@@ -219,7 +231,8 @@ func (ed *Editor) MoveByDeleteWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// b : Move cursor backward by word.
+// Move cursor backward by word.
+// Key: b
 func (ed *Editor) MoveBackwardByWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBackwardByWord: n < 1")
@@ -250,7 +263,8 @@ func (ed *Editor) MoveBackwardByWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// e : Move cursor to end of word.
+// Move cursor to end of word.
+// Key: e
 func (ed *Editor) MoveToEndOfWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveToEndOfWord: n < 1")
@@ -290,7 +304,8 @@ func (ed *Editor) MoveToEndOfWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// W : Move cursor forward by loose word.
+// Move cursor forward by loose word.
+// Key: W
 func (ed *Editor) MoveByLooseWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByLooseWord: n < 1")
@@ -312,7 +327,8 @@ func (ed *Editor) MoveByLooseWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// internal use : Move cursor forward by loose word used by cW.
+// Move cursor forward by loose word used by cW.
+// internal use
 func (ed *Editor) MoveByChangeLooseWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByChangeLooseWord: n < 1")
@@ -337,7 +353,8 @@ func (ed *Editor) MoveByChangeLooseWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// internal use : Move cursor forward by word used by dW.
+// Move cursor forward by word used by dW.
+// internal use
 func (ed *Editor) MoveByDeleteLooseWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByDeleteLooseWord: n < 1")
@@ -362,7 +379,8 @@ func (ed *Editor) MoveByDeleteLooseWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// B : Move cursor backward by loose word.
+// Move cursor backward by loose word.
+// Key: B
 func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBackwardByLooseWord: n < 1")
@@ -393,7 +411,8 @@ func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// E : Move cursor to end of loose word.
+// Move cursor to end of loose word.
+// Key: E
 func (ed *Editor) MoveToEndOfLooseWord(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveToEndOfLooseWord: n < 1")
@@ -437,7 +456,8 @@ func (ed *Editor) MoveToEndOfLooseWord(n int) (buf.Loc, bool) {
 // Move by Line
 //
 
-// Enter, + : Move cursor to first non-blank character of next line.
+// Move cursor to first non-blank character of next line.
+// Key: Enter, +
 func (ed *Editor) MoveByLine(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByLine: n < 1")
@@ -454,7 +474,8 @@ func (ed *Editor) MoveByLine(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// - : Move cursor to first non-blank character of previous line.
+// Move cursor to first non-blank character of previous line.
+// Key: -
 func (ed *Editor) MoveBackwardByLine(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBackwardByLine: n < 1")
@@ -471,7 +492,8 @@ func (ed *Editor) MoveBackwardByLine(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// G : Move cursor to first non-blank character of last line.
+// Move cursor to first non-blank character of last line.
+// Key: G
 func (ed *Editor) MoveToLastLine() (buf.Loc, bool) {
 	var loc buf.Loc
 	b := ed.Buf()
@@ -480,7 +502,8 @@ func (ed *Editor) MoveToLastLine() (buf.Loc, bool) {
 	return loc, true
 }
 
-// <num>G : Move cursor to first non-blank character of line specified by <num>.
+// Move cursor to first non-blank character of line specified by <num>.
+// Key: <num>G
 func (ed *Editor) MoveToLine(n int) (buf.Loc, bool) { // n: 1-based
 	if n < 1 {
 		ed.Error("MoveToLine: n < 1")
@@ -551,7 +574,8 @@ func (ed *Editor) moveBySentence(loc buf.Loc) buf.Loc {
 	return loc
 }
 
-// ) : Move cursor forward by sentence.
+// Move cursor forward by sentence.
+// Key: )
 func (ed *Editor) MoveBySentence(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBySentence: n < 1")
@@ -648,7 +672,8 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 	return buf.Loc{Col: col, Row: loc.Row}
 }
 
-// ( : Move cursor backward by sentence.
+// Move cursor backward by sentence.
+// Key: (
 func (ed *Editor) MoveBackwardBySentence(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBackwardBySentence: n < 1")
@@ -686,7 +711,8 @@ func (ed *Editor) moveByParagraph(loc buf.Loc) buf.Loc {
 	return loc
 }
 
-// } : Move cursor forward by paragraph.
+// Move cursor forward by paragraph.
+// Key: }
 func (ed *Editor) MoveByParagraph(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveByParagraph: n < 1")
@@ -720,7 +746,8 @@ func (ed *Editor) moveBackwardByParagraph(loc buf.Loc) buf.Loc {
 	return loc
 }
 
-// { : Move cursor backward by paragraph.
+// Move cursor backward by paragraph.
+// Key: {
 func (ed *Editor) MoveBackwardByParagraph(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBackwardByParagraph: n < 1")
@@ -734,7 +761,8 @@ func (ed *Editor) MoveBackwardByParagraph(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// ]] : Move cursor forward by section.
+// Move cursor forward by section.
+// Key: ]]
 func (ed *Editor) MoveBySection(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBySection: n < 1")
@@ -744,7 +772,8 @@ func (ed *Editor) MoveBySection(n int) (buf.Loc, bool) {
 	return buf.Loc{}, false
 }
 
-// [[ : Move cursor backward by section.
+// Move cursor backward by section.
+// Key: [[
 func (ed *Editor) MoveBackwardBySection(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveBackwardBySection: n < 1")
@@ -758,7 +787,8 @@ func (ed *Editor) MoveBackwardBySection(n int) (buf.Loc, bool) {
 // Move in View
 //
 
-// H : Move cursor to top of view.
+// Move cursor to top of view.
+// Key: H
 func (ed *Editor) MoveToTopOfView() (buf.Loc, bool) {
 	if len(ed.viewMeta) < 1 {
 		return buf.Loc{}, false
@@ -770,7 +800,8 @@ func (ed *Editor) MoveToTopOfView() (buf.Loc, bool) {
 	return loc, true
 }
 
-// M : Move cursor to middle of view.
+// Move cursor to middle of view.
+// Key: M
 func (ed *Editor) MoveToMiddleOfView() (buf.Loc, bool) {
 	if len(ed.viewMeta) < 1 {
 		return buf.Loc{}, false
@@ -783,7 +814,8 @@ func (ed *Editor) MoveToMiddleOfView() (buf.Loc, bool) {
 	return loc, true
 }
 
-// L : Move cursor to bottom of view.
+// Move cursor to bottom of view.
+// Key: L
 func (ed *Editor) MoveToBottomOfView() (buf.Loc, bool) {
 	if len(ed.viewMeta) < 1 {
 		return buf.Loc{}, false
@@ -796,7 +828,8 @@ func (ed *Editor) MoveToBottomOfView() (buf.Loc, bool) {
 	return loc, true
 }
 
-// <num>H : Move cursor below <num> lines from top of view.
+// Move cursor below <num> lines from top of view.
+// Key: <num>H
 func (ed *Editor) MoveToBelowTopOfView(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveToBelowTopOfView: n < 1")
@@ -814,7 +847,8 @@ func (ed *Editor) MoveToBelowTopOfView(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-// <num>L : Move cursor above <num> lines from bottom of view.
+// Move cursor above <num> lines from bottom of view.
+// Key: <num>L
 func (ed *Editor) MoveToAboveBottomOfView(n int) (buf.Loc, bool) {
 	if n < 1 {
 		ed.Error("MoveToAboveBottomOfView: n < 1")
