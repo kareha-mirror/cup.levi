@@ -90,3 +90,8 @@ Next, run `task` in project tree.
 ```sh
 task
 ```
+
+## Commands
+
+* [Editor Commands](commands.md)
+* [Prompt Commands](prompt-commands.md)

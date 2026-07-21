@@ -18,7 +18,8 @@ import (
 // Prompt Commands //
 /////////////////////
 
-// :+<num> Enter : Move cursor to first non-blank character of next line.
+// Move cursor to first non-blank character of next line.
+// Key: :+<num> Enter
 func (ed *Editor) PromptMoveByLine(n int) {
 	if n < 0 {
 		ed.Error("PromptMoveByLine: n < 0")
@@ -34,7 +35,8 @@ func (ed *Editor) PromptMoveByLine(n int) {
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
-// :-<num> Enter : Move cursor to first non-blank character of previous line.
+// Move cursor to first non-blank character of previous line.
+// Key: :-<num> Enter
 func (ed *Editor) PromptMoveBackwardByLine(n int) {
 	if n < 0 {
 		ed.Error("PromptMoveBackwardByLine: n < 0")
@@ -53,7 +55,8 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
-// :<num> Enter : Move cursor to first non-blank character of line specifined by <num>.
+// Move cursor to first non-blank character of line specifined by <num>.
+// Key: :<num> Enter
 func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 	if n < 0 {
 		ed.Error("PromptMoveToLine: n < 0")
@@ -72,7 +75,8 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
 }
 
-// :wq Enter : Save current file and quit.
+// Save current file and quit.
+// Key: :wq Enter
 func (ed *Editor) PromptSaveAndQuit() {
 	b := ed.Buf()
 	if b.Modified && b.Path == "" {
@@ -88,7 +92,8 @@ func (ed *Editor) PromptSaveAndQuit() {
 	ed.CheckQuit()
 }
 
-// :w Enter : Save current file.
+// Save current file.
+// Key: :w Enter
 func (ed *Editor) PromptSave(name string) {
 	if name == "" {
 		if !ed.Save(false) {
@@ -101,7 +106,8 @@ func (ed *Editor) PromptSave(name string) {
 	}
 }
 
-// :w! Enter : Force save current file.
+// Force save current file.
+// Key: :w! Enter
 func (ed *Editor) PromptForceSave(name string) {
 	if name == "" {
 		if !ed.Save(true) {
@@ -114,7 +120,8 @@ func (ed *Editor) PromptForceSave(name string) {
 	}
 }
 
-// :q Enter : Quit editor.
+// Quit editor.
+// Key: :q Enter
 func (ed *Editor) PromptQuit() {
 	b := ed.Buf()
 	if b.Modified {
@@ -129,13 +136,15 @@ func (ed *Editor) PromptQuit() {
 	ed.CheckQuit()
 }
 
-// :q! Enter : Force quit editor.
+// Force quit editor.
+// Key: :q! Enter
 func (ed *Editor) PromptForceQuit() {
 	ed.Close(true)
 	ed.CheckQuit()
 }
 
-// :e Enter : Load file.
+// Load file.
+// Key :e Enter
 func (ed *Editor) PromptLoad(name string) {
 	b := ed.Buf()
 	b.BeginSnapshot()
@@ -147,7 +156,8 @@ func (ed *Editor) PromptLoad(name string) {
 	ed.ShowFileInfo()
 }
 
-// :e! Enter : Force load file.
+// Force load file.
+// Key: :e! Enter
 func (ed *Editor) PromptForceLoad(name string) {
 	b := ed.Buf()
 	b.BeginSnapshot()
@@ -159,7 +169,8 @@ func (ed *Editor) PromptForceLoad(name string) {
 	ed.ShowFileInfo()
 }
 
-// :r Enter : Read file and insert to current buffer.
+// Read file and insert to current buffer.
+// Key :r Enter
 func (ed *Editor) PromptRead(name string) {
 	b := ed.Buf()
 	if name == "" {
@@ -184,7 +195,8 @@ func (ed *Editor) PromptRead(name string) {
 	ed.ShowTextInfo(name, inserts, b.CRLF)
 }
 
-// :sh Enter : Execute shell.
+// Execute shell.
+// Key: :sh Enter
 func (ed *Editor) PromptShell() {
 	if ed.hooks.Shell != nil {
 		termi.FinishKey()
@@ -234,7 +246,8 @@ func (ed *Editor) PromptShell() {
 	}
 }
 
-// :wa Enter : Save all files.
+// Save all files.
+// Key: :wa Enter
 func (ed *Editor) PromptSaveAll() {
 	bufIdx := ed.bufIdx
 	for i := 0; i < ed.NumBufs(); i++ {
@@ -258,7 +271,8 @@ func (ed *Editor) PromptSaveAll() {
 	ed.bufIdx = bufIdx
 }
 
-// :wa! Enter : Save all files.
+// Force save all files.
+// Key: :wa! Enter
 func (ed *Editor) PromptForceSaveAll() {
 	bufIdx := ed.bufIdx
 	for i := 0; i < ed.NumBufs(); i++ {
@@ -273,7 +287,8 @@ func (ed *Editor) PromptForceSaveAll() {
 	ed.bufIdx = bufIdx
 }
 
-// :qa Enter : Close all files and quit editor.
+// Close all files and quit editor.
+// Key: :qa Enter
 func (ed *Editor) PromptQuitAll() {
 	for ed.alive {
 		if !ed.Close(false) {
@@ -283,12 +298,14 @@ func (ed *Editor) PromptQuitAll() {
 	}
 }
 
-// :qa! Enter : Force close all files and quit editor.
+// Force close all files and quit editor.
+// Key: :qa! Enter
 func (ed *Editor) PromptForceQuitAll() {
 	ed.alive = false
 }
 
-// :set ts=<num> Enter
+// Set tab stop size.
+// Key: :set ts=<num> Enter
 func (ed *Editor) PromptTabStop(n int) {
 	if n < 1 {
 		ed.Ring("set: the ts option may never be set to 0.")
@@ -298,17 +315,20 @@ func (ed *Editor) PromptTabStop(n int) {
 	termi.TabWidth = n
 }
 
-// :set ai Enter
+// Set auto indent enabled.
+// Key: :set ai Enter
 func (ed *Editor) PromptAutoIndent() {
 	ed.cfg.AutoIndent = true
 }
 
-// :set noai Enter
+// Set auto indent disabled.
+// Key: :set noai Enter
 func (ed *Editor) PromptNoAutoIndent() {
 	ed.cfg.AutoIndent = false
 }
 
-// :open Enter : Open file in new buffer.
+// Open file in new buffer.
+// Key: :open Enter
 func (ed *Editor) PromptOpen(name string) {
 	if !ed.Open(name) {
 		return
@@ -316,7 +336,8 @@ func (ed *Editor) PromptOpen(name string) {
 	ed.ShowFileInfo()
 }
 
-// :newline Enter
+// Set newline type.
+// Key: :newline Enter
 func (ed *Editor) PromptNewline(name string) {
 	switch name {
 	case "":
@@ -336,7 +357,8 @@ func (ed *Editor) PromptNewline(name string) {
 	}
 }
 
-// :colors Enter
+// Set colorscheme.
+// Key: :colors Enter
 func (ed *Editor) PromptColors(name string) {
 	// colors . : parse and load colorscheme from current buffer
 	if name == "." {
@@ -372,7 +394,8 @@ func (ed *Editor) PromptColors(name string) {
 	ed.redraw = true
 }
 
-// :mem Enter
+// Show memory usage.
+// Key: :mem Enter
 func (ed *Editor) PromptMem() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
@@ -415,7 +438,8 @@ func (ed *Editor) PromptMem() {
 	ed.Message("%s", sb.String())
 }
 
-// :hello Enter
+// Used by debug.
+// Key: :hello Enter
 func (ed *Editor) PromptHello(n int) {
 	// hello : show Hello, World!
 	if n < 1 {
