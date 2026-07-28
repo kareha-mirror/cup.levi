@@ -33,10 +33,11 @@ func realMain() (totalErr error) {
 	}
 
 	if *unlock {
-		err := lock.Unlock(*cfgDir)
+		err := lock.ForceUnlock(*cfgDir)
 		if err != nil {
 			return err
 		}
+		fmt.Println("Lock has been removed.")
 		return nil
 	}
 
@@ -45,6 +46,7 @@ func realMain() (totalErr error) {
 		if err != nil {
 			return err
 		}
+		fmt.Println("Shared registers have been cleared.")
 		return nil
 	}
 
