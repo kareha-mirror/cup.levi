@@ -9,7 +9,7 @@ type snaps struct {
 }
 
 func (b *Buf) numSnaps() int {
-	return len(b.ss.list)
+	return len(b.snaps.list)
 }
 
 func (b *Buf) BeginSnapshot() {
@@ -17,7 +17,7 @@ func (b *Buf) BeginSnapshot() {
 		return
 	}
 
-	b.ss.temp = append([]string{}, b.Lines...)
+	b.snaps.temp = append([]string{}, b.Lines...)
 }
 
 func (b *Buf) EndSnapshot() {
@@ -26,30 +26,30 @@ func (b *Buf) EndSnapshot() {
 	}
 
 	delta := 0
-	if b.ss.undo {
-		b.ss.idx++
+	if b.snaps.undo {
+		b.snaps.idx++
 		delta++
 	}
-	if b.ss.redo {
-		b.ss.idx--
+	if b.snaps.redo {
+		b.snaps.idx--
 		delta++
 	}
 
-	if b.ss.idx+1-delta <= b.numSnaps() {
-		b.ss.list = b.ss.list[:b.ss.idx+1-delta]
+	if b.snaps.idx+1-delta <= b.numSnaps() {
+		b.snaps.list = b.snaps.list[:b.snaps.idx+1-delta]
 	}
 
-	b.ss.list = append(b.ss.list, b.ss.temp)
-	b.ss.temp = nil
-	b.ss.idx = b.numSnaps() - 1
+	b.snaps.list = append(b.snaps.list, b.snaps.temp)
+	b.snaps.temp = nil
+	b.snaps.idx = b.numSnaps() - 1
 
 	if b.numSnaps() > b.Depth+1 {
-		b.ss.list = b.ss.list[1:]
-		b.ss.idx = b.numSnaps() - 1
+		b.snaps.list = b.snaps.list[1:]
+		b.snaps.idx = b.numSnaps() - 1
 	}
 
-	b.ss.undo = false
-	b.ss.redo = false
+	b.snaps.undo = false
+	b.snaps.redo = false
 }
 
 func (b *Buf) CancelSnapshot() {
@@ -57,7 +57,7 @@ func (b *Buf) CancelSnapshot() {
 		return
 	}
 
-	b.ss.temp = nil
+	b.snaps.temp = nil
 }
 
 func (b *Buf) Undo() bool {
@@ -65,28 +65,28 @@ func (b *Buf) Undo() bool {
 		return false
 	}
 
-	if b.ss.redo {
-		b.ss.idx -= 2
-		b.ss.redo = false
+	if b.snaps.redo {
+		b.snaps.idx -= 2
+		b.snaps.redo = false
 	}
-	if b.ss.idx < 0 {
+	if b.snaps.idx < 0 {
 		return false
 	}
-	if b.ss.idx > b.numSnaps()-1 {
-		b.ss.idx = b.numSnaps() - 1
+	if b.snaps.idx > b.numSnaps()-1 {
+		b.snaps.idx = b.numSnaps() - 1
 		return false
 	}
 
-	if b.ss.idx >= b.numSnaps()-1 {
+	if b.snaps.idx >= b.numSnaps()-1 {
 		b.BeginSnapshot()
 		b.EndSnapshot()
-		b.ss.idx = b.numSnaps() - 2
+		b.snaps.idx = b.numSnaps() - 2
 	}
 
-	lines := append([]string{}, b.ss.list[b.ss.idx]...)
+	lines := append([]string{}, b.snaps.list[b.snaps.idx]...)
 	b.Lines = lines
-	b.ss.idx--
-	b.ss.undo = true
+	b.snaps.idx--
+	b.snaps.undo = true
 	return true
 }
 
@@ -95,20 +95,20 @@ func (b *Buf) Redo() bool {
 		return false
 	}
 
-	if b.ss.undo {
-		b.ss.idx += 2
-		b.ss.undo = false
+	if b.snaps.undo {
+		b.snaps.idx += 2
+		b.snaps.undo = false
 	}
-	if b.ss.idx > b.numSnaps()-1 {
+	if b.snaps.idx > b.numSnaps()-1 {
 		return false
 	}
-	if b.ss.idx < 0 {
-		b.ss.idx = 0
+	if b.snaps.idx < 0 {
+		b.snaps.idx = 0
 	}
 
-	lines := append([]string{}, b.ss.list[b.ss.idx]...)
+	lines := append([]string{}, b.snaps.list[b.snaps.idx]...)
 	b.Lines = lines
-	b.ss.idx++
-	b.ss.redo = true
+	b.snaps.idx++
+	b.snaps.redo = true
 	return true
 }

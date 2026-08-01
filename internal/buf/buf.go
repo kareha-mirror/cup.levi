@@ -37,10 +37,10 @@ type Buf struct {
 	Marks   map[rune]Loc
 	Context Loc
 
-	ss    snaps
+	snaps snaps
 	Depth int
 
-	current string
+	stored string
 }
 
 func New(crlf bool, depth int) *Buf {
@@ -69,7 +69,7 @@ func (b *Buf) Line(row int) string {
 func (b *Buf) SetLine(row int, line string) {
 	// lazy init on empty case
 	if len(b.Lines) == 0 && row == 0 {
-		b.Lines = append(b.Lines, "")
+		b.Lines = []string{""}
 	}
 
 	b.Lines[row] = line
@@ -83,7 +83,7 @@ func (b *Buf) SetCurrentLine(line string) {
 	b.SetLine(b.Loc.Row, line)
 	// empty case
 	if b.NumLines() == 1 && b.Line(0) == "" {
-		b.Lines = b.Lines[:0]
+		b.Lines = nil
 	}
 }
 
@@ -105,30 +105,28 @@ func (b *Buf) Text(crlf bool) string {
 	return strings.Join(b.Lines, sep) + sep
 }
 
-func TextToLines(text string) ([]string, bool) {
+func HasCRLF(text string) bool {
+	return strings.Contains(text, "\r\n")
+}
+
+func TextToLines(text string) []string {
 	// empty case
 	if text == "" {
-		return nil, false
+		return nil
 	}
 
-	// clip last newline if exists
-	var crlf bool
-	if text[len(text)-1] == '\n' {
-		text = text[:len(text)-1]
-		crlf = false
-		if text != "" && text[len(text)-1] == '\r' {
-			text = text[:len(text)-1]
-			crlf = true
-		}
-	} else if strings.Contains(text, "\r\n") {
-		crlf = true
+	crlf := HasCRLF(text)
+	sep := LineSep(crlf)
+	if strings.HasSuffix(text, sep) {
+		text = text[:len(text)-len(sep)]
 	}
 
-	return strings.Split(text, LineSep(crlf)), crlf
+	return strings.Split(text, sep)
 }
 
 func (b *Buf) SetText(text string) {
-	b.Lines, b.CRLF = TextToLines(text)
+	b.CRLF = HasCRLF(text)
+	b.Lines = TextToLines(text)
 }
 
 func (b *Buf) Mark(r rune) {

@@ -251,7 +251,7 @@ func (ed *Editor) DrawStatus() {
 		fmt.Print(termi.Render(":" + ed.prompt.String()))
 	} else if ed.mode == ModeSearch {
 		head := "/"
-		if ed.searchs.backward {
+		if ed.searchs.back {
 			head = "?"
 		}
 		fmt.Print(termi.Render(

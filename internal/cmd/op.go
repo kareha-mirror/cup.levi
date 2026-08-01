@@ -30,7 +30,7 @@ func (a Args) parseOp() (Pair, bool) {
 	case 'a':
 		return Pair{Op: Cmd{Kind: InsertAfter, Num: a.Num}}, true
 	case 'I':
-		return Pair{Op: Cmd{Kind: InsertAfterIndent, Num: a.Num}}, true
+		return Pair{Op: Cmd{Kind: InsertBeforeFirstNonBlank, Num: a.Num}}, true
 	case 'A':
 		return Pair{Op: Cmd{Kind: InsertAfterEnd, Num: a.Num}}, true
 
@@ -270,7 +270,7 @@ func (a Args) parseOp() (Pair, bool) {
 				Pat:  "Usage: [[",
 			}}, true
 		}
-		return Pair{Mv: Cmd{Kind: MoveBackwardBySection, Num: a.Num}}, true
+		return Pair{Mv: Cmd{Kind: MoveBackBySection, Num: a.Num}}, true
 
 	}
 	return Pair{}, false

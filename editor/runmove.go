@@ -25,8 +25,8 @@ func (ed *Editor) RunMove(c cmd.Cmd, num int) (buf.Loc, bool) {
 		return ed.MoveToStart()
 	case cmd.MoveToEnd:
 		return ed.MoveToEnd(num)
-	case cmd.MoveToAfterIndent:
-		return ed.MoveToAfterIndent()
+	case cmd.MoveToFirstNonBlank:
+		return ed.MoveToFirstNonBlank()
 	case cmd.MoveToColumn:
 		return ed.MoveToColumn(num)
 
@@ -36,25 +36,25 @@ func (ed *Editor) RunMove(c cmd.Cmd, num int) (buf.Loc, bool) {
 		return ed.MoveByChangeWord(num)
 	case cmd.MoveByDeleteWord:
 		return ed.MoveByDeleteWord(num)
-	case cmd.MoveBackwardByWord:
-		return ed.MoveBackwardByWord(num)
+	case cmd.MoveBackByWord:
+		return ed.MoveBackByWord(num)
 	case cmd.MoveToEndOfWord:
 		return ed.MoveToEndOfWord(num)
-	case cmd.MoveByLooseWord:
-		return ed.MoveByLooseWord(num)
-	case cmd.MoveByChangeLooseWord:
-		return ed.MoveByChangeLooseWord(num)
-	case cmd.MoveByDeleteLooseWord:
-		return ed.MoveByDeleteLooseWord(num)
-	case cmd.MoveBackwardByLooseWord:
-		return ed.MoveBackwardByLooseWord(num)
-	case cmd.MoveToEndOfLooseWord:
-		return ed.MoveToEndOfLooseWord(num)
+	case cmd.MoveByBigword:
+		return ed.MoveByBigword(num)
+	case cmd.MoveByChangeBigword:
+		return ed.MoveByChangeBigword(num)
+	case cmd.MoveByDeleteBigword:
+		return ed.MoveByDeleteBigword(num)
+	case cmd.MoveBackByBigword:
+		return ed.MoveBackByBigword(num)
+	case cmd.MoveToEndOfBigword:
+		return ed.MoveToEndOfBigword(num)
 
 	case cmd.MoveByLine:
 		return ed.MoveByLine(num)
-	case cmd.MoveBackwardByLine:
-		return ed.MoveBackwardByLine(num)
+	case cmd.MoveBackByLine:
+		return ed.MoveBackByLine(num)
 	case cmd.MoveToLastLine:
 		return ed.MoveToLastLine()
 	case cmd.MoveToLine:
@@ -62,16 +62,16 @@ func (ed *Editor) RunMove(c cmd.Cmd, num int) (buf.Loc, bool) {
 
 	case cmd.MoveBySentence:
 		return ed.MoveBySentence(num)
-	case cmd.MoveBackwardBySentence:
-		return ed.MoveBackwardBySentence(num)
+	case cmd.MoveBackBySentence:
+		return ed.MoveBackBySentence(num)
 	case cmd.MoveByParagraph:
 		return ed.MoveByParagraph(num)
-	case cmd.MoveBackwardByParagraph:
-		return ed.MoveBackwardByParagraph(num)
+	case cmd.MoveBackByParagraph:
+		return ed.MoveBackByParagraph(num)
 	case cmd.MoveBySection:
 		return ed.MoveBySection(num)
-	case cmd.MoveBackwardBySection:
-		return ed.MoveBackwardBySection(num)
+	case cmd.MoveBackBySection:
+		return ed.MoveBackBySection(num)
 
 	case cmd.MoveToTopOfView:
 		return ed.MoveToTopOfView()
@@ -96,25 +96,25 @@ func (ed *Editor) RunMove(c cmd.Cmd, num int) (buf.Loc, bool) {
 
 	case cmd.Search:
 		return ed.Search()
-	case cmd.SearchBackward:
-		return ed.SearchBackward()
+	case cmd.SearchBack:
+		return ed.SearchBack()
 	case cmd.SearchNext:
 		return ed.SearchNext()
 	case cmd.SearchPrev:
 		return ed.SearchPrev()
 	case cmd.RepeatSearch:
 		return ed.RepeatSearch()
-	case cmd.RepeatBackwardSearch:
-		return ed.RepeatBackwardSearch()
+	case cmd.RepeatBackSearch:
+		return ed.RepeatBackSearch()
 
 	case cmd.Find:
 		return ed.Find(c.Rune, num)
-	case cmd.FindBackward:
-		return ed.FindBackward(c.Rune, num)
+	case cmd.FindBack:
+		return ed.FindBack(c.Rune, num)
 	case cmd.FindBefore:
 		return ed.FindBefore(c.Rune, num)
-	case cmd.FindBeforeBackward:
-		return ed.FindBeforeBackward(c.Rune, num)
+	case cmd.FindBeforeBack:
+		return ed.FindBeforeBack(c.Rune, num)
 	case cmd.FindNext:
 		return ed.FindNext(num)
 	case cmd.FindPrev:

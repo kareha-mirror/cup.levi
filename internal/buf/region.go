@@ -14,6 +14,7 @@ func OrderRegion(start, end Loc) (Loc, Loc) {
 	if end.Row < start.Row {
 		return end, start
 	}
+
 	// start.Row == end.Row
 	if start.Col < end.Col {
 		return start, end
@@ -30,6 +31,7 @@ func (b *Buf) ConfineRegion(
 		return b.ConfineInclusive(start), b.ConfineInclusive(end)
 		// caller may adjust as end.Col++ to use as if not inclusive
 	}
+
 	// start is virtually inclusive
 	start, end = b.Confine(start), b.Confine(end)
 	if linewise {
@@ -49,6 +51,7 @@ func (b *Buf) RegionRunewise(start, end Loc) []string {
 		s := rutil.Body(b.Line(start.Row), start.Col, end.Col)
 		return []string{s}
 	}
+
 	s := rutil.Tail(b.Line(start.Row), start.Col)
 	lines := append([]string{}, s)
 	for row := start.Row + 1; row < end.Row; row++ {

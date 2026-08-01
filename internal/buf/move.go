@@ -6,7 +6,7 @@ import (
 	"tea.kareha.org/cup/termi/rkind"
 )
 
-func (b *Buf) CheckRowInclusive(row int) bool {
+func (b *Buf) IsRowIncluded(row int) bool {
 	if row < 0 {
 		return false
 	}
@@ -22,33 +22,33 @@ func (b *Buf) CheckRowInclusive(row int) bool {
 }
 
 // not inclusive
-func (b *Buf) ConfineRow(row int) int {
-	if row < 0 {
-		return 0
+func (b *Buf) confineRow(loc Loc) Loc {
+	if loc.Row < 0 {
+		return Loc{Col: loc.Col, Row: 0}
 	}
 	numLines := b.NumLines()
-	if row > numLines {
-		return numLines
+	if loc.Row > numLines {
+		return Loc{Col: loc.Col, Row: numLines}
 	}
-	return row
+	return loc
 }
 
 // not inclusive
-func (b *Buf) ConfineCol(loc Loc) int {
+func (b *Buf) confineCol(loc Loc) Loc {
 	if loc.Col < 0 {
-		return 0
+		return Loc{Col: 0, Row: loc.Row}
 	}
 	rc := utf8.RuneCountInString(b.Line(loc.Row))
 	if loc.Col > rc {
-		return rc
+		return Loc{Col: rc, Row: loc.Row}
 	}
-	return loc.Col
+	return loc
 }
 
 // not inclusive
 func (b *Buf) Confine(loc Loc) Loc {
-	loc.Row = b.ConfineRow(loc.Row)
-	loc.Col = b.ConfineCol(loc)
+	loc = b.confineRow(loc)
+	loc = b.confineCol(loc)
 	return loc
 }
 
@@ -67,7 +67,7 @@ func (b *Buf) ConfineInclusive(loc Loc) Loc {
 	return loc
 }
 
-func (b *Buf) NonBlankColOfLine(row int) int {
+func (b *Buf) FirstNonBlankCol(row int) int {
 	col := 0
 	for _, r := range b.Line(row) {
 		if !rkind.IsBlank(r) {
@@ -79,10 +79,10 @@ func (b *Buf) NonBlankColOfLine(row int) int {
 }
 
 // inclusive
-func (b *Buf) ConfineFreeColInclusive(row int) int {
-	rc := utf8.RuneCountInString(b.Line(row))
+func (b *Buf) ConfineFreeCol(loc Loc) Loc {
+	rc := utf8.RuneCountInString(b.Line(loc.Row))
 	if b.VirtCol < rc {
-		return b.VirtCol
+		return Loc{Col: b.VirtCol, Row: loc.Row}
 	}
-	return max(rc-1, 0)
+	return Loc{Col: max(rc-1, 0), Row: loc.Row}
 }

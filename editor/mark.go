@@ -39,7 +39,7 @@ func (ed *Editor) MoveToMarkLine(r rune) (buf.Loc, bool) {
 		return buf.Loc{}, false
 	}
 	loc = b.Confine(loc)
-	loc.Col = b.NonBlankColOfLine(loc.Row)
+	loc.Col = b.FirstNonBlankCol(loc.Row)
 	return loc, true
 }
 
@@ -62,9 +62,9 @@ func (ed *Editor) BackToMark() (buf.Loc, bool) {
 func (ed *Editor) BackToMarkLine() (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Context
-	loc.Col = b.NonBlankColOfLine(loc.Row)
+	loc.Col = b.FirstNonBlankCol(loc.Row)
 	bLoc := b.Loc
-	bLoc.Col = b.NonBlankColOfLine(bLoc.Row)
+	bLoc.Col = b.FirstNonBlankCol(bLoc.Row)
 	b.Context = bLoc
 	return loc, true
 }

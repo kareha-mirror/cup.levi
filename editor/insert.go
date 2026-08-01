@@ -118,13 +118,13 @@ func (ed *Editor) InsertAfter(n int, replay bool) bool {
 
 // Switches to insert mode after indent of current line.
 // Key: I
-func (ed *Editor) InsertAfterIndent(n int, replay bool) bool {
+func (ed *Editor) InsertBeforeFirstNonBlank(n int, replay bool) bool {
 	if n < 1 {
-		ed.Error("InsertAfterIndent: n < 1")
+		ed.Error("InsertBeforeFirstNonBlank: n < 1")
 		return false
 	}
 	b := ed.Buf()
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	return ed.Insert(n, replay)
 }
 
@@ -170,7 +170,7 @@ func (ed *Editor) InsertLine(n int, replay bool) bool {
 	}
 	b.Lines = lines
 	b.Loc.Row++
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	return ed.InsertAfter(n, replay)
 }
 
@@ -195,7 +195,7 @@ func (ed *Editor) InsertLineAbove(n int, replay bool) bool {
 		lines = append(lines, b.Lines[b.Loc.Row:]...)
 	}
 	b.Lines = lines
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	return ed.InsertAfter(n, replay)
 }
 

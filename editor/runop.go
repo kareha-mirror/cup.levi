@@ -15,8 +15,8 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 		return ed.Insert(c.Op.Num, replay), true
 	case cmd.InsertAfter:
 		return ed.InsertAfter(c.Op.Num, replay), true
-	case cmd.InsertAfterIndent:
-		return ed.InsertAfterIndent(c.Op.Num, replay), true
+	case cmd.InsertBeforeFirstNonBlank:
+		return ed.InsertBeforeFirstNonBlank(c.Op.Num, replay), true
 	case cmd.InsertAfterEnd:
 		return ed.InsertAfterEnd(c.Op.Num, replay), true
 
@@ -30,9 +30,9 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 		mv := c.Mv
 		if mv.Kind == cmd.MoveByWord || mv.Kind == cmd.MoveToEndOfWord {
 			mv.Kind = cmd.MoveByChangeWord
-		} else if mv.Kind == cmd.MoveByLooseWord ||
-			mv.Kind == cmd.MoveToEndOfLooseWord {
-			mv.Kind = cmd.MoveByChangeLooseWord
+		} else if mv.Kind == cmd.MoveByBigword ||
+			mv.Kind == cmd.MoveToEndOfBigword {
+			mv.Kind = cmd.MoveByChangeBigword
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
@@ -75,12 +75,12 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 		mv := c.Mv
 		if mv.Kind == cmd.MoveByWord {
 			mv.Kind = cmd.MoveByDeleteWord
-		} else if mv.Kind == cmd.MoveByLooseWord {
-			mv.Kind = cmd.MoveByDeleteLooseWord
+		} else if mv.Kind == cmd.MoveByBigword {
+			mv.Kind = cmd.MoveByDeleteBigword
 		} else if mv.Kind == cmd.MoveToEndOfWord {
 			mv.Kind = cmd.MoveByChangeWord
-		} else if mv.Kind == cmd.MoveToEndOfLooseWord {
-			mv.Kind = cmd.MoveByChangeLooseWord
+		} else if mv.Kind == cmd.MoveToEndOfBigword {
+			mv.Kind = cmd.MoveByChangeBigword
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
@@ -107,9 +107,9 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 		mv := c.Mv
 		if mv.Kind == cmd.MoveByWord || mv.Kind == cmd.MoveToEndOfWord {
 			mv.Kind = cmd.MoveByChangeWord // XXX or cmd.MoveByDeleteWord?
-		} else if mv.Kind == cmd.MoveByLooseWord ||
-			mv.Kind == cmd.MoveToEndOfLooseWord {
-			mv.Kind = cmd.MoveByChangeLooseWord // XXX or cmd.MoveByDeleteWord?
+		} else if mv.Kind == cmd.MoveByBigword ||
+			mv.Kind == cmd.MoveToEndOfBigword {
+			mv.Kind = cmd.MoveByChangeBigword // XXX or cmd.MoveByDeleteWord?
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {
@@ -122,9 +122,9 @@ func (ed *Editor) RunOp(c cmd.Pair, replay bool) (bool, bool) {
 		mv := c.Mv
 		if mv.Kind == cmd.MoveByWord || mv.Kind == cmd.MoveToEndOfWord {
 			mv.Kind = cmd.MoveByChangeWord // XXX or cmd.MoveByDeleteWord?
-		} else if mv.Kind == cmd.MoveByLooseWord ||
-			mv.Kind == cmd.MoveToEndOfLooseWord {
-			mv.Kind = cmd.MoveByChangeLooseWord // XXX or cmd.MoveByDeleteWord?
+		} else if mv.Kind == cmd.MoveByBigword ||
+			mv.Kind == cmd.MoveToEndOfBigword {
+			mv.Kind = cmd.MoveByChangeBigword // XXX or cmd.MoveByDeleteWord?
 		}
 		end, ok := ed.RunMove(mv, c.Op.Num)
 		if !ok {

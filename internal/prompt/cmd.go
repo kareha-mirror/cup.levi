@@ -12,7 +12,7 @@ const (
 	Invalid Kind = iota
 
 	MoveByLine
-	MoveBackwardByLine
+	MoveBackByLine
 	MoveToLine
 
 	SaveAndQuit

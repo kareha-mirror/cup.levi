@@ -11,9 +11,9 @@ import (
 )
 
 type searchState struct {
-	backward bool
-	pattern  rbuf.RuneBuf
-	regexp   *regexp.Regexp
+	back    bool
+	pattern rbuf.RuneBuf
+	regexp  *regexp.Regexp
 }
 
 func (ed *Editor) Locate() {
@@ -78,8 +78,8 @@ func (ed *Editor) Search() (buf.Loc, bool) { // XXX
 
 // Search <pattern> backward and move to it.
 // Key: ?<pattern> Enter
-// func (ed *Editor) SearchBackward(pattern string) (buf.Loc, bool) {
-func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
+// func (ed *Editor) SearchBack(pattern string) (buf.Loc, bool) {
+func (ed *Editor) SearchBack() (buf.Loc, bool) { // XXX
 	if ed.searchs.regexp == nil {
 		ed.Ring("No previous search pattern")
 		return buf.Loc{}, false
@@ -144,8 +144,8 @@ func (ed *Editor) SearchBackward() (buf.Loc, bool) { // XXX
 // Repeat last search operation to search next match.
 // Key: n
 func (ed *Editor) SearchNext() (buf.Loc, bool) {
-	if ed.searchs.backward {
-		return ed.RepeatBackwardSearch()
+	if ed.searchs.back {
+		return ed.RepeatBackSearch()
 	} else {
 		return ed.RepeatSearch()
 	}
@@ -154,10 +154,10 @@ func (ed *Editor) SearchNext() (buf.Loc, bool) {
 // Repeat last search operation to search previous match.
 // Key: N
 func (ed *Editor) SearchPrev() (buf.Loc, bool) {
-	if ed.searchs.backward {
+	if ed.searchs.back {
 		return ed.RepeatSearch()
 	} else {
-		return ed.RepeatBackwardSearch()
+		return ed.RepeatBackSearch()
 	}
 }
 
@@ -170,7 +170,7 @@ func (ed *Editor) RepeatSearch() (buf.Loc, bool) {
 
 // Repeat last backward search.
 // Key: ? Enter
-func (ed *Editor) RepeatBackwardSearch() (buf.Loc, bool) {
-	//return ed.SearchBackward(ed.searchs.pattern)
-	return ed.SearchBackward() // XXX
+func (ed *Editor) RepeatBackSearch() (buf.Loc, bool) {
+	//return ed.SearchBack(ed.searchs.pattern)
+	return ed.SearchBack() // XXX
 }

@@ -31,12 +31,12 @@ func (ed *Editor) MainCommand(key termi.Key) {
 			case '/':
 				ed.Reset()
 				ed.mode = ModeSearch
-				ed.searchs.backward = false
+				ed.searchs.back = false
 				return
 			case '?':
 				ed.Reset()
 				ed.mode = ModeSearch
-				ed.searchs.backward = true
+				ed.searchs.back = true
 				return
 			}
 		}
@@ -178,8 +178,8 @@ func (ed *Editor) MainSearch(key termi.Key) {
 			ed.mode = ModeCommand
 		case termi.RuneEnter, termi.RuneNewline:
 			if ed.searchs.pattern.RuneCount() < 1 {
-				if ed.searchs.backward {
-					ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.RepeatBackwardSearch}}, false)
+				if ed.searchs.back {
+					ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.RepeatBackSearch}}, false)
 				} else {
 					ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.RepeatSearch}}, false)
 				}
@@ -192,8 +192,8 @@ func (ed *Editor) MainSearch(key termi.Key) {
 			}
 			ed.searchs.regexp = re
 			ed.searchs.pattern.Reset()
-			if ed.searchs.backward {
-				ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.SearchBackward}}, false)
+			if ed.searchs.back {
+				ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.SearchBack}}, false)
 			} else {
 				ed.Run(cmd.Pair{Mv: cmd.Cmd{Kind: cmd.Search}}, false)
 			}

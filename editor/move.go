@@ -29,7 +29,7 @@ func (ed *Editor) MoveLeft(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col -= n
-	loc.Col = b.ConfineCol(loc)
+	loc = b.Confine(loc)
 	return loc, true
 }
 
@@ -43,7 +43,7 @@ func (ed *Editor) MoveDown(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Row += n
-	if !b.CheckRowInclusive(loc.Row) {
+	if !b.IsRowIncluded(loc.Row) {
 		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
@@ -60,7 +60,7 @@ func (ed *Editor) MoveHere(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Row += n - 1
-	if !b.CheckRowInclusive(loc.Row) {
+	if !b.IsRowIncluded(loc.Row) {
 		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
@@ -77,7 +77,7 @@ func (ed *Editor) MoveUp(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Row -= n
-	if !b.CheckRowInclusive(loc.Row) {
+	if !b.IsRowIncluded(loc.Row) {
 		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
@@ -94,7 +94,7 @@ func (ed *Editor) MoveRight(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col += n
-	loc.Col = b.ConfineCol(loc)
+	loc = b.Confine(loc)
 	return loc, true
 }
 
@@ -120,7 +120,7 @@ func (ed *Editor) MoveToEnd(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Row += n - 1
-	if !b.CheckRowInclusive(loc.Row) {
+	if !b.IsRowIncluded(loc.Row) {
 		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
@@ -130,10 +130,10 @@ func (ed *Editor) MoveToEnd(n int) (buf.Loc, bool) {
 
 // Move cursor to first non-blank character of current line.
 // Key: ^
-func (ed *Editor) MoveToAfterIndent() (buf.Loc, bool) {
+func (ed *Editor) MoveToFirstNonBlank() (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
-	loc.Col = b.NonBlankColOfLine(loc.Row)
+	loc.Col = b.FirstNonBlankCol(loc.Row)
 	return loc, true
 }
 
@@ -148,12 +148,12 @@ func (ed *Editor) MoveToColumn(n int) (buf.Loc, bool) { // n: 1-based
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Col = n - 1
-	loc.Col = b.ConfineCol(loc)
+	loc = b.Confine(loc)
 	return loc, true
 }
 
 //
-// Move by Word / Move by Loose Word
+// Move by Word / Move by Bigword
 //
 
 // Move cursor forward by word.
@@ -233,9 +233,9 @@ func (ed *Editor) MoveByDeleteWord(n int) (buf.Loc, bool) {
 
 // Move cursor backward by word.
 // Key: b
-func (ed *Editor) MoveBackwardByWord(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveBackByWord(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveBackwardByWord: n < 1")
+		ed.Error("MoveBackByWord: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
@@ -253,10 +253,10 @@ func (ed *Editor) MoveBackwardByWord(n int) (buf.Loc, bool) {
 			rc := utf8.RuneCountInString(line)
 			loc.Col = max(rc-1, 0)
 		}
-		if loc, found = b.SkipBackwardBlanks(loc); !found {
+		if loc, found = b.SkipBackBlanks(loc); !found {
 			return loc, true
 		}
-		if loc, found = b.MoveBackwardByWord(loc); !found {
+		if loc, found = b.MoveBackByWord(loc); !found {
 			return loc, true
 		}
 	}
@@ -306,16 +306,16 @@ func (ed *Editor) MoveToEndOfWord(n int) (buf.Loc, bool) {
 
 // Move cursor forward by loose word.
 // Key: W
-func (ed *Editor) MoveByLooseWord(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveByBigword(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveByLooseWord: n < 1")
+		ed.Error("MoveByBigword: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
 	for i := 0; i < n; i++ {
-		if loc, found = b.MoveByLooseWord(loc); found {
+		if loc, found = b.MoveByBigword(loc); found {
 			continue
 		}
 		loc.Row++
@@ -329,16 +329,16 @@ func (ed *Editor) MoveByLooseWord(n int) (buf.Loc, bool) {
 
 // Move cursor forward by loose word used by cW.
 // internal use
-func (ed *Editor) MoveByChangeLooseWord(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveByChangeBigword(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveByChangeLooseWord: n < 1")
+		ed.Error("MoveByChangeBigword: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
 	for i := 1; i < n; i++ {
-		if loc, found = b.MoveByLooseWord(loc); found {
+		if loc, found = b.MoveByBigword(loc); found {
 			continue
 		}
 		loc.Row++
@@ -347,7 +347,7 @@ func (ed *Editor) MoveByChangeLooseWord(n int) (buf.Loc, bool) {
 			return loc, true
 		}
 	}
-	if loc, found = b.MoveByLooseWordAlt(loc); found {
+	if loc, found = b.MoveByBigwordAlt(loc); found {
 		return loc, true
 	}
 	return loc, true
@@ -355,16 +355,16 @@ func (ed *Editor) MoveByChangeLooseWord(n int) (buf.Loc, bool) {
 
 // Move cursor forward by word used by dW.
 // internal use
-func (ed *Editor) MoveByDeleteLooseWord(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveByDeleteBigword(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveByDeleteLooseWord: n < 1")
+		ed.Error("MoveByDeleteBigword: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
 	for i := 0; i < n; i++ {
-		if loc, found = b.MoveByLooseWord(loc); found {
+		if loc, found = b.MoveByBigword(loc); found {
 			continue
 		}
 		if i == n-1 && b.Line(loc.Row) != "" {
@@ -381,9 +381,9 @@ func (ed *Editor) MoveByDeleteLooseWord(n int) (buf.Loc, bool) {
 
 // Move cursor backward by loose word.
 // Key: B
-func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveBackByBigword(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveBackwardByLooseWord: n < 1")
+		ed.Error("MoveBackByBigword: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
@@ -401,10 +401,10 @@ func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Loc, bool) {
 			rc := utf8.RuneCountInString(line)
 			loc.Col = max(rc-1, 0)
 		}
-		if loc, found = b.SkipBackwardBlanks(loc); !found {
+		if loc, found = b.SkipBackBlanks(loc); !found {
 			return loc, true
 		}
-		if loc, found = b.MoveBackwardByLooseWord(loc); !found {
+		if loc, found = b.MoveBackByBigword(loc); !found {
 			return loc, true
 		}
 	}
@@ -413,16 +413,16 @@ func (ed *Editor) MoveBackwardByLooseWord(n int) (buf.Loc, bool) {
 
 // Move cursor to end of loose word.
 // Key: E
-func (ed *Editor) MoveToEndOfLooseWord(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveToEndOfBigword(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveToEndOfLooseWord: n < 1")
+		ed.Error("MoveToEndOfBigword: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	loc := b.Loc
 	var found bool
 	for i := 1; i < n; i++ {
-		if loc, found = b.MoveByLooseWord(loc); found {
+		if loc, found = b.MoveByBigword(loc); found {
 			continue
 		}
 		loc.Row++
@@ -445,7 +445,7 @@ func (ed *Editor) MoveToEndOfLooseWord(n int) (buf.Loc, bool) {
 	if loc, found = b.SkipBlanks(loc); !found {
 		return loc, true
 	}
-	if loc, found = b.MoveByLooseWordAlt(loc); found {
+	if loc, found = b.MoveByBigwordAlt(loc); found {
 		loc.Col = max(loc.Col-1, 0)
 		return loc, true
 	}
@@ -466,29 +466,29 @@ func (ed *Editor) MoveByLine(n int) (buf.Loc, bool) {
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Row += n
-	if !b.CheckRowInclusive(loc.Row) {
+	if !b.IsRowIncluded(loc.Row) {
 		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
-	loc.Col = b.NonBlankColOfLine(loc.Row)
+	loc.Col = b.FirstNonBlankCol(loc.Row)
 	return loc, true
 }
 
 // Move cursor to first non-blank character of previous line.
 // Key: -
-func (ed *Editor) MoveBackwardByLine(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveBackByLine(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveBackwardByLine: n < 1")
+		ed.Error("MoveBackByLine: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	loc := b.Loc
 	loc.Row -= n
-	if !b.CheckRowInclusive(loc.Row) {
+	if !b.IsRowIncluded(loc.Row) {
 		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
-	loc.Col = b.NonBlankColOfLine(loc.Row)
+	loc.Col = b.FirstNonBlankCol(loc.Row)
 	return loc, true
 }
 
@@ -497,8 +497,9 @@ func (ed *Editor) MoveBackwardByLine(n int) (buf.Loc, bool) {
 func (ed *Editor) MoveToLastLine() (buf.Loc, bool) {
 	var loc buf.Loc
 	b := ed.Buf()
-	loc.Row = b.ConfineRow(b.NumLines() - 1)
-	loc.Col = b.NonBlankColOfLine(loc.Row)
+	loc.Row = b.NumLines() - 1
+	loc = b.Confine(loc)
+	loc.Col = b.FirstNonBlankCol(loc.Row)
 	return loc, true
 }
 
@@ -512,11 +513,11 @@ func (ed *Editor) MoveToLine(n int) (buf.Loc, bool) { // n: 1-based
 	var loc buf.Loc
 	loc.Row = n - 1
 	b := ed.Buf()
-	if !b.CheckRowInclusive(loc.Row) {
+	if !b.IsRowIncluded(loc.Row) {
 		ed.Notice("Out of range")
 		return buf.Loc{}, false
 	}
-	loc.Col = b.NonBlankColOfLine(loc.Row)
+	loc.Col = b.FirstNonBlankCol(loc.Row)
 	return loc, true
 }
 
@@ -589,7 +590,7 @@ func (ed *Editor) MoveBySentence(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
+func (ed *Editor) moveBackBySentence(loc buf.Loc) buf.Loc {
 	b := ed.Buf()
 	first := true
 	line := b.Line(loc.Row)
@@ -598,7 +599,7 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 	for {
 		if first {
 			if line == "" || rkind.IsBlank(rutil.RuneAt(line, loc.Col)) {
-				loc, _ = b.SkipBackwardBlanks(loc)
+				loc, _ = b.SkipBackBlanks(loc)
 			}
 		} else {
 			if rkind.IsBlankLine(line) {
@@ -612,7 +613,7 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 		col := 0
 		found := false
 		orig := b.Loc
-		nbCol := b.NonBlankColOfLine(loc.Row)
+		nbCol := b.FirstNonBlankCol(loc.Row)
 		list := []int{nbCol}
 		for _, r := range line {
 			if col >= loc.Col {
@@ -668,21 +669,21 @@ func (ed *Editor) moveBackwardBySentence(loc buf.Loc) buf.Loc {
 	if loc.Row < 0 {
 		loc.Row = 0
 	}
-	col := ed.Buf().NonBlankColOfLine(loc.Row)
+	col := ed.Buf().FirstNonBlankCol(loc.Row)
 	return buf.Loc{Col: col, Row: loc.Row}
 }
 
 // Move cursor backward by sentence.
 // Key: (
-func (ed *Editor) MoveBackwardBySentence(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveBackBySentence(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveBackwardBySentence: n < 1")
+		ed.Error("MoveBackBySentence: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	loc := b.Loc
 	for i := 0; i < n; i++ {
-		loc = ed.moveBackwardBySentence(loc)
+		loc = ed.moveBackBySentence(loc)
 	}
 	return loc, true
 }
@@ -726,9 +727,9 @@ func (ed *Editor) MoveByParagraph(n int) (buf.Loc, bool) {
 	return loc, true
 }
 
-func (ed *Editor) moveBackwardByParagraph(loc buf.Loc) buf.Loc {
+func (ed *Editor) moveBackByParagraph(loc buf.Loc) buf.Loc {
 	b := ed.Buf()
-	loc, ok := b.SkipBackwardBlanks(loc)
+	loc, ok := b.SkipBackBlanks(loc)
 	if !ok {
 		return loc
 	}
@@ -748,15 +749,15 @@ func (ed *Editor) moveBackwardByParagraph(loc buf.Loc) buf.Loc {
 
 // Move cursor backward by paragraph.
 // Key: {
-func (ed *Editor) MoveBackwardByParagraph(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveBackByParagraph(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveBackwardByParagraph: n < 1")
+		ed.Error("MoveBackByParagraph: n < 1")
 		return buf.Loc{}, false
 	}
 	b := ed.Buf()
 	loc := b.Loc
 	for i := 0; i < n; i++ {
-		loc = ed.moveBackwardByParagraph(loc)
+		loc = ed.moveBackByParagraph(loc)
 	}
 	return loc, true
 }
@@ -774,12 +775,12 @@ func (ed *Editor) MoveBySection(n int) (buf.Loc, bool) {
 
 // Move cursor backward by section.
 // Key: [[
-func (ed *Editor) MoveBackwardBySection(n int) (buf.Loc, bool) {
+func (ed *Editor) MoveBackBySection(n int) (buf.Loc, bool) {
 	if n < 1 {
-		ed.Error("MoveBackwardBySection: n < 1")
+		ed.Error("MoveBackBySection: n < 1")
 		return buf.Loc{}, false
 	}
-	ed.Unimplemented("MoveBackwardBySection")
+	ed.Unimplemented("MoveBackBySection")
 	return buf.Loc{}, false
 }
 
@@ -795,7 +796,7 @@ func (ed *Editor) MoveToTopOfView() (buf.Loc, bool) {
 	}
 	loc := ed.viewMeta[0].Loc
 	if loc.Col < 1 {
-		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().FirstNonBlankCol(loc.Row)
 	}
 	return loc, true
 }
@@ -809,7 +810,7 @@ func (ed *Editor) MoveToMiddleOfView() (buf.Loc, bool) {
 	i := len(ed.viewMeta)/2 - 1
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().FirstNonBlankCol(loc.Row)
 	}
 	return loc, true
 }
@@ -823,7 +824,7 @@ func (ed *Editor) MoveToBottomOfView() (buf.Loc, bool) {
 	i := len(ed.viewMeta) - 1
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().FirstNonBlankCol(loc.Row)
 	}
 	return loc, true
 }
@@ -842,7 +843,7 @@ func (ed *Editor) MoveToBelowTopOfView(n int) (buf.Loc, bool) {
 	}
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().FirstNonBlankCol(loc.Row)
 	}
 	return loc, true
 }
@@ -861,7 +862,7 @@ func (ed *Editor) MoveToAboveBottomOfView(n int) (buf.Loc, bool) {
 	}
 	loc := ed.viewMeta[i].Loc
 	if loc.Col < 1 {
-		loc.Col = ed.Buf().NonBlankColOfLine(loc.Row)
+		loc.Col = ed.Buf().FirstNonBlankCol(loc.Row)
 	}
 	return loc, true
 }

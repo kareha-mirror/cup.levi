@@ -27,19 +27,19 @@ func (ed *Editor) PromptMoveByLine(n int) {
 	}
 	b := ed.Buf()
 	row := b.Loc.Row + n
-	if !b.CheckRowInclusive(row) {
+	if !b.IsRowIncluded(row) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
 	b.Loc.Row = row
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 }
 
 // Move cursor to first non-blank character of previous line.
 // Key: :-<num> Enter
-func (ed *Editor) PromptMoveBackwardByLine(n int) {
+func (ed *Editor) PromptMoveBackByLine(n int) {
 	if n < 0 {
-		ed.Error("PromptMoveBackwardByLine: n < 0")
+		ed.Error("PromptMoveBackByLine: n < 0")
 		return
 	}
 	b := ed.Buf()
@@ -47,12 +47,12 @@ func (ed *Editor) PromptMoveBackwardByLine(n int) {
 	if row == -1 {
 		row++
 	}
-	if !b.CheckRowInclusive(row) {
+	if !b.IsRowIncluded(row) {
 		ed.Ring("Reference to a line number less than 0.")
 		return
 	}
 	b.Loc.Row = row
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 }
 
 // Move cursor to first non-blank character of line specifined by <num>.
@@ -67,12 +67,12 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 	}
 	b := ed.Buf()
 	row := n - 1
-	if !b.CheckRowInclusive(row) {
+	if !b.IsRowIncluded(row) {
 		ed.Ring("Illegal address: only %d lines in the file.", b.NumLines())
 		return
 	}
 	b.Loc.Row = row
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 }
 
 // Save current file and quit.
@@ -182,7 +182,7 @@ func (ed *Editor) PromptRead(name string) {
 		return
 	}
 	ed.BeginUndoRecord()
-	inserts, _ := buf.TextToLines(string(data))
+	inserts := buf.TextToLines(string(data))
 	lines := append([]string(nil), b.Lines[:b.Loc.Row+1]...)
 	lines = append(lines, inserts...)
 	if b.Loc.Row+1 <= b.NumLines() {

@@ -25,7 +25,7 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 			}, true
 		case 'F':
 			return Cmd{
-				Kind: FindBackward,
+				Kind: FindBack,
 				Num:  a.Num,
 				Rune: a.Rune,
 			}, true
@@ -37,7 +37,7 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 			}, true
 		case 'T':
 			return Cmd{
-				Kind: FindBeforeBackward,
+				Kind: FindBeforeBack,
 				Num:  a.Num,
 				Rune: a.Rune,
 			}, true
@@ -62,7 +62,7 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 	case '$':
 		return Cmd{Kind: MoveToEnd, Num: a.Num}, true
 	case '^':
-		return Cmd{Kind: MoveToAfterIndent}, true
+		return Cmd{Kind: MoveToFirstNonBlank}, true
 	case '|':
 		return Cmd{Kind: MoveToColumn, Num: a.Num}, true
 
@@ -73,24 +73,24 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 	//case 'g': // XXX debug
 	//	return Cmd{Kind: MoveByDeleteWord, Num: a.Num}, true
 	case 'b':
-		return Cmd{Kind: MoveBackwardByWord, Num: a.Num}, true
+		return Cmd{Kind: MoveBackByWord, Num: a.Num}, true
 	case 'e':
 		return Cmd{Kind: MoveToEndOfWord, Num: a.Num}, true
 	case 'W':
-		return Cmd{Kind: MoveByLooseWord, Num: a.Num}, true
+		return Cmd{Kind: MoveByBigword, Num: a.Num}, true
 	//case 'g': // XXX debug
-	//	return Cmd{Kind: MoveByChangeLooseWord, Num: a.Num}, true
+	//	return Cmd{Kind: MoveByChangeBigword, Num: a.Num}, true
 	//case 'g': // XXX debug
-	//	return Cmd{Kind: MoveByDeleteLooseWord, Num: a.Num}, true
+	//	return Cmd{Kind: MoveByDeleteBigword, Num: a.Num}, true
 	case 'B':
-		return Cmd{Kind: MoveBackwardByLooseWord, Num: a.Num}, true
+		return Cmd{Kind: MoveBackByBigword, Num: a.Num}, true
 	case 'E':
-		return Cmd{Kind: MoveToEndOfLooseWord, Num: a.Num}, true
+		return Cmd{Kind: MoveToEndOfBigword, Num: a.Num}, true
 
 	case '\r', '+':
 		return Cmd{Kind: MoveByLine, Num: a.Num}, true
 	case '-':
-		return Cmd{Kind: MoveBackwardByLine, Num: a.Num}, true
+		return Cmd{Kind: MoveBackByLine, Num: a.Num}, true
 	case 'G':
 		if a.Has {
 			return Cmd{Kind: MoveToLine, Num: a.Num}, true
@@ -101,13 +101,13 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 	case ')':
 		return Cmd{Kind: MoveBySentence, Num: a.Num}, true
 	case '(':
-		return Cmd{Kind: MoveBackwardBySentence, Num: a.Num}, true
+		return Cmd{Kind: MoveBackBySentence, Num: a.Num}, true
 	case '}':
 		return Cmd{Kind: MoveByParagraph, Num: a.Num}, true
 	case '{':
-		return Cmd{Kind: MoveBackwardByParagraph, Num: a.Num}, true
+		return Cmd{Kind: MoveBackByParagraph, Num: a.Num}, true
 
-	// MoveBySection and MoveBackwardBySection are compound
+	// MoveBySection and MoveBackBySection are compound
 
 	case 'H':
 		if a.Has {
@@ -129,8 +129,8 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 	//	return Cmd{Kind: RepeatSearch}, true
 	//	return Cmd{Kind: Search, Pat: pat}, true
 	//case '?':
-	//	return Cmd{Kind: RepeatBackwardSearch}, true
-	//	return Cmd{Kind: SearchBackward, Pat: pat}, true
+	//	return Cmd{Kind: RepeatBackSearch}, true
+	//	return Cmd{Kind: SearchBack, Pat: pat}, true
 	case 'n':
 		return Cmd{Kind: SearchNext}, true
 	case 'N':

@@ -21,7 +21,7 @@ func (ed *Editor) ViewDown(n int) {
 	b.Loc = ed.viewMeta[i].Loc
 	b.ViewLoc = b.Loc
 	if b.Loc.Col < 1 {
-		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+		b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	}
 }
 
@@ -59,7 +59,7 @@ func (ed *Editor) ViewUp(n int) {
 	b.ViewLoc = newViewLoc
 	b.Loc = viewMeta[len(viewMeta)-2].Loc
 	if b.Loc.Col < 1 {
-		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+		b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	}
 }
 
@@ -74,7 +74,7 @@ func (ed *Editor) ViewDownHalf(n int) {
 	b.Loc = ed.viewMeta[i].Loc
 	b.ViewLoc = b.Loc
 	if b.Loc.Col < 1 {
-		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+		b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	}
 }
 
@@ -112,7 +112,7 @@ func (ed *Editor) ViewUpHalf(n int) {
 	b.ViewLoc = newViewLoc
 	b.Loc = viewMeta[len(viewMeta)-1].Loc
 	if b.Loc.Col < 1 {
-		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+		b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	}
 }
 
@@ -134,7 +134,7 @@ func (ed *Editor) ViewDownLine(n int) {
 	meta := ed.viewMeta[len(ed.viewMeta)-1]
 	if b.Loc.Row >= meta.Loc.Row {
 		b.Loc.Row = max(b.Loc.Row-1, 0)
-		b.Loc.Col = b.ConfineFreeColInclusive(b.Loc.Row)
+		b.Loc = b.ConfineFreeCol(b.Loc)
 	}
 }
 
@@ -156,7 +156,7 @@ func (ed *Editor) ViewUpLine(n int) {
 
 	if b.Loc.Row < b.ViewLoc.Row {
 		b.Loc.Row = b.ViewLoc.Row
-		b.Loc.Col = b.ConfineFreeColInclusive(b.Loc.Row)
+		b.Loc = b.ConfineFreeCol(b.Loc)
 	}
 }
 
@@ -168,7 +168,7 @@ func (ed *Editor) ViewUpLine(n int) {
 // Key: z Enter
 func (ed *Editor) ViewToTop() {
 	b := ed.Buf()
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	b.ViewLoc.Row = b.Loc.Row
 	b.ViewLoc.Col = 0
 }
@@ -177,7 +177,7 @@ func (ed *Editor) ViewToTop() {
 // Key: z.
 func (ed *Editor) ViewToMiddle() {
 	b := ed.Buf()
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	b.ViewLoc.Row = max(b.Loc.Row-(ed.h-1)/2, 0)
 	b.ViewLoc.Col = 0
 }
@@ -186,7 +186,7 @@ func (ed *Editor) ViewToMiddle() {
 // Key: z-
 func (ed *Editor) ViewToBottom() {
 	b := ed.Buf()
-	b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 	b.ViewLoc.Row = max(b.Loc.Row-(ed.h-1)+1, 0)
 	b.ViewLoc.Col = 0
 }

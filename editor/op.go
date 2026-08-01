@@ -115,7 +115,7 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 		if move {
 			b.Loc.Row++
 			b.Loc = b.Confine(b.Loc)
-			b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+			b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 			b.VirtCol = b.Loc.Col
 		}
 	}
@@ -177,7 +177,7 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 		}
 		lines = append(lines, b.Lines[b.Loc.Row:]...)
 		b.Lines = lines
-		b.Loc.Col = b.NonBlankColOfLine(b.Loc.Row)
+		b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 		b.VirtCol = b.Loc.Col
 	}
 	return true

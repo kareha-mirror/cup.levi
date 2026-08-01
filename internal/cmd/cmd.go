@@ -32,31 +32,31 @@ const (
 	MoveRight
 	MoveToStart
 	MoveToEnd
-	MoveToAfterIndent
+	MoveToFirstNonBlank
 	MoveToColumn
 
 	MoveByWord
 	MoveByChangeWord
 	MoveByDeleteWord
-	MoveBackwardByWord
+	MoveBackByWord
 	MoveToEndOfWord
-	MoveByLooseWord
-	MoveByChangeLooseWord
-	MoveByDeleteLooseWord
-	MoveBackwardByLooseWord
-	MoveToEndOfLooseWord
+	MoveByBigword
+	MoveByChangeBigword
+	MoveByDeleteBigword
+	MoveBackByBigword
+	MoveToEndOfBigword
 
 	MoveByLine
-	MoveBackwardByLine
+	MoveBackByLine
 	MoveToLastLine
 	MoveToLine
 
 	MoveBySentence
-	MoveBackwardBySentence
+	MoveBackBySentence
 	MoveByParagraph
-	MoveBackwardByParagraph
+	MoveBackByParagraph
 	MoveBySection
-	MoveBackwardBySection
+	MoveBackBySection
 
 	MoveToTopOfView
 	MoveToMiddleOfView
@@ -70,16 +70,16 @@ const (
 	BackToMarkLine
 
 	Search
-	SearchBackward
+	SearchBack
 	SearchNext
 	SearchPrev
 	RepeatSearch
-	RepeatBackwardSearch
+	RepeatBackSearch
 
 	Find
-	FindBackward
+	FindBack
 	FindBefore
-	FindBeforeBackward
+	FindBeforeBack
 	FindNext
 	FindPrev
 
@@ -94,7 +94,7 @@ const (
 
 	Insert
 	InsertAfter
-	InsertAfterIndent
+	InsertBeforeFirstNonBlank
 	InsertAfterEnd
 
 	InsertLine
@@ -185,10 +185,10 @@ const (
 )
 
 var IsInsert = map[Kind]struct{}{
-	Insert:            {},
-	InsertAfter:       {},
-	InsertAfterIndent: {},
-	InsertAfterEnd:    {},
+	Insert:                    {},
+	InsertAfter:               {},
+	InsertBeforeFirstNonBlank: {},
+	InsertAfterEnd:            {},
 
 	InsertLine:      {},
 	InsertLineAbove: {},
@@ -198,10 +198,10 @@ var IsInsert = map[Kind]struct{}{
 }
 
 var IsMultiInsert = map[Kind]struct{}{
-	Insert:            {},
-	InsertAfter:       {},
-	InsertAfterIndent: {},
-	InsertAfterEnd:    {},
+	Insert:                    {},
+	InsertAfter:               {},
+	InsertBeforeFirstNonBlank: {},
+	InsertAfterEnd:            {},
 
 	InsertLine:      {},
 	InsertLineAbove: {},

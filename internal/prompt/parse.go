@@ -24,11 +24,11 @@ func Parse(prompt string) (Cmd, bool) {
 
 	if prompt[0] == '-' {
 		if len(prompt) < 2 {
-			return Cmd{Kind: MoveBackwardByLine, Num: 1}, true
+			return Cmd{Kind: MoveBackByLine, Num: 1}, true
 		} else {
 			n, err := strconv.ParseInt(prompt, 10, 32)
 			if err == nil {
-				return Cmd{Kind: MoveBackwardByLine, Num: int(n)}, true
+				return Cmd{Kind: MoveBackByLine, Num: int(n)}, true
 			}
 		}
 	}

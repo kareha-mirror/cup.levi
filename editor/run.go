@@ -19,7 +19,7 @@ func (ed *Editor) Run(c cmd.Pair, replay bool) (bool, bool) {
 				b := ed.Buf()
 				if attr.Linewise {
 					if attr.FreeCol {
-						loc.Col = b.ConfineFreeColInclusive(loc.Row)
+						loc = b.ConfineFreeCol(loc)
 					}
 				} else {
 					loc = b.ConfineInclusive(loc)
