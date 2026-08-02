@@ -76,6 +76,23 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 }
 
 // Save current file and quit.
+// Key: :x Enter
+func (ed *Editor) PromptSaveModifiedAndClose() {
+	b := ed.Buf()
+	if b.Modified && b.Path == "" {
+		ed.Ring("File is a temporary; exit will discard modifications.")
+		return
+	}
+	if b.Modified && b.Path != "" {
+		if !ed.Save(false) {
+			return
+		}
+	}
+	ed.Close(false)
+	ed.CheckQuit()
+}
+
+// Save current file and quit.
 // Key: :wq Enter
 func (ed *Editor) PromptSaveAndQuit() {
 	b := ed.Buf()

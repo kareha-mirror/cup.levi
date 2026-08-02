@@ -41,6 +41,8 @@ func Parse(prompt string) (Cmd, bool) {
 	parts := strings.Split(prompt, " ")
 
 	switch parts[0] {
+	case "x", "xit":
+		return Cmd{Kind: SaveModifiedAndClose}, true
 	case "wq":
 		return Cmd{Kind: SaveAndQuit}, true
 	case "w":

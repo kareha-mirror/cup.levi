@@ -10,6 +10,9 @@ func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 		ed.PromptMoveToLine(c.Num)
 		return true
 
+	case prompt.SaveModifiedAndClose:
+		ed.PromptSaveModifiedAndClose()
+		return true
 	case prompt.SaveAndQuit:
 		ed.PromptSaveAndQuit()
 		return true
