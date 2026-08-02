@@ -15,12 +15,12 @@ const (
 	MoveBackByLine
 	MoveToLine
 
-	SaveModifiedAndClose
-	SaveAndQuit
-	Save
-	ForceSave
-	Quit
-	ForceQuit
+	SaveAndClose
+	WriteAndClose
+	Write
+	ForceWrite
+	Close
+	ForceClose
 	Load
 	ForceLoad
 	Read
@@ -31,8 +31,8 @@ const (
 
 	SaveAll
 	ForceSaveAll
-	QuitAll
-	ForceQuitAll
+	CloseAll
+	ForceCloseAll
 
 	TabStop
 	AutoIndent

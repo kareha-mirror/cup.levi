@@ -77,15 +77,16 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 
 // Save current file and quit.
 // Key: :x Enter
-func (ed *Editor) PromptSaveModifiedAndClose() {
+func (ed *Editor) PromptSaveAndClose() {
 	b := ed.Buf()
-	if b.Modified && b.Path == "" {
-		ed.Ring("File is a temporary; exit will discard modifications.")
-		return
-	}
-	if b.Modified && b.Path != "" {
-		if !ed.Save(false) {
+	if b.Modified {
+		if b.Path == "" {
+			ed.Ring("File is a temporary; exit will discard modifications.")
 			return
+		} else {
+			if !ed.Save(false) {
+				return
+			}
 		}
 	}
 	ed.Close(false)
@@ -94,13 +95,14 @@ func (ed *Editor) PromptSaveModifiedAndClose() {
 
 // Save current file and quit.
 // Key: :wq Enter
-func (ed *Editor) PromptSaveAndQuit() {
+func (ed *Editor) PromptWriteAndClose() {
 	b := ed.Buf()
-	if b.Modified && b.Path == "" {
-		ed.Ring("File is a temporary; exit will discard modifications.")
-		return
-	}
-	if b.Modified && b.Path != "" {
+	if b.Path == "" {
+		if b.Modified {
+			ed.Ring("File is a temporary; exit will discard modifications.")
+			return
+		}
+	} else {
 		if !ed.Save(false) {
 			return
 		}
@@ -111,7 +113,7 @@ func (ed *Editor) PromptSaveAndQuit() {
 
 // Save current file.
 // Key: :w Enter
-func (ed *Editor) PromptSave(name string) {
+func (ed *Editor) PromptWrite(name string) {
 	if name == "" {
 		if !ed.Save(false) {
 			return
@@ -125,7 +127,7 @@ func (ed *Editor) PromptSave(name string) {
 
 // Force save current file.
 // Key: :w! Enter
-func (ed *Editor) PromptForceSave(name string) {
+func (ed *Editor) PromptForceWrite(name string) {
 	if name == "" {
 		if !ed.Save(true) {
 			return
@@ -139,7 +141,7 @@ func (ed *Editor) PromptForceSave(name string) {
 
 // Quit editor.
 // Key: :q Enter
-func (ed *Editor) PromptQuit() {
+func (ed *Editor) PromptClose() {
 	b := ed.Buf()
 	if b.Modified {
 		if b.Path == "" {
@@ -155,7 +157,7 @@ func (ed *Editor) PromptQuit() {
 
 // Force quit editor.
 // Key: :q! Enter
-func (ed *Editor) PromptForceQuit() {
+func (ed *Editor) PromptForceClose() {
 	ed.Close(true)
 	ed.CheckQuit()
 }
@@ -306,7 +308,7 @@ func (ed *Editor) PromptForceSaveAll() {
 
 // Close all files and quit editor.
 // Key: :qa Enter
-func (ed *Editor) PromptQuitAll() {
+func (ed *Editor) PromptCloseAll() {
 	for ed.alive {
 		if !ed.Close(false) {
 			return
@@ -317,7 +319,7 @@ func (ed *Editor) PromptQuitAll() {
 
 // Force close all files and quit editor.
 // Key: :qa! Enter
-func (ed *Editor) PromptForceQuitAll() {
+func (ed *Editor) PromptForceCloseAll() {
 	ed.alive = false
 }
 

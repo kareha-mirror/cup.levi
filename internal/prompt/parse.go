@@ -42,25 +42,25 @@ func Parse(prompt string) (Cmd, bool) {
 
 	switch parts[0] {
 	case "x", "xit":
-		return Cmd{Kind: SaveModifiedAndClose}, true
+		return Cmd{Kind: SaveAndClose}, true
 	case "wq":
-		return Cmd{Kind: SaveAndQuit}, true
+		return Cmd{Kind: WriteAndClose}, true
 	case "w":
 		if len(parts) > 1 {
-			return Cmd{Kind: Save, Name: parts[1]}, true
+			return Cmd{Kind: Write, Name: parts[1]}, true
 		} else {
-			return Cmd{Kind: Save}, true
+			return Cmd{Kind: Write}, true
 		}
 	case "w!":
 		if len(parts) > 1 {
-			return Cmd{Kind: ForceSave, Name: parts[1]}, true
+			return Cmd{Kind: ForceWrite, Name: parts[1]}, true
 		} else {
-			return Cmd{Kind: ForceSave}, true
+			return Cmd{Kind: ForceWrite}, true
 		}
 	case "q":
-		return Cmd{Kind: Quit}, true
+		return Cmd{Kind: Close}, true
 	case "q!":
-		return Cmd{Kind: ForceQuit}, true
+		return Cmd{Kind: ForceClose}, true
 	case "e":
 		if len(parts) > 1 {
 			return Cmd{Kind: Load, Name: parts[1]}, true
@@ -92,9 +92,9 @@ func Parse(prompt string) (Cmd, bool) {
 	case "wa!":
 		return Cmd{Kind: ForceSaveAll}, true
 	case "qa":
-		return Cmd{Kind: QuitAll}, true
+		return Cmd{Kind: CloseAll}, true
 	case "qa!":
-		return Cmd{Kind: ForceQuitAll}, true
+		return Cmd{Kind: ForceCloseAll}, true
 
 	case "set":
 		if len(parts) < 2 {

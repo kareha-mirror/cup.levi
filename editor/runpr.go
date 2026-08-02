@@ -10,23 +10,23 @@ func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 		ed.PromptMoveToLine(c.Num)
 		return true
 
-	case prompt.SaveModifiedAndClose:
-		ed.PromptSaveModifiedAndClose()
+	case prompt.SaveAndClose:
+		ed.PromptSaveAndClose()
 		return true
-	case prompt.SaveAndQuit:
-		ed.PromptSaveAndQuit()
+	case prompt.WriteAndClose:
+		ed.PromptWriteAndClose()
 		return true
-	case prompt.Save:
-		ed.PromptSave(c.Name)
+	case prompt.Write:
+		ed.PromptWrite(c.Name)
 		return true
-	case prompt.ForceSave:
-		ed.PromptForceSave(c.Name)
+	case prompt.ForceWrite:
+		ed.PromptForceWrite(c.Name)
 		return true
-	case prompt.Quit:
-		ed.PromptQuit()
+	case prompt.Close:
+		ed.PromptClose()
 		return true
-	case prompt.ForceQuit:
-		ed.PromptForceQuit()
+	case prompt.ForceClose:
+		ed.PromptForceClose()
 		return true
 	case prompt.Load:
 		ed.PromptLoad(c.Name)
@@ -54,11 +54,11 @@ func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 	case prompt.ForceSaveAll:
 		ed.PromptForceSaveAll()
 		return true
-	case prompt.QuitAll:
-		ed.PromptQuitAll()
+	case prompt.CloseAll:
+		ed.PromptCloseAll()
 		return true
-	case prompt.ForceQuitAll:
-		ed.PromptForceQuitAll()
+	case prompt.ForceCloseAll:
+		ed.PromptForceCloseAll()
 		return true
 
 	case prompt.TabStop:
