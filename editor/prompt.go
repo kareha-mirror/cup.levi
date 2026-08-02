@@ -75,6 +75,22 @@ func (ed *Editor) PromptMoveToLine(n int) { // n: 1-based
 	b.Loc.Col = b.FirstNonBlankCol(b.Loc.Row)
 }
 
+// Save current file.
+// Key: :up Enter
+func (ed *Editor) PromptSave() {
+	b := ed.Buf()
+	if b.Modified {
+		if b.Path == "" {
+			ed.Ring("File is a temporary; exit will discard modifications.")
+			return
+		} else {
+			if !ed.Save(false) {
+				return
+			}
+		}
+	}
+}
+
 // Save current file and quit.
 // Key: :x Enter
 func (ed *Editor) PromptSaveAndClose() {

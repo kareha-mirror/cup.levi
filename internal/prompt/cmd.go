@@ -15,6 +15,7 @@ const (
 	MoveBackByLine
 	MoveToLine
 
+	Save
 	SaveAndClose
 	WriteAndClose
 	Write
