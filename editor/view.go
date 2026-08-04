@@ -128,12 +128,13 @@ func (ed *Editor) ViewDownLine(n int) {
 	b.ViewLoc.Row--
 	b.ViewLoc.Col = 0
 
-	if len(ed.viewMeta) < 1 {
+	viewMeta := ed.RenderMeta(b.ViewLoc)
+	if len(viewMeta) < 1 {
 		return
 	}
-	meta := ed.viewMeta[len(ed.viewMeta)-1]
-	if b.Loc.Row >= meta.Loc.Row {
-		b.Loc.Row = max(b.Loc.Row-1, 0)
+	meta := viewMeta[len(viewMeta)-1]
+	if b.Loc.Row > meta.Loc.Row {
+		b.Loc.Row = meta.Loc.Row
 		b.Loc = b.ConfineFreeCol(b.Loc)
 	}
 }
