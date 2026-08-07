@@ -83,6 +83,12 @@ func (ed *Editor) RunPrompt(c prompt.Cmd) bool {
 	case prompt.Colors:
 		ed.PromptColors(c.Name)
 		return true
+	case prompt.DetectIndent:
+		ed.PromptDetectIndent()
+		return true
+	case prompt.NoDetectIndent:
+		ed.PromptNoDetectIndent()
+		return true
 
 	case prompt.Mem:
 		ed.PromptMem()

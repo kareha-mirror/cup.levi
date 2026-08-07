@@ -119,6 +119,11 @@ func Parse(prompt string) (Cmd, bool) {
 			return Cmd{Kind: AutoIndent}, true
 		case "noai", "noautoindent":
 			return Cmd{Kind: NoAutoIndent}, true
+
+		case "di", "detectindent":
+			return Cmd{Kind: DetectIndent}, true
+		case "nodi", "nodetectindent":
+			return Cmd{Kind: NoDetectIndent}, true
 		}
 		// TODO set all
 		name := fmt.Sprintf(

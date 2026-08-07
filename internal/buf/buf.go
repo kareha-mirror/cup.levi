@@ -41,6 +41,9 @@ type Buf struct {
 	Depth int
 
 	stored string
+
+	Indent         string
+	IndentDetected bool
 }
 
 func New(crlf bool, depth int) *Buf {
@@ -48,6 +51,7 @@ func New(crlf bool, depth int) *Buf {
 		NewFile: true,
 		CRLF:    crlf,
 		Depth:   depth,
+		Indent:  "\t",
 	}
 }
 
@@ -127,6 +131,7 @@ func TextToLines(text string) []string {
 func (b *Buf) SetText(text string) {
 	b.CRLF = HasCRLF(text)
 	b.Lines = TextToLines(text)
+	b.DetectIndent()
 }
 
 func (b *Buf) Mark(r rune) {

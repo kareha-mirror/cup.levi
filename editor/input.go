@@ -1,11 +1,14 @@
 package editor
 
 import (
+	"strings"
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi/rbuf"
 	"tea.kareha.org/cup/termi/rkind"
 	"tea.kareha.org/cup/termi/rutil"
+
+	"tea.kareha.org/cup/levi/internal/buf"
 )
 
 type Input struct {
@@ -37,6 +40,10 @@ func (inp *Input) body() *rbuf.RuneBuf {
 
 func (inp *Input) WriteRune(r rune) {
 	inp.body().WriteRune(r)
+}
+
+func (inp *Input) WriteString(s string) {
+	inp.body().WriteString(s)
 }
 
 func (inp *Input) NumLines() int {
@@ -88,13 +95,34 @@ func (inp *Input) Inserted() []string {
 	return lines
 }
 
-func (inp *Input) Newline(ai bool) {
+func IsSpaces(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if r != ' ' {
+			return false
+		}
+	}
+	return true
+}
+
+func (inp *Input) Newline(ai bool, di bool, b *buf.Buf) {
 	indent := ""
 	if ai {
 		if len(inp.bodies) < 2 {
 			indent = rkind.IndentOf(inp.head + inp.bodies[0].String())
 		} else {
 			indent = rkind.IndentOf(inp.bodies[len(inp.bodies)-1].String())
+		}
+	}
+	if di && !b.IndentDetected {
+		if strings.Contains(indent, "\t") {
+			b.Indent = "\t"
+			b.IndentDetected = true
+		} else if IsSpaces(indent) && len(indent) >= 2 {
+			b.Indent = indent
+			b.IndentDetected = true
 		}
 	}
 	body := rbuf.RuneBuf{}
@@ -140,8 +168,19 @@ func (ed *Editor) InputBackspace() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
+
+	outdented := false
+	if ed.cfg.DetectIndent && IsIndent(ed.inp.body().String()) {
+		if len(ed.inp.body().String()) >= len(ed.Buf().Indent) {
+			for range ed.Buf().Indent {
+				ed.inp.Backspace()
+			}
+			outdented = true
+		}
+	}
+
 	b := ed.Buf()
-	if !ed.inp.Backspace() {
+	if !outdented && !ed.inp.Backspace() {
 		b.Loc.Row--
 	}
 	b.Loc.Col = ed.inp.Column()
@@ -152,10 +191,31 @@ func (ed *Editor) InputNewline() {
 	if ed.mode != ModeInsert {
 		panic("invalid state")
 	}
-	ed.inp.Newline(ed.cfg.AutoIndent)
 	b := ed.Buf()
+	ed.inp.Newline(ed.cfg.AutoIndent, ed.cfg.DetectIndent, b)
 	b.Loc.Row++
 	b.Loc.Col = ed.inp.Column()
 	// col is already confined
 	// row is confined in insert mode
+}
+
+func IsIndent(s string) bool {
+	for _, r := range s {
+		if r != '\t' && r != ' ' {
+			return false
+		}
+	}
+	return true
+}
+
+func (ed *Editor) InputTab() {
+	if ed.mode != ModeInsert {
+		panic("invalid state")
+	}
+	if ed.cfg.DetectIndent && IsIndent(ed.inp.body().String()) {
+		ed.inp.WriteString(ed.Buf().Indent)
+	} else {
+		ed.inp.WriteRune('\t')
+	}
+	ed.Buf().Loc.Col = ed.inp.Column()
 }

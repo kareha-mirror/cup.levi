@@ -7,11 +7,12 @@ func Default() *Config {
 		AutoIndent: true,
 		TabStop:    4,
 
-		Colors: "standard",
-		Silent: false,
-		CRLF:   true, // windows
-		Depth:  4,
-		Shared: "xyz",
+		Colors:       "standard",
+		Silent:       false,
+		CRLF:         true, // windows
+		Depth:        4,
+		Shared:       "xyz",
+		DetectIndent: true,
 
 		EscapeTimeout: 100,
 	}

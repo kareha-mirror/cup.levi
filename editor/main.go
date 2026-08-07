@@ -120,6 +120,8 @@ func (ed *Editor) MainInsert(key termi.Key) {
 			ed.InputNewline()
 		case termi.RuneBackspace, termi.RuneDelete:
 			ed.InputBackspace()
+		case '\t':
+			ed.InputTab()
 		default:
 			ed.InputWriteRune(key.Rune)
 		}

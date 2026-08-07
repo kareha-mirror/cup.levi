@@ -429,6 +429,18 @@ func (ed *Editor) PromptColors(name string) {
 	ed.redraw = true
 }
 
+// Set detect indent enabled.
+// Key: :set di Enter
+func (ed *Editor) PromptDetectIndent() {
+	ed.cfg.DetectIndent = true
+}
+
+// Set detect indent disabled.
+// Key: :set nodi Enter
+func (ed *Editor) PromptNoDetectIndent() {
+	ed.cfg.DetectIndent = false
+}
+
 // Show memory usage.
 // Key: :mem Enter
 func (ed *Editor) PromptMem() {

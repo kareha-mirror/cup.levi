@@ -90,16 +90,20 @@ func (ed *Editor) Join(n int) bool {
 func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true, true)
+	indent := "\t"
+	if ed.cfg.DetectIndent {
+		indent = b.Indent
+	}
 	indented := false
 	for row := start.Row; row <= end.Row; row++ {
 		line := b.Line(row)
-		b.SetLine(row, "\t"+line)
+		b.SetLine(row, indent+line)
 		if row == b.Loc.Row {
 			indented = true
 		}
 	}
 	if indented {
-		b.Loc.Col++
+		b.Loc.Col += len(indent)
 	}
 	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
@@ -110,18 +114,22 @@ func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
 func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true, true)
+	indent := "\t"
+	if ed.cfg.DetectIndent {
+		indent = b.Indent
+	}
 	outdented := false
 	for row := start.Row; row <= end.Row; row++ {
 		line := b.Line(row)
-		if strings.HasPrefix(line, "\t") {
-			b.SetLine(row, line[1:])
+		if strings.HasPrefix(line, indent) {
+			b.SetLine(row, line[len(indent):])
 			if row == b.Loc.Row {
 				outdented = true
 			}
 		}
 	}
 	if outdented {
-		b.Loc.Col--
+		b.Loc.Col -= len(indent)
 		b.Loc = b.ConfineInclusive(b.Loc)
 	}
 	return true

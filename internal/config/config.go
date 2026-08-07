@@ -13,11 +13,12 @@ type Config struct {
 	AutoIndent bool `yaml:"auto-indent"`
 	TabStop    int  `yaml:"tab-stop"`
 
-	Colors string `yaml:"colors"`
-	Silent bool   `yaml:"silent"`
-	CRLF   bool   `yaml:"crlf"`
-	Depth  int    `yaml:"depth"`
-	Shared string `yaml:"shared"`
+	Colors       string `yaml:"colors"`
+	Silent       bool   `yaml:"silent"`
+	CRLF         bool   `yaml:"crlf"`
+	Depth        int    `yaml:"depth"`
+	Shared       string `yaml:"shared"`
+	DetectIndent bool   `yaml:"detect-indent"`
 
 	EscapeTimeout int `yaml:"escape-timeout"`
 }

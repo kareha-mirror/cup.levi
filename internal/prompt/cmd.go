@@ -42,6 +42,8 @@ const (
 	Open
 	Newline
 	Colors
+	DetectIndent
+	NoDetectIndent
 
 	Mem   // XXX debug
 	Hello // XXX debug
