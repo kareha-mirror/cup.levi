@@ -5,23 +5,23 @@ import (
 	"strings"
 )
 
-func countSpaces(s string) int {
-	i := 0
+func countStartingSpaces(s string) int {
+	n := 0
 	for _, r := range s {
 		if r != ' ' {
-			return i
+			return n
 		}
-		i++
+		n++
 	}
-	return i
+	return n
 }
 
 func (b *Buf) DetectIndent() {
-	spaces := []int(nil)
-	n := 0
+	list := []int(nil)
+	i := 0
 	prev := 0
 	for _, line := range b.Lines {
-		if n >= 300 {
+		if i >= 300 {
 			break
 		}
 		if strings.HasPrefix(line, "\t") {
@@ -29,19 +29,19 @@ func (b *Buf) DetectIndent() {
 			b.IndentDetected = true
 			return
 		}
-		i := countSpaces(line)
-		delta := i - prev
+		n := countStartingSpaces(line)
+		delta := n - prev
 		if delta >= 2 {
-			spaces = append(spaces, delta)
+			list = append(list, delta)
 		}
-		prev = i
-		n++
+		prev = n
+		i++
 	}
-	if len(spaces) < 1 {
+	if len(list) < 1 {
 		return
 	}
-	sort.Ints(spaces)
-	i := spaces[len(spaces)/2]
-	b.Indent = strings.Repeat(" ", i)
+	sort.Ints(list)
+	n := list[len(list)/2]
+	b.Indent = strings.Repeat(" ", n)
 	b.IndentDetected = true
 }
