@@ -11,8 +11,6 @@ type snaps struct {
 	list []snapRecord
 	idx  int
 	temp snapRecord
-	undo bool
-	redo bool
 }
 
 func (b *Buf) numSnaps() int {
@@ -33,18 +31,8 @@ func (b *Buf) EndSnapshot() {
 		return
 	}
 
-	delta := 0
-	if b.snaps.undo {
-		b.snaps.idx++
-		delta++
-	}
-	if b.snaps.redo {
-		b.snaps.idx--
-		delta++
-	}
-
-	if b.snaps.idx+1-delta <= b.numSnaps() {
-		b.snaps.list = b.snaps.list[:b.snaps.idx+1-delta]
+	if b.snaps.idx+1 <= b.numSnaps() {
+		b.snaps.list = b.snaps.list[:b.snaps.idx+1]
 	}
 
 	b.snaps.list = append(b.snaps.list, b.snaps.temp)
@@ -55,9 +43,6 @@ func (b *Buf) EndSnapshot() {
 		b.snaps.list = b.snaps.list[1:]
 		b.snaps.idx = b.numSnaps() - 1
 	}
-
-	b.snaps.undo = false
-	b.snaps.redo = false
 }
 
 func (b *Buf) CancelSnapshot() {
@@ -73,10 +58,6 @@ func (b *Buf) Undo() bool {
 		return false
 	}
 
-	if b.snaps.redo {
-		b.snaps.idx -= 2
-		b.snaps.redo = false
-	}
 	if b.snaps.idx < 0 {
 		return false
 	}
@@ -95,7 +76,6 @@ func (b *Buf) Undo() bool {
 	b.Lines = lines
 	b.Marks = maps.Clone(b.snaps.list[b.snaps.idx].marks)
 	b.snaps.idx--
-	b.snaps.undo = true
 	return true
 }
 
@@ -104,21 +84,14 @@ func (b *Buf) Redo() bool {
 		return false
 	}
 
-	if b.snaps.undo {
-		b.snaps.idx += 2
-		b.snaps.undo = false
-	}
-	if b.snaps.idx > b.numSnaps()-1 {
+	idx := b.snaps.idx + 2
+	if idx > b.numSnaps()-1 {
 		return false
 	}
-	if b.snaps.idx < 0 {
-		b.snaps.idx = 0
-	}
 
-	lines := append([]string{}, b.snaps.list[b.snaps.idx].lines...)
+	lines := append([]string{}, b.snaps.list[idx].lines...)
 	b.Lines = lines
-	b.Marks = maps.Clone(b.snaps.list[b.snaps.idx].marks)
+	b.Marks = maps.Clone(b.snaps.list[idx].marks)
 	b.snaps.idx++
-	b.snaps.redo = true
 	return true
 }
