@@ -7,7 +7,7 @@ import (
 )
 
 // not care if inclusive or not
-func OrderRegion(start, end Loc) (Loc, Loc) {
+func NormalizeRegion(start, end Loc) (Loc, Loc) {
 	if start.Row < end.Row {
 		return start, end
 	}
@@ -22,11 +22,10 @@ func OrderRegion(start, end Loc) (Loc, Loc) {
 	return end, start
 }
 
-// inclusive or not selectable
 func (b *Buf) ConfineRegion(
 	start, end Loc, inclusive bool, linewise bool,
 ) (Loc, Loc) {
-	start, end = OrderRegion(start, end)
+	start, end = NormalizeRegion(start, end)
 	if inclusive {
 		return b.ConfineInclusive(start), b.ConfineInclusive(end)
 		// caller may adjust as end.Col++ to use as if not inclusive
@@ -46,7 +45,7 @@ func (b *Buf) ConfineRegion(
 
 // row is inclusive
 // col is not inclusive
-func (b *Buf) RegionRunewise(start, end Loc) []string {
+func (b *Buf) RunewiseContent(start, end Loc) []string {
 	if start.Row == end.Row {
 		s := rutil.Body(b.Line(start.Row), start.Col, end.Col)
 		return []string{s}

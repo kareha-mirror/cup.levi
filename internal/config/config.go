@@ -3,6 +3,8 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -13,12 +15,13 @@ type Config struct {
 	AutoIndent bool `yaml:"auto-indent"`
 	TabStop    int  `yaml:"tab-stop"`
 
-	Colors       string `yaml:"colors"`
-	Silent       bool   `yaml:"silent"`
-	CRLF         bool   `yaml:"crlf"`
-	Depth        int    `yaml:"depth"`
-	Shared       string `yaml:"shared"`
-	DetectIndent bool   `yaml:"detect-indent"`
+	Colors        string `yaml:"colors"`
+	Silent        bool   `yaml:"silent"`
+	CRLF          bool   `yaml:"crlf"`
+	Depth         int    `yaml:"depth"`
+	Shared        string `yaml:"shared"`
+	DetectIndent  bool   `yaml:"detect-indent"`
+	DefaultIndent string `yaml:"default-indent"`
 
 	EscapeTimeout int `yaml:"escape-timeout"`
 }
@@ -72,4 +75,15 @@ func Prepare(cfgDir string) (*Config, error) {
 		err := Save(cfgDir, cfg)
 		return cfg, err
 	}
+}
+
+func (cfg *Config) ParseDefaultIndent() string {
+	if cfg.DefaultIndent == "tab" {
+		return "\t"
+	}
+	i, err := strconv.ParseUint(cfg.DefaultIndent, 10, 16)
+	if err != nil {
+		return "\t"
+	}
+	return strings.Repeat(" ", int(i))
 }

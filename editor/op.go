@@ -25,7 +25,7 @@ func (ed *Editor) CopyRegion(
 ) {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive, false)
-	lines := b.RegionRunewise(start, end)
+	lines := b.RunewiseContent(start, end)
 	ed.StoreRunes(reg, lines)
 	b.Loc = start
 }
@@ -251,7 +251,7 @@ func (ed *Editor) DeleteRegion(
 	if inclusive {
 		end.Col++
 	}
-	lines := b.RegionRunewise(start, end)
+	lines := b.RunewiseContent(start, end)
 	ed.StoreRunes(reg, lines)
 
 	lines = append([]string{}, b.Lines[:start.Row]...)

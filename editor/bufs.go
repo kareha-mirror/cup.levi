@@ -10,7 +10,7 @@ import (
 
 // Creates new buffer and place it last of buffer list.
 func (ed *Editor) NewBuf() {
-	b := buf.New(ed.cfg.CRLF, ed.cfg.Depth)
+	b := buf.New(ed.cfg.CRLF, ed.cfg.Depth, ed.cfg.ParseDefaultIndent())
 
 	if ed.bufIdx < len(ed.bufs) {
 		ed.bufs[ed.bufIdx] = b
@@ -158,7 +158,7 @@ func (ed *Editor) SaveAs(path string, force bool) bool {
 		return false
 	}
 
-	text := b.Text(b.CRLF)
+	text := b.Text()
 	err = ed.hooks.WriteFile(path, []byte(text), 0666)
 	if err != nil {
 		ed.Error("%v", err)

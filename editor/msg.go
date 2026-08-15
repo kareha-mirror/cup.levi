@@ -117,7 +117,7 @@ func (ed *Editor) ShowFileInfo() {
 	b := ed.Buf()
 	path := b.Path
 	if path == "" {
-		path = "(memory)"
+		path = "(unnamed)"
 	}
 	if b.NewFile {
 		ed.Message("%s: new file: line 1", path)

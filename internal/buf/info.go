@@ -8,7 +8,7 @@ import (
 func (b *Buf) Info() string {
 	path := b.Path
 	if path == "" {
-		path = "(memory)"
+		path = "(unnamed)"
 	}
 
 	modified := "unmodified"

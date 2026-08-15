@@ -46,12 +46,12 @@ type Buf struct {
 	IndentDetected bool
 }
 
-func New(crlf bool, depth int) *Buf {
+func New(crlf bool, depth int, indent string) *Buf {
 	return &Buf{
 		NewFile: true,
 		CRLF:    crlf,
 		Depth:   depth,
-		Indent:  "\t",
+		Indent:  indent,
 	}
 }
 
@@ -85,10 +85,6 @@ func (b *Buf) CurrentLine() string {
 
 func (b *Buf) SetCurrentLine(line string) {
 	b.SetLine(b.Loc.Row, line)
-	// empty case
-	if b.NumLines() == 1 && b.Line(0) == "" {
-		b.Lines = nil
-	}
 }
 
 func LineSep(crlf bool) string {
@@ -99,13 +95,13 @@ func LineSep(crlf bool) string {
 	}
 }
 
-func (b *Buf) Text(crlf bool) string {
+func (b *Buf) Text() string {
 	// empty case
 	if len(b.Lines) == 0 {
 		return ""
 	}
 
-	sep := LineSep(crlf)
+	sep := LineSep(b.CRLF)
 	return strings.Join(b.Lines, sep) + sep
 }
 
@@ -131,6 +127,7 @@ func TextToLines(text string) []string {
 func (b *Buf) SetText(text string) {
 	b.CRLF = HasCRLF(text)
 	b.Lines = TextToLines(text)
+	b.Marks = nil
 	b.DetectIndent()
 }
 

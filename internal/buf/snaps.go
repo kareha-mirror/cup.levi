@@ -1,9 +1,16 @@
 package buf
 
+import "maps"
+
+type snapRecord struct {
+	lines []string
+	marks map[rune]Loc
+}
+
 type snaps struct {
-	list [][]string
+	list []snapRecord
 	idx  int
-	temp []string
+	temp snapRecord
 	undo bool
 	redo bool
 }
@@ -17,7 +24,8 @@ func (b *Buf) BeginSnapshot() {
 		return
 	}
 
-	b.snaps.temp = append([]string{}, b.Lines...)
+	b.snaps.temp.lines = append([]string{}, b.Lines...)
+	b.snaps.temp.marks = maps.Clone(b.Marks)
 }
 
 func (b *Buf) EndSnapshot() {
@@ -40,7 +48,7 @@ func (b *Buf) EndSnapshot() {
 	}
 
 	b.snaps.list = append(b.snaps.list, b.snaps.temp)
-	b.snaps.temp = nil
+	b.snaps.temp = snapRecord{}
 	b.snaps.idx = b.numSnaps() - 1
 
 	if b.numSnaps() > b.Depth+1 {
@@ -57,7 +65,7 @@ func (b *Buf) CancelSnapshot() {
 		return
 	}
 
-	b.snaps.temp = nil
+	b.snaps.temp = snapRecord{}
 }
 
 func (b *Buf) Undo() bool {
@@ -83,8 +91,9 @@ func (b *Buf) Undo() bool {
 		b.snaps.idx = b.numSnaps() - 2
 	}
 
-	lines := append([]string{}, b.snaps.list[b.snaps.idx]...)
+	lines := append([]string{}, b.snaps.list[b.snaps.idx].lines...)
 	b.Lines = lines
+	b.Marks = maps.Clone(b.snaps.list[b.snaps.idx].marks)
 	b.snaps.idx--
 	b.snaps.undo = true
 	return true
@@ -106,8 +115,9 @@ func (b *Buf) Redo() bool {
 		b.snaps.idx = 0
 	}
 
-	lines := append([]string{}, b.snaps.list[b.snaps.idx]...)
+	lines := append([]string{}, b.snaps.list[b.snaps.idx].lines...)
 	b.Lines = lines
+	b.Marks = maps.Clone(b.snaps.list[b.snaps.idx].marks)
 	b.snaps.idx++
 	b.snaps.redo = true
 	return true

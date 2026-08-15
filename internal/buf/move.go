@@ -24,11 +24,11 @@ func (b *Buf) IsRowIncluded(row int) bool {
 // not inclusive
 func (b *Buf) confineRow(loc Loc) Loc {
 	if loc.Row < 0 {
-		return Loc{Col: loc.Col, Row: 0}
+		return Loc{Col: 0, Row: 0}
 	}
 	numLines := b.NumLines()
 	if loc.Row > numLines {
-		return Loc{Col: loc.Col, Row: numLines}
+		return Loc{Col: 0, Row: numLines}
 	}
 	return loc
 }

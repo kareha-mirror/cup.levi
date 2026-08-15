@@ -294,7 +294,7 @@ func (ed *Editor) PromptSaveAll() {
 			}
 		} else {
 			if b.Path == "" {
-				ed.Message("(memory) is not modified")
+				ed.Message("(unnamed) is not modified")
 			} else {
 				ed.Message("%s is not modified", b.Path)
 			}
@@ -397,7 +397,7 @@ func (ed *Editor) PromptNewline(name string) {
 func (ed *Editor) PromptColors(name string) {
 	// colors . : parse and load colorscheme from current buffer
 	if name == "." {
-		colors, err := color.ParseScheme(ed.Buf().Text(false))
+		colors, err := color.ParseScheme(ed.Buf().Text())
 		if err != nil {
 			ed.Error("%v", err)
 			return
