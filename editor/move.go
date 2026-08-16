@@ -167,7 +167,7 @@ func (ed *Editor) MoveByWord(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 0; i < n; i++ {
-		if loc, found = b.MoveByWord(loc); found {
+		if loc, found = b.MoveByWordInLine(loc); found {
 			continue
 		}
 		loc.Row++
@@ -190,7 +190,7 @@ func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 1; i < n; i++ {
-		if loc, found = b.MoveByWord(loc); found {
+		if loc, found = b.MoveByWordInLine(loc); found {
 			continue
 		}
 		loc.Row++
@@ -199,7 +199,7 @@ func (ed *Editor) MoveByChangeWord(n int) (buf.Loc, bool) {
 			return loc, true
 		}
 	}
-	if loc, found = b.MoveByWordAlt(loc); found {
+	if loc, found = b.SkipWordInLine(loc); found {
 		return loc, true
 	}
 	return loc, true
@@ -216,7 +216,7 @@ func (ed *Editor) MoveByDeleteWord(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 0; i < n; i++ {
-		if loc, found = b.MoveByWord(loc); found {
+		if loc, found = b.MoveByWordInLine(loc); found {
 			continue
 		}
 		if i == n-1 && b.Line(loc.Row) != "" {
@@ -256,7 +256,7 @@ func (ed *Editor) MoveBackByWord(n int) (buf.Loc, bool) {
 		if loc, found = b.SkipBackBlanks(loc); !found {
 			return loc, true
 		}
-		if loc, found = b.MoveBackByWord(loc); !found {
+		if loc, found = b.MoveBackByWordInLine(loc); !found {
 			return loc, true
 		}
 	}
@@ -274,7 +274,7 @@ func (ed *Editor) MoveToEndOfWord(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 1; i < n; i++ {
-		if loc, found = b.MoveByWord(loc); found {
+		if loc, found = b.MoveByWordInLine(loc); found {
 			continue
 		}
 		loc.Row++
@@ -297,7 +297,7 @@ func (ed *Editor) MoveToEndOfWord(n int) (buf.Loc, bool) {
 	if loc, found = b.SkipBlanks(loc); !found {
 		return loc, true
 	}
-	if loc, found = b.MoveByWordAlt(loc); found {
+	if loc, found = b.SkipWordInLine(loc); found {
 		loc.Col = max(loc.Col-1, 0)
 		return loc, true
 	}
@@ -315,7 +315,7 @@ func (ed *Editor) MoveByBigword(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 0; i < n; i++ {
-		if loc, found = b.MoveByBigword(loc); found {
+		if loc, found = b.MoveByBigwordInLine(loc); found {
 			continue
 		}
 		loc.Row++
@@ -338,7 +338,7 @@ func (ed *Editor) MoveByChangeBigword(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 1; i < n; i++ {
-		if loc, found = b.MoveByBigword(loc); found {
+		if loc, found = b.MoveByBigwordInLine(loc); found {
 			continue
 		}
 		loc.Row++
@@ -347,7 +347,7 @@ func (ed *Editor) MoveByChangeBigword(n int) (buf.Loc, bool) {
 			return loc, true
 		}
 	}
-	if loc, found = b.MoveByBigwordAlt(loc); found {
+	if loc, found = b.SkipBigwordInLine(loc); found {
 		return loc, true
 	}
 	return loc, true
@@ -364,7 +364,7 @@ func (ed *Editor) MoveByDeleteBigword(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 0; i < n; i++ {
-		if loc, found = b.MoveByBigword(loc); found {
+		if loc, found = b.MoveByBigwordInLine(loc); found {
 			continue
 		}
 		if i == n-1 && b.Line(loc.Row) != "" {
@@ -404,7 +404,7 @@ func (ed *Editor) MoveBackByBigword(n int) (buf.Loc, bool) {
 		if loc, found = b.SkipBackBlanks(loc); !found {
 			return loc, true
 		}
-		if loc, found = b.MoveBackByBigword(loc); !found {
+		if loc, found = b.MoveBackByBigwordInLine(loc); !found {
 			return loc, true
 		}
 	}
@@ -422,7 +422,7 @@ func (ed *Editor) MoveToEndOfBigword(n int) (buf.Loc, bool) {
 	loc := b.Loc
 	var found bool
 	for i := 1; i < n; i++ {
-		if loc, found = b.MoveByBigword(loc); found {
+		if loc, found = b.MoveByBigwordInLine(loc); found {
 			continue
 		}
 		loc.Row++
@@ -445,7 +445,7 @@ func (ed *Editor) MoveToEndOfBigword(n int) (buf.Loc, bool) {
 	if loc, found = b.SkipBlanks(loc); !found {
 		return loc, true
 	}
-	if loc, found = b.MoveByBigwordAlt(loc); found {
+	if loc, found = b.SkipBigwordInLine(loc); found {
 		loc.Col = max(loc.Col-1, 0)
 		return loc, true
 	}

@@ -211,7 +211,7 @@ func (a Args) parseOp() (Pair, bool) {
 	//
 
 	case 0x1e, 0x1f: // Ctrl-^, Ctrl-_
-		if a.Has {
+		if a.HasNum {
 			return Pair{Op: Cmd{Kind: GoToBuf, Num: a.Num}}, true
 		} else {
 			return Pair{Op: Cmd{Kind: LastBuf}}, true

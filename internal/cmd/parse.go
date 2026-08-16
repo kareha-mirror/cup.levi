@@ -83,7 +83,7 @@ func Parse(input string) Args {
 		}
 		i++
 	}
-	a.Has = i > iPrev
+	a.HasNum = i > iPrev
 	a.Num = 1
 	if i > iPrev {
 		s := string(buf[iPrev:i])
@@ -165,15 +165,15 @@ func Parse(input string) Args {
 		}
 		i++
 	}
-	a.HasSub = i > iPrev
-	a.SubNum = 1
+	a.HasSubnum = i > iPrev
+	a.Subnum = 1
 	if i > iPrev {
 		s := string(buf[iPrev:i])
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			panic(err)
 		}
-		a.SubNum = n
+		a.Subnum = n
 	}
 
 	// rune motion command

@@ -7,23 +7,26 @@ import (
 
 // Parsed arguments of command.
 type Args struct {
-	Reg    rune
-	Has    bool
-	Num    int
-	Op     rune
-	HasSub bool
-	SubNum int
-	Mv     rune
-	Rune   rune
+	Reg       rune
+	HasNum    bool
+	Num       int
+	Op        rune
+	HasSubnum bool
+	Subnum    int
+	Mv        rune
+	Rune      rune
 }
 
 // Uses sub number as main number.
 func (a Args) sub() Args {
 	sub := a
-	sub.Has = a.HasSub
-	sub.Num = a.SubNum
-	sub.HasSub = false
-	sub.SubNum = 0
+
+	sub.HasNum = a.HasSubnum
+	sub.Num = a.Subnum
+
+	sub.HasSubnum = false
+	sub.Subnum = 0
+
 	return sub
 }
 
@@ -33,10 +36,12 @@ func (a Args) Parse() (Pair, bool) {
 	if ok {
 		return op, true
 	}
+
 	mv, ok := a.parseMove(false)
 	if ok {
 		return Pair{Mv: mv}, true
 	}
+
 	return Pair{}, false
 }
 
@@ -53,7 +58,7 @@ func (a Args) Code() string {
 		first = false
 	}
 
-	if a.Has && a.Num > 0 {
+	if a.HasNum && a.Num > 0 {
 		if !first {
 			b.WriteRune('-')
 		}
@@ -69,11 +74,11 @@ func (a Args) Code() string {
 		first = false
 	}
 
-	if a.HasSub && a.SubNum > 0 {
+	if a.HasSubnum && a.Subnum > 0 {
 		if !first {
 			b.WriteRune('-')
 		}
-		b.WriteString(fmt.Sprintf("%d", a.SubNum))
+		b.WriteString(fmt.Sprintf("%d", a.Subnum))
 		first = false
 	}
 

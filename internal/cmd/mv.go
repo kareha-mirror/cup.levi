@@ -92,7 +92,7 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 	case '-':
 		return Cmd{Kind: MoveBackByLine, Num: a.Num}, true
 	case 'G':
-		if a.Has {
+		if a.HasNum {
 			return Cmd{Kind: MoveToLine, Num: a.Num}, true
 		} else {
 			return Cmd{Kind: MoveToLastLine}, true
@@ -110,7 +110,7 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 	// MoveBySection and MoveBackBySection are compound
 
 	case 'H':
-		if a.Has {
+		if a.HasNum {
 			return Cmd{Kind: MoveToBelowTopOfView, Num: a.Num}, true
 		} else {
 			return Cmd{Kind: MoveToTopOfView}, true
@@ -118,7 +118,7 @@ func (a Args) parseMove(sub bool) (Cmd, bool) {
 	case 'M':
 		return Cmd{Kind: MoveToMiddleOfView}, true
 	case 'L':
-		if a.Has {
+		if a.HasNum {
 			return Cmd{Kind: MoveToAboveBottomOfView, Num: a.Num}, true
 		} else {
 			return Cmd{Kind: MoveToBottomOfView}, true

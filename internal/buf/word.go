@@ -59,7 +59,7 @@ func (b *Buf) SkipBackBlanks(loc Loc) (Loc, bool) {
 
 // input row is inclusive
 // output is not inclusive
-func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
+func (b *Buf) MoveByWordInLine(loc Loc) (Loc, bool) {
 	line := b.Line(loc.Row)
 	if line == "" {
 		return loc, false
@@ -105,7 +105,7 @@ func (b *Buf) MoveByWord(loc Loc) (Loc, bool) {
 
 // input row is inclusive
 // output is not inclusive
-func (b *Buf) MoveByWordAlt(loc Loc) (Loc, bool) {
+func (b *Buf) SkipWordInLine(loc Loc) (Loc, bool) {
 	line := b.Line(loc.Row)
 	if line == "" {
 		return loc, false
@@ -138,7 +138,7 @@ func (b *Buf) MoveByWordAlt(loc Loc) (Loc, bool) {
 
 // input row inclusive
 // output is not inclusive
-func (b *Buf) MoveBackByWord(loc Loc) (Loc, bool) {
+func (b *Buf) MoveBackByWordInLine(loc Loc) (Loc, bool) {
 	line := b.Line(loc.Row)
 	if line == "" {
 		return loc, false
@@ -171,7 +171,7 @@ func (b *Buf) MoveBackByWord(loc Loc) (Loc, bool) {
 
 // input row is inclusive
 // output is not inclusive
-func (b *Buf) MoveByBigword(loc Loc) (Loc, bool) {
+func (b *Buf) MoveByBigwordInLine(loc Loc) (Loc, bool) {
 	line := b.Line(loc.Row)
 	if line == "" {
 		return loc, false
@@ -219,7 +219,7 @@ func (b *Buf) MoveByBigword(loc Loc) (Loc, bool) {
 
 // input row is inclusive
 // output is not inclusive
-func (b *Buf) MoveByBigwordAlt(loc Loc) (Loc, bool) {
+func (b *Buf) SkipBigwordInLine(loc Loc) (Loc, bool) {
 	line := b.Line(loc.Row)
 	if line == "" {
 		return loc, false
@@ -254,7 +254,7 @@ func (b *Buf) MoveByBigwordAlt(loc Loc) (Loc, bool) {
 
 // input row inclusive
 // output is not inclusive
-func (b *Buf) MoveBackByBigword(loc Loc) (Loc, bool) {
+func (b *Buf) MoveBackByBigwordInLine(loc Loc) (Loc, bool) {
 	line := b.Line(loc.Row)
 	if line == "" {
 		return loc, false
