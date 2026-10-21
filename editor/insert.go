@@ -281,8 +281,9 @@ func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
 		ed.Error("Subst: n < 1")
 		return false
 	}
-	ed.internalDelete(reg, n)
 	b := ed.Buf()
+	deleted := b.Delete(n)
+	ed.StoreRunes(reg, []string{deleted})
 	if replay {
 		if len(ed.inserted) < 1 {
 			ed.Notice("Not inserted yet")

@@ -2,7 +2,6 @@ package editor
 
 import (
 	"strings"
-	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi/rutil"
 
@@ -187,20 +186,6 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 // Delete
 //
 
-func (ed *Editor) internalDelete(reg rune, n int) bool {
-	b := ed.Buf()
-	if len(b.CurrentLine()) < 1 {
-		return false
-	}
-	line := b.CurrentLine()
-	rc := utf8.RuneCountInString(line)
-	n = min(n, rc-b.Loc.Col)
-	head, body, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
-	ed.StoreRunes(reg, []string{body})
-	b.SetCurrentLine(head + tail)
-	return true
-}
-
 // Delete character under cursor.
 // Key: x
 func (ed *Editor) Delete(reg rune, n int) bool {
@@ -208,11 +193,13 @@ func (ed *Editor) Delete(reg rune, n int) bool {
 		ed.Error("Delete: n < 1")
 		return false
 	}
-	if !ed.internalDelete(reg, n) {
+	b := ed.Buf()
+	deleted := b.Delete(n)
+	if deleted == "" {
 		ed.Notice("Nothing to delete")
 		return false
 	}
-	b := ed.Buf()
+	ed.StoreRunes(reg, []string{deleted})
 	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
 }
@@ -228,15 +215,13 @@ func (ed *Editor) DeleteBefore(reg rune, n int) bool {
 	if n > b.Loc.Col {
 		n = b.Loc.Col
 	}
-	if n < 1 {
-		ed.Notice("Nothing to delete")
-		return false
-	}
 	b.Loc.Col -= n
-	if !ed.internalDelete(reg, n) {
+	deleted := b.Delete(n)
+	if deleted == "" {
 		ed.Notice("Nothing to delete")
 		return false
 	}
+	ed.StoreRunes(reg, []string{deleted})
 	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
 }
