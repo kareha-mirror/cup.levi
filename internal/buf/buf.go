@@ -117,10 +117,7 @@ func TextToLines(text string) []string {
 
 	crlf := HasCRLF(text)
 	sep := LineSep(crlf)
-	if strings.HasSuffix(text, sep) {
-		text = text[:len(text)-len(sep)]
-	}
-
+	text = strings.TrimSuffix(text, sep)
 	return strings.Split(text, sep)
 }
 

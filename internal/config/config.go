@@ -77,13 +77,13 @@ func Prepare(cfgDir string) (*Config, error) {
 	}
 }
 
-func (cfg *Config) ParseDefaultIndent() string {
+func (cfg *Config) ParseDefaultIndent() (string, error) {
 	if cfg.DefaultIndent == "tab" {
-		return "\t"
+		return "\t", nil
 	}
 	i, err := strconv.ParseUint(cfg.DefaultIndent, 10, 16)
 	if err != nil {
-		return "\t"
+		return "", err
 	}
-	return strings.Repeat(" ", int(i))
+	return strings.Repeat(" ", int(i)), nil
 }

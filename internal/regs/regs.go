@@ -111,8 +111,7 @@ func (s *Store) Content(name rune) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		text = strings.ReplaceAll(text, "\r\n", "\n")
-		return strings.Split(text, "\n"), nil
+		return strings.Split(text, buf.LineSep(ClipboardCRLF)), nil
 	}
 	name = NormalizeName(name)
 	sl, ok := s.set[name]

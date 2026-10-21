@@ -180,6 +180,7 @@ func LoadCustomScheme(cfgDir string, name string) (*SchemeConfig, error) {
 }
 
 func LoadBuiltinScheme(name string) (*SchemeConfig, error) {
+	// use path instead of filepath for embed.FS
 	p := path.Join(colorsDir, name+dotYAML)
 	b, err := fs.ReadFile(BuiltinsFS, p)
 	if err != nil {

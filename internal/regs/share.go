@@ -160,7 +160,7 @@ func (s *Store) save(name rune) error {
 	return nil
 }
 
-func Clear(cfgDir string) error {
+func ClearShared(cfgDir string) error {
 	err := lock.Lock(cfgDir)
 	if err != nil {
 		return err

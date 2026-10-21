@@ -27,9 +27,10 @@ const (
 
 type Editor struct {
 	// config
-	cfgDir string
-	cfg    *config.Config
-	hooks  Hooks
+	cfgDir        string
+	cfg           *config.Config
+	defaultIndent string
+	hooks         Hooks
 
 	// buffers
 	bufs   []*buf.Buf
@@ -70,7 +71,7 @@ type Editor struct {
 	bufMove    bool
 }
 
-func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
+func WithHooks(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	// for storing bootup errors
 	msg := new(Msg)
 
@@ -78,6 +79,11 @@ func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	cfg, err := config.Prepare(cfgDir)
 	if err != nil {
 		msg.Error("%v", err)
+	}
+	defaultIndent, err := cfg.ParseDefaultIndent()
+	if err != nil {
+		msg.Error("%v", err)
+		defaultIndent = "\t"
 	}
 
 	// load colorscheme
@@ -92,9 +98,10 @@ func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 
 	// create and init editor struct
 	ed := &Editor{
-		cfgDir: cfgDir,
-		cfg:    cfg,
-		hooks:  hooks,
+		cfgDir:        cfgDir,
+		cfg:           cfg,
+		defaultIndent: defaultIndent,
+		hooks:         hooks,
 
 		alive: true,
 		msg:   msg,
@@ -155,6 +162,10 @@ func Init(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	ed.ShowFileInfo()
 
 	return ed, nil
+}
+
+func Init(cfgDir string, paths []string) (*Editor, error) {
+	return WithHooks(cfgDir, paths, DefaultHooks())
 }
 
 func (ed *Editor) Finish() error {
@@ -266,6 +277,6 @@ func (ed *Editor) Commit() {
 	}
 }
 
-func Clear(cfgDir string) error {
-	return regs.Clear(cfgDir)
+func ClearSharedRegisters(cfgDir string) error {
+	return regs.ClearShared(cfgDir)
 }

@@ -10,7 +10,7 @@ import (
 
 // Creates new buffer and place it last of buffer list.
 func (ed *Editor) NewBuf() {
-	b := buf.New(ed.cfg.CRLF, ed.cfg.Depth, ed.cfg.ParseDefaultIndent())
+	b := buf.New(ed.cfg.CRLF, ed.cfg.Depth, ed.defaultIndent)
 
 	if ed.bufIdx < len(ed.bufs) {
 		ed.bufs[ed.bufIdx] = b

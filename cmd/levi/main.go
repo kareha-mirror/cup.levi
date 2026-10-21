@@ -23,7 +23,7 @@ func realMain() (totalErr error) {
 
 	// parse options
 	flag.StringVar(&cfgDir, "d", "", "config directory")
-	flag.BoolVar(&unlock, "unlock", false, "unlock")
+	flag.BoolVar(&unlock, "unlock", false, "unlock shared lock")
 	flag.BoolVar(&clear, "clear", false, "clear shared registers")
 	flag.Parse()
 
@@ -36,28 +36,35 @@ func realMain() (totalErr error) {
 		cfgDir = filepath.Join(dir, appName)
 	}
 
+	quickExit := false
+
 	if unlock {
 		err := lock.ForceUnlock(cfgDir)
 		if err != nil {
 			return err
 		}
-		fmt.Println("Lock has been removed.")
-		return nil
+		fmt.Println("Shared lock has been removed.")
+		quickExit = true
 	}
 
 	if clear {
-		err := editor.Clear(cfgDir)
+		err := editor.ClearSharedRegisters(cfgDir)
 		if err != nil {
 			return err
 		}
 		fmt.Println("Shared registers have been cleared.")
+		quickExit = true
+	}
+
+	if quickExit {
+		// quick exit when unlock or clear is issued
 		return nil
 	}
 
 	paths := flag.Args()
 
 	// initialize editor
-	ed, err := editor.Init(cfgDir, paths, editor.DefaultHooks())
+	ed, err := editor.Init(cfgDir, paths)
 	if err != nil {
 		return err
 	}
