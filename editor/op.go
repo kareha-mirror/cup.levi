@@ -193,14 +193,12 @@ func (ed *Editor) Delete(reg rune, n int) bool {
 		ed.Error("Delete: n < 1")
 		return false
 	}
-	b := ed.Buf()
-	deleted := b.Delete(n)
+	deleted := ed.Buf().Delete(n)
 	if deleted == "" {
 		ed.Notice("Nothing to delete")
 		return false
 	}
 	ed.StoreRunes(reg, []string{deleted})
-	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
 }
 
@@ -222,7 +220,6 @@ func (ed *Editor) DeleteBefore(reg rune, n int) bool {
 		return false
 	}
 	ed.StoreRunes(reg, []string{deleted})
-	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
 }
 
