@@ -129,12 +129,14 @@ func (b *Buf) PasteLinesBefore(copied []string, n int) {
 	b.VirtCol = b.Loc.Col
 }
 
-func (b *Buf) Delete(n int) string {
+func (b *Buf) Delete(n int, confine bool) string {
 	line := b.CurrentLine()
 	head, body, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
 	b.SetCurrentLine(head + tail)
 
-	b.Loc = b.ConfineInclusive(b.Loc)
+	if confine {
+		b.Loc = b.ConfineInclusive(b.Loc)
+	}
 
 	return body
 }
@@ -145,7 +147,7 @@ func (b *Buf) DeleteBefore(n int) string {
 	}
 	b.Loc.Col -= n
 
-	return b.Delete(n)
+	return b.Delete(n, true)
 }
 
 func (b *Buf) DeleteRegion(start, end Loc, inclusive bool) []string {

@@ -242,7 +242,7 @@ func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
 		return false
 	}
 	b := ed.Buf()
-	deleted := b.Delete(n)
+	deleted := b.Delete(n, false)
 	ed.StoreRunes(reg, []string{deleted})
 	if replay {
 		if len(ed.inserted) < 1 {
