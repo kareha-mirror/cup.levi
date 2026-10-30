@@ -4,7 +4,6 @@ import (
 	"unicode/utf8"
 
 	"tea.kareha.org/cup/termi/rkind"
-	"tea.kareha.org/cup/termi/rutil"
 
 	"tea.kareha.org/cup/levi/internal/buf"
 )
@@ -16,32 +15,8 @@ import (
 // Internal Use //
 
 // Repeats insertion.
-func (ed *Editor) replayInsert() {
-	inserted := append([]string{}, ed.inserted...)
-	b := ed.Buf()
-	line := b.CurrentLine()
-	head, tail := rutil.Split(line, b.Loc.Col)
-	inserted[0] = head + inserted[0]
-	inserted[len(inserted)-1] = inserted[len(inserted)-1] + tail
-	if ed.cfg.AutoIndent {
-		for i := 0; i < len(inserted); i++ {
-			if rkind.IsBlankLine(inserted[i]) {
-				inserted[i] = ""
-			}
-		}
-	}
-	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
-	lines = append(lines, inserted...)
-	if b.Loc.Row+1 < b.NumLines() {
-		lines = append(lines, b.Lines[b.Loc.Row+1:]...)
-	}
-	b.Lines = lines
-	if len(inserted) < 2 {
-		b.Loc.Col += utf8.RuneCountInString(ed.inserted[0])
-	} else {
-		b.Loc.Row += len(ed.inserted) - 1
-		b.Loc.Col = utf8.RuneCountInString(ed.inserted[len(ed.inserted)-1])
-	}
+func (ed *Editor) replayInsert(n int) {
+	ed.Buf().Insert(ed.inserted, ed.cfg.AutoIndent, n)
 }
 
 //
@@ -60,13 +35,7 @@ func (ed *Editor) Insert(n int, replay bool) bool {
 			ed.Notice("Not inserted yet")
 			return false
 		}
-		for i := 0; i < n; i++ {
-			ed.replayInsert()
-		}
-		b := ed.Buf()
-		b.Loc.Col--
-		b.Loc = b.ConfineInclusive(b.Loc)
-		b.VirtCol = b.Loc.Col
+		ed.replayInsert(n)
 		return true
 	}
 	b := ed.Buf()
@@ -83,27 +52,21 @@ func (ed *Editor) InsertAfter(n int, replay bool) bool {
 		ed.Error("InsertAfter: n < 1")
 		return false
 	}
+	b := ed.Buf()
 	if replay {
 		if len(ed.inserted) < 1 {
 			ed.Notice("Not inserted yet")
 			return false
 		}
-		b := ed.Buf()
 		rc := utf8.RuneCountInString(b.CurrentLine())
 		if b.Loc.Col >= rc-1 {
 			b.Loc.Col = rc
 		} else {
 			b.Loc.Col++
 		}
-		for i := 0; i < n; i++ {
-			ed.replayInsert()
-		}
-		b.Loc.Col--
-		b.Loc = b.ConfineInclusive(b.Loc)
-		b.VirtCol = b.Loc.Col
+		ed.replayInsert(n)
 		return true
 	}
-	b := ed.Buf()
 	rc := utf8.RuneCountInString(b.CurrentLine())
 	if b.Loc.Col >= rc-1 {
 		b.Loc.Col = rc
@@ -226,10 +189,7 @@ func (ed *Editor) ChangeRegion(
 			ed.Notice("Not inserted yet")
 			return false
 		}
-		ed.replayInsert()
-		b.Loc.Col--
-		b.Loc = b.ConfineInclusive(b.Loc)
-		b.VirtCol = b.Loc.Col
+		ed.replayInsert(1)
 		return true
 	}
 	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
@@ -289,10 +249,7 @@ func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
 			ed.Notice("Not inserted yet")
 			return false
 		}
-		ed.replayInsert()
-		b.Loc.Col--
-		b.Loc = b.ConfineInclusive(b.Loc)
-		b.VirtCol = b.Loc.Col
+		ed.replayInsert(1)
 		return true
 	}
 	ed.inp.Init(b.CurrentLine(), b.Loc.Col, ed.cfg.AutoIndent)
