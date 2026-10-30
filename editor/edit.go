@@ -1,12 +1,6 @@
 package editor
 
 import (
-	"strings"
-	"unicode/utf8"
-
-	"tea.kareha.org/cup/termi/rkind"
-	"tea.kareha.org/cup/termi/rutil"
-
 	"tea.kareha.org/cup/levi/internal/buf"
 )
 
@@ -21,23 +15,10 @@ func (ed *Editor) Replace(r rune, n int) bool {
 		ed.Error("Replace: n < 1")
 		return false
 	}
-	b := ed.Buf()
-	line := b.CurrentLine()
-	rc := utf8.RuneCountInString(line)
-	if b.Loc.Col+n > rc {
+	if !ed.Buf().Replace(r, n) {
 		ed.Notice("Out of range")
 		return false
 	}
-
-	head, _, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
-	body := strings.Builder{}
-	for i := 0; i < n; i++ {
-		body.WriteRune(r)
-	}
-	b.SetCurrentLine(head + body.String() + tail)
-
-	b.Loc.Col += n - 1
-	b.VirtCol = b.Loc.Col
 	return true
 }
 
@@ -48,89 +29,39 @@ func (ed *Editor) Join(n int) bool {
 		ed.Error("Join: n < 1")
 		return false
 	}
-	b := ed.Buf()
-	if b.Loc.Row+1 >= b.NumLines() {
+	if !ed.Buf().Join(n) {
 		ed.Ring("No following lines to join")
 		return false
 	}
-	if n > 1 {
-		n--
-	}
-
-	sb := strings.Builder{}
-	sb.WriteString(b.CurrentLine())
-	for i := 1; i <= n; i++ {
-		if b.Loc.Row+i >= b.NumLines() {
-			break
-		}
-		next := rkind.TrimPrefixBlanks(b.Line(b.Loc.Row + i))
-		b.Loc.Col = utf8.RuneCountInString(sb.String())
-		if len(next) > 0 {
-			r, _ := utf8.DecodeLastRuneInString(sb.String())
-			if r != utf8.RuneError && !rkind.IsBlank(r) {
-				sb.WriteString(" ")
-			}
-			sb.WriteString(next)
-		}
-	}
-
-	lines := append([]string{}, b.Lines[:b.Loc.Row]...)
-	lines = append(lines, sb.String())
-	if b.Loc.Row+1+n < b.NumLines() {
-		lines = append(lines, b.Lines[b.Loc.Row+1+n:]...)
-	}
-	b.Lines = lines
-
-	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
 }
 
 // Indent region from current cursor to destination of motion <mv>.
 // Key: > <mv>
-func (ed *Editor) IndentRegion(start buf.Loc, end buf.Loc) bool {
-	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, true, true)
+func (ed *Editor) IndentRegion(start, end buf.Loc) bool {
 	indent := "\t"
+	b := ed.Buf()
 	if ed.cfg.DetectIndent {
 		indent = b.Indent
 	}
-	indented := false
-	for row := start.Row; row <= end.Row; row++ {
-		line := b.Line(row)
-		b.SetLine(row, indent+line)
-		if row == b.Loc.Row {
-			indented = true
-		}
+	if !b.IndentRegion(start, end, indent) {
+		ed.Notice("No lines indented")
+		return false
 	}
-	if indented {
-		b.Loc.Col += len(indent)
-	}
-	b.Loc = b.ConfineInclusive(b.Loc)
 	return true
 }
 
 // Outdent region from current cursor to destination of motion <mv>.
 // Key: < <mv>
-func (ed *Editor) OutdentRegion(start buf.Loc, end buf.Loc) bool {
-	b := ed.Buf()
-	start, end = b.ConfineRegion(start, end, true, true)
+func (ed *Editor) OutdentRegion(start, end buf.Loc) bool {
 	indent := "\t"
+	b := ed.Buf()
 	if ed.cfg.DetectIndent {
 		indent = b.Indent
 	}
-	outdented := false
-	for row := start.Row; row <= end.Row; row++ {
-		line := b.Line(row)
-		if strings.HasPrefix(line, indent) {
-			b.SetLine(row, line[len(indent):])
-			if row == b.Loc.Row {
-				outdented = true
-			}
-		}
-	}
-	if outdented {
-		b.Loc.Col -= len(indent)
-		b.Loc = b.ConfineInclusive(b.Loc)
+	if !b.OutdentRegion(start, end, indent) {
+		ed.Notice("No lines outdented")
+		return false
 	}
 	return true
 }
