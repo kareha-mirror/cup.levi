@@ -27,10 +27,9 @@ const (
 
 type Editor struct {
 	// config
-	cfgDir        string
-	cfg           *config.Config
-	defaultIndent string
-	hooks         Hooks
+	cfgDir string
+	cfg    *config.Config
+	hooks  Hooks
 
 	// buffers
 	bufs   []*buf.Buf
@@ -80,10 +79,8 @@ func WithHooks(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 	if err != nil {
 		msg.Error("%v", err)
 	}
-	defaultIndent, err := cfg.ParseDefaultIndent()
-	if err != nil {
+	if err = cfg.Parse(); err != nil {
 		msg.Error("%v", err)
-		defaultIndent = "\t"
 	}
 
 	// load colorscheme
@@ -98,10 +95,9 @@ func WithHooks(cfgDir string, paths []string, hooks Hooks) (*Editor, error) {
 
 	// create and init editor struct
 	ed := &Editor{
-		cfgDir:        cfgDir,
-		cfg:           cfg,
-		defaultIndent: defaultIndent,
-		hooks:         hooks,
+		cfgDir: cfgDir,
+		cfg:    cfg,
+		hooks:  hooks,
 
 		alive: true,
 		msg:   msg,

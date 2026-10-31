@@ -24,6 +24,8 @@ type Config struct {
 	DefaultIndent string `yaml:"default-indent"`
 
 	EscapeTimeout int `yaml:"escape-timeout"`
+
+	defaultIndentString string
 }
 
 func Path(cfgDir string) string {
@@ -77,7 +79,7 @@ func Prepare(cfgDir string) (*Config, error) {
 	}
 }
 
-func (cfg *Config) ParseDefaultIndent() (string, error) {
+func (cfg *Config) parseDefaultIndent() (string, error) {
 	if cfg.DefaultIndent == "tab" {
 		return "\t", nil
 	}
@@ -86,4 +88,18 @@ func (cfg *Config) ParseDefaultIndent() (string, error) {
 		return "", err
 	}
 	return strings.Repeat(" ", int(i)), nil
+}
+
+func (cfg *Config) Parse() error {
+	indent, err := cfg.parseDefaultIndent()
+	if err != nil {
+		indent = "\t"
+	}
+	cfg.defaultIndentString = indent
+
+	return err
+}
+
+func (cfg *Config) DefaultIndentString() string {
+	return cfg.defaultIndentString
 }
