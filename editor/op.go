@@ -96,7 +96,7 @@ func (ed *Editor) Delete(reg rune, n int) bool {
 		ed.Error("Delete: n < 1")
 		return false
 	}
-	deleted := ed.Buf().Delete(n, true)
+	deleted := ed.Buf().Delete(n)
 	if deleted == "" {
 		ed.Notice("Nothing to delete")
 		return false

@@ -6,9 +6,13 @@ import (
 	"tea.kareha.org/cup/termi/rutil"
 )
 
+//
+// Copy
+//
+
 func (b *Buf) CopyRegion(start, end Loc, inclusive bool) []string {
 	start, end = b.ConfineRegion(start, end, inclusive, false)
-	copied := b.RunewiseContent(start, end)
+	copied := b.runewiseContent(start, end)
 
 	b.Loc = start
 
@@ -18,6 +22,7 @@ func (b *Buf) CopyRegion(start, end Loc, inclusive bool) []string {
 func (b *Buf) CopyLineRegion(start, end Loc) []string {
 	start, end = b.ConfineRegion(start, end, true, true)
 	if end.Row+1 > b.NumLines() {
+		// out of range
 		return nil
 	}
 	copied := append([]string{}, b.Lines[start.Row:end.Row+1]...)
@@ -27,9 +32,14 @@ func (b *Buf) CopyLineRegion(start, end Loc) []string {
 	return copied
 }
 
+//
+// Paste
+//
+
 func (b *Buf) Paste(copied []string, n int) {
+	line := b.CurrentLine()
+
 	if len(copied) < 2 {
-		line := b.CurrentLine()
 		sb := strings.Builder{}
 		head, tail := rutil.Split(line, b.Loc.Col+1)
 		sb.WriteString(head)
@@ -38,11 +48,6 @@ func (b *Buf) Paste(copied []string, n int) {
 		}
 		sb.WriteString(tail)
 		b.SetCurrentLine(sb.String())
-
-		if len(line) > 0 {
-			b.Loc.Col++
-			b.VirtCol = b.Loc.Col
-		}
 	} else {
 		lines := []string{}
 		lines = append(lines, b.Lines[:b.Loc.Row]...)
@@ -59,6 +64,11 @@ func (b *Buf) Paste(copied []string, n int) {
 		}
 
 		b.Lines = lines
+	}
+
+	if len(line) > 0 {
+		b.Loc.Col++
+		b.VirtCol = b.Loc.Col
 	}
 }
 
@@ -129,16 +139,24 @@ func (b *Buf) PasteLinesBefore(copied []string, n int) {
 	b.VirtCol = b.Loc.Col
 }
 
-func (b *Buf) Delete(n int, confine bool) string {
+//
+// Delete
+//
+
+func (b *Buf) DeleteWithoutConfine(n int) string {
 	line := b.CurrentLine()
 	head, body, tail := rutil.SplitBody(line, b.Loc.Col, b.Loc.Col+n)
 	b.SetCurrentLine(head + tail)
 
-	if confine {
-		b.Loc = b.ConfineInclusive(b.Loc)
-	}
-
 	return body
+}
+
+func (b *Buf) Delete(n int) string {
+	deleted := b.DeleteWithoutConfine(n)
+
+	b.Loc = b.ConfineInclusive(b.Loc)
+
+	return deleted
 }
 
 func (b *Buf) DeleteBefore(n int) string {
@@ -147,15 +165,19 @@ func (b *Buf) DeleteBefore(n int) string {
 	}
 	b.Loc.Col -= n
 
-	return b.Delete(n, true)
+	return b.Delete(n)
 }
+
+//
+// Delete Region
+//
 
 func (b *Buf) DeleteRegion(start, end Loc, inclusive bool) []string {
 	start, end = b.ConfineRegion(start, end, inclusive, false)
 	if inclusive {
 		end.Col++
 	}
-	deleted := b.RunewiseContent(start, end)
+	deleted := b.runewiseContent(start, end)
 
 	lines := append([]string{}, b.Lines[:start.Row]...)
 	head := rutil.Head(b.Line(start.Row), start.Col)

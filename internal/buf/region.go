@@ -7,25 +7,22 @@ import (
 )
 
 // not care if inclusive or not
-func NormalizeRegion(start, end Loc) (Loc, Loc) {
+func normalizeRegion(start, end Loc) (Loc, Loc) {
 	if start.Row < end.Row {
 		return start, end
-	}
-	if end.Row < start.Row {
+	} else if end.Row < start.Row {
+		return end, start
+	} else if start.Col < end.Col { // start.Row == end.Row
+		return start, end
+	} else {
 		return end, start
 	}
-
-	// start.Row == end.Row
-	if start.Col < end.Col {
-		return start, end
-	}
-	return end, start
 }
 
 func (b *Buf) ConfineRegion(
 	start, end Loc, inclusive bool, linewise bool,
 ) (Loc, Loc) {
-	start, end = NormalizeRegion(start, end)
+	start, end = normalizeRegion(start, end)
 	if inclusive {
 		return b.ConfineInclusive(start), b.ConfineInclusive(end)
 		// caller may adjust as end.Col++ to use as if not inclusive
@@ -45,18 +42,18 @@ func (b *Buf) ConfineRegion(
 
 // row is inclusive
 // col is not inclusive
-func (b *Buf) RunewiseContent(start, end Loc) []string {
+func (b *Buf) runewiseContent(start, end Loc) []string {
 	if start.Row == end.Row {
-		s := rutil.Body(b.Line(start.Row), start.Col, end.Col)
-		return []string{s}
+		body := rutil.Body(b.Line(start.Row), start.Col, end.Col)
+		return []string{body}
 	}
 
-	s := rutil.Tail(b.Line(start.Row), start.Col)
-	lines := append([]string{}, s)
+	tail := rutil.Tail(b.Line(start.Row), start.Col)
+	lines := append([]string{}, tail)
 	for row := start.Row + 1; row < end.Row; row++ {
 		lines = append(lines, b.Line(row))
 	}
-	s = rutil.Head(b.Line(end.Row), end.Col)
-	lines = append(lines, s)
+	head := rutil.Head(b.Line(end.Row), end.Col)
+	lines = append(lines, head)
 	return lines
 }

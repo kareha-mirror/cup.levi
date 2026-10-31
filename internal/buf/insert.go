@@ -7,13 +7,13 @@ import (
 	"tea.kareha.org/cup/termi/rutil"
 )
 
-func (b *Buf) internalInsert(inserted []string, autoIndent bool) {
+func (b *Buf) internalInsert(inserted []string, ai bool) {
 	ins := append([]string{}, inserted...)
 	line := b.CurrentLine()
 	head, tail := rutil.Split(line, b.Loc.Col)
 	ins[0] = head + ins[0]
 	ins[len(ins)-1] = ins[len(ins)-1] + tail
-	if autoIndent {
+	if ai {
 		for i := 0; i < len(ins); i++ {
 			if rkind.IsBlankLine(ins[i]) {
 				ins[i] = ""
@@ -34,9 +34,9 @@ func (b *Buf) internalInsert(inserted []string, autoIndent bool) {
 	}
 }
 
-func (b *Buf) Insert(inserted []string, autoIndent bool, n int) {
+func (b *Buf) Insert(inserted []string, ai bool, n int) {
 	for i := 0; i < n; i++ {
-		b.internalInsert(inserted, autoIndent)
+		b.internalInsert(inserted, ai)
 	}
 	b.Loc.Col--
 	b.Loc = b.ConfineInclusive(b.Loc)

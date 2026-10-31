@@ -14,7 +14,7 @@ import (
 
 // Internal Use //
 
-// Repeats insertion.
+// Replays insertion.
 func (ed *Editor) replayInsert(n int) {
 	ed.Buf().Insert(ed.inserted, ed.cfg.AutoIndent, n)
 }
@@ -169,7 +169,7 @@ func (ed *Editor) InsertLineAbove(n int, replay bool) bool {
 // Changes region from cursor to destination of motion.
 // Key: c<mv> (when <mv> is characterwise motion)
 func (ed *Editor) ChangeRegion(
-	reg rune, start buf.Loc, end buf.Loc, inclusive bool, replay bool,
+	reg rune, start, end buf.Loc, inclusive bool, replay bool,
 ) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, inclusive, false)
@@ -201,7 +201,7 @@ func (ed *Editor) ChangeRegion(
 // Changes line region from cursor to destination of motion.
 // Key: c<mv> (when <mv> is linewise motion)
 func (ed *Editor) ChangeLineRegion(
-	reg rune, start buf.Loc, end buf.Loc, replay bool,
+	reg rune, start, end buf.Loc, replay bool,
 ) bool {
 	b := ed.Buf()
 	start, end = b.ConfineRegion(start, end, true, true)
@@ -242,7 +242,7 @@ func (ed *Editor) Subst(reg rune, n int, replay bool) bool {
 		return false
 	}
 	b := ed.Buf()
-	deleted := b.Delete(n, false)
+	deleted := b.DeleteWithoutConfine(n)
 	ed.StoreRunes(reg, []string{deleted})
 	if replay {
 		if len(ed.inserted) < 1 {
