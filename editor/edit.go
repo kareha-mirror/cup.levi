@@ -36,15 +36,19 @@ func (ed *Editor) Join(n int) bool {
 	return true
 }
 
+// effective indent string
+func (ed *Editor) indent() string {
+	if ed.cfg.DetectIndent {
+		return ed.Buf().Indent
+	} else {
+		return "\t"
+	}
+}
+
 // Indent region from current cursor to destination of motion <mv>.
 // Key: > <mv>
 func (ed *Editor) IndentRegion(start, end buf.Loc) bool {
-	indent := "\t"
-	b := ed.Buf()
-	if ed.cfg.DetectIndent {
-		indent = b.Indent
-	}
-	if !b.IndentRegion(start, end, indent) {
+	if !ed.Buf().IndentRegion(start, end, ed.indent()) {
 		ed.Notice("No lines indented")
 		return false
 	}
@@ -54,12 +58,7 @@ func (ed *Editor) IndentRegion(start, end buf.Loc) bool {
 // Outdent region from current cursor to destination of motion <mv>.
 // Key: < <mv>
 func (ed *Editor) OutdentRegion(start, end buf.Loc) bool {
-	indent := "\t"
-	b := ed.Buf()
-	if ed.cfg.DetectIndent {
-		indent = b.Indent
-	}
-	if !b.OutdentRegion(start, end, indent) {
+	if !ed.Buf().OutdentRegion(start, end, ed.indent()) {
 		ed.Notice("No lines outdented")
 		return false
 	}

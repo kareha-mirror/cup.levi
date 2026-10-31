@@ -35,6 +35,19 @@ func (ed *Editor) CopyLineRegion(reg rune, start, end buf.Loc) {
 // Paste (Put)
 //
 
+// check if reg is not empty
+func (ed *Editor) hasReg(reg rune) bool {
+	if ed.CopyMode(reg) != regs.None {
+		return true
+	}
+	if reg == 0 {
+		ed.Ring("The default buffer is empty")
+	} else {
+		ed.Ring("Buffer %c is empty", reg)
+	}
+	return false
+}
+
 // Paste after cursor from register <reg>.
 // Key: "<reg>p
 func (ed *Editor) Paste(reg rune, n int) bool {
@@ -42,12 +55,7 @@ func (ed *Editor) Paste(reg rune, n int) bool {
 		ed.Error("Paste: n < 1")
 		return false
 	}
-	if ed.CopyMode(reg) == regs.None {
-		if reg == 0 {
-			ed.Ring("The default buffer is empty")
-		} else {
-			ed.Ring("Buffer %c is empty", reg)
-		}
+	if !ed.hasReg(reg) {
 		return false
 	}
 	copied := ed.CopiedContent(reg)
@@ -67,12 +75,7 @@ func (ed *Editor) PasteBefore(reg rune, n int) bool {
 		ed.Error("PasteBefore: n < 1")
 		return false
 	}
-	if ed.CopyMode(reg) == regs.None {
-		if reg == 0 {
-			ed.Ring("The default buffer is empty")
-		} else {
-			ed.Ring("Buffer %c is empty", reg)
-		}
+	if !ed.hasReg(reg) {
 		return false
 	}
 	copied := ed.CopiedContent(reg)
