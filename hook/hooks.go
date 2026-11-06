@@ -1,4 +1,4 @@
-package editor
+package hook
 
 import (
 	"os"
